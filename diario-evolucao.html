@@ -170,6 +170,89 @@
       </button>
     </footer>
 
+    <!-- Modal: registro por texto -->
+    <div class="diario-sheet-backdrop" id="diario-text-backdrop" hidden aria-hidden="true"></div>
+    <div class="diario-sheet" id="diario-sheet-text" role="dialog" aria-modal="true"
+      aria-labelledby="diario-sheet-text-title" hidden>
+      <div class="diario-sheet__grab" aria-hidden="true"></div>
+      <div class="diario-sheet__head">
+        <h2 id="diario-sheet-text-title" class="diario-sheet__title">Registro em texto</h2>
+        <p class="diario-sheet__meta" id="diario-sheet-text-day">—</p>
+      </div>
+      <div class="diario-sheet__body">
+        <p class="diario-sheet__label">Tipo de registro</p>
+        <div class="diario-kind" role="group" aria-label="Tipo">
+          <label class="diario-kind__opt">
+            <input type="radio" name="diario-text-kind" value="marco" checked />
+            <span class="diario-kind__btn">Marco alcançado</span>
+          </label>
+          <label class="diario-kind__opt diario-kind__opt--crise">
+            <input type="radio" name="diario-text-kind" value="crise" />
+            <span class="diario-kind__btn">Crise</span>
+          </label>
+        </div>
+        <label class="diario-sheet__label" for="diario-text-field">Descrição</label>
+        <textarea id="diario-text-field" class="diario-sheet__textarea"
+          placeholder="Descreva o que observou (comportamento, contexto, duração…)" rows="5"
+          autocomplete="off"></textarea>
+      </div>
+      <div class="diario-sheet__foot">
+        <button type="button" class="diario-sheet__btn diario-sheet__btn--ghost" id="diario-text-cancel">
+          Cancelar
+        </button>
+        <button type="button" class="diario-sheet__btn diario-sheet__btn--primary" id="diario-text-save">
+          Salvar no diário
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal: registro por áudio -->
+    <div class="diario-sheet-backdrop" id="diario-audio-backdrop" hidden aria-hidden="true"></div>
+    <div class="diario-sheet" id="diario-sheet-audio" role="dialog" aria-modal="true"
+      aria-labelledby="diario-sheet-audio-title" hidden>
+      <div class="diario-sheet__grab" aria-hidden="true"></div>
+      <div class="diario-sheet__head">
+        <h2 id="diario-sheet-audio-title" class="diario-sheet__title">Registro por áudio</h2>
+        <p class="diario-sheet__meta" id="diario-sheet-audio-day">—</p>
+      </div>
+      <div class="diario-sheet__body">
+        <p class="diario-sheet__label">Tipo de registro</p>
+        <div class="diario-kind" role="group" aria-label="Tipo">
+          <label class="diario-kind__opt">
+            <input type="radio" name="diario-audio-kind" value="marco" checked />
+            <span class="diario-kind__btn">Marco alcançado</span>
+          </label>
+          <label class="diario-kind__opt diario-kind__opt--crise">
+            <input type="radio" name="diario-audio-kind" value="crise" />
+            <span class="diario-kind__btn">Crise</span>
+          </label>
+        </div>
+        <div class="diario-audio-panel">
+          <button type="button" class="diario-audio-rec" id="diario-audio-toggle" aria-pressed="false"
+            aria-label="Iniciar gravação">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" aria-hidden="true">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+            </svg>
+          </button>
+          <p class="diario-audio-hint" id="diario-audio-hint">Toque no microfone para gravar (até ~2 min). Pare quando
+            terminar e ouça antes de salvar.</p>
+          <div class="diario-audio-preview" id="diario-audio-preview-wrap" hidden>
+            <audio id="diario-audio-preview" controls></audio>
+          </div>
+        </div>
+      </div>
+      <div class="diario-sheet__foot">
+        <button type="button" class="diario-sheet__btn diario-sheet__btn--ghost" id="diario-audio-cancel">
+          Cancelar
+        </button>
+        <button type="button" class="diario-sheet__btn diario-sheet__btn--primary" id="diario-audio-save" disabled>
+          Salvar no diário
+        </button>
+      </div>
+    </div>
+
     <nav class="bottom-nav" role="navigation" aria-label="Navegação principal">
       <a href="index.html" class="nav-btn" aria-label="Home">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"

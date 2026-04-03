@@ -173,6 +173,70 @@ function showToast(message) {
   }, 2800);
 }
 
+const STORAGE_KEY = 'aura-diario-v1';
+const MAX_AUDIO_BYTES = 1_200_000;
+
+function loadDiarioStore() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { dayDeltas: {}, entries: [] };
+    const p = JSON.parse(raw);
+    if (!p || typeof p !== 'object') return { dayDeltas: {}, entries: [] };
+    if (!p.dayDeltas || typeof p.dayDeltas !== 'object') p.dayDeltas = {};
+    if (!Array.isArray(p.entries)) p.entries = [];
+    return p;
+  } catch {
+    return { dayDeltas: {}, entries: [] };
+  }
+}
+
+function saveDiarioStore(store) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+}
+
+function dateKeyLocal(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function bumpDayDelta(store, dateKey, kind) {
+  if (!store.dayDeltas[dateKey]) store.dayDeltas[dateKey] = { marcos: 0, crises: 0 };
+  if (kind === 'marco') store.dayDeltas[dateKey].marcos += 1;
+  else store.dayDeltas[dateKey].crises += 1;
+}
+
+function pushDiarioEntry(store, payload) {
+  const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `e-${Date.now()}`;
+  store.entries.push({
+    id,
+    dateKey: payload.dateKey,
+    kind: payload.kind,
+    mode: payload.mode,
+    text: payload.text,
+    audioDataUrl: payload.audioDataUrl,
+    createdAt: new Date().toISOString(),
+  });
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(new Error('Leitura do áudio falhou'));
+    r.readAsDataURL(blob);
+  });
+}
+
+function pickAudioMime() {
+  if (typeof MediaRecorder === 'undefined') return '';
+  if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) return 'audio/webm;codecs=opus';
+  if (MediaRecorder.isTypeSupported('audio/webm')) return 'audio/webm';
+  if (MediaRecorder.isTypeSupported('audio/mp4')) return 'audio/mp4';
+  return '';
+}
+
 (function initDiario() {
   const strip = document.getElementById('diario-week-strip');
   const labelEl = document.getElementById('diario-week-label');
@@ -193,6 +257,23 @@ function showToast(message) {
   const optAudio = document.getElementById('diario-opt-audio');
   const optTexto = document.getElementById('diario-opt-texto');
   const btnRel = document.getElementById('diario-btn-relatorio');
+
+  const textBackdrop = document.getElementById('diario-text-backdrop');
+  const textSheet = document.getElementById('diario-sheet-text');
+  const textDayEl = document.getElementById('diario-sheet-text-day');
+  const textField = document.getElementById('diario-text-field');
+  const textCancel = document.getElementById('diario-text-cancel');
+  const textSave = document.getElementById('diario-text-save');
+
+  const audioBackdrop = document.getElementById('diario-audio-backdrop');
+  const audioSheet = document.getElementById('diario-sheet-audio');
+  const audioDayEl = document.getElementById('diario-sheet-audio-day');
+  const audioToggle = document.getElementById('diario-audio-toggle');
+  const audioHint = document.getElementById('diario-audio-hint');
+  const audioPreviewWrap = document.getElementById('diario-audio-preview-wrap');
+  const audioPreview = document.getElementById('diario-audio-preview');
+  const audioCancel = document.getElementById('diario-audio-cancel');
+  const audioSave = document.getElementById('diario-audio-save');
 
   if (!strip || !labelEl) return;
 
@@ -221,8 +302,33 @@ function showToast(message) {
     return o;
   }
 
-  function drawChart() {
+  function getMergedWeekSeries() {
+    const store = loadDiarioStore();
     const data = SAMPLE_WEEKS[weekDataIndex()];
+    const marcos = [...data.marcos];
+    const crises = [...data.crises];
+    for (let i = 0; i < 7; i++) {
+      const k = dateKeyLocal(addDays(weekStart, i));
+      const d = store.dayDeltas[k];
+      if (d) {
+        marcos[i] += d.marcos || 0;
+        crises[i] += d.crises || 0;
+      }
+    }
+    return { marcos, crises };
+  }
+
+  function selectedDateKey() {
+    return dateKeyLocal(addDays(weekStart, selectedIndex));
+  }
+
+  function formatSelectedDayLabel() {
+    const d = addDays(weekStart, selectedIndex);
+    return `${WEEKDAYS[selectedIndex]}, ${d.getDate()} ${MONTHS_SHORT[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  function drawChart() {
+    const data = getMergedWeekSeries();
     const x0 = 36;
     const x1 = 304;
     const yTop = 28;
@@ -291,6 +397,7 @@ function showToast(message) {
   });
 
   function closeFabMenu() {
+    if (!menu || !fab) return;
     menu.hidden = true;
     backdrop.hidden = true;
     backdrop.setAttribute('aria-hidden', 'true');
@@ -306,22 +413,283 @@ function showToast(message) {
     fab.setAttribute('aria-expanded', 'true');
   }
 
+  function openTextSheet() {
+    if (textDayEl) textDayEl.textContent = formatSelectedDayLabel();
+    if (textField) {
+      textField.value = '';
+      const marco = document.querySelector('input[name="diario-text-kind"][value="marco"]');
+      if (marco) marco.checked = true;
+    }
+    if (textSheet) textSheet.hidden = false;
+    if (textBackdrop) {
+      textBackdrop.hidden = false;
+      textBackdrop.setAttribute('aria-hidden', 'false');
+    }
+    if (textField) textField.focus();
+  }
+
+  function closeTextSheet() {
+    if (textSheet) textSheet.hidden = true;
+    if (textBackdrop) {
+      textBackdrop.hidden = true;
+      textBackdrop.setAttribute('aria-hidden', 'true');
+    }
+  }
+
+  let audioStream = null;
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let recordedBlob = null;
+  let recordingActive = false;
+  let previewObjectUrl = null;
+
+  function revokeAudioPreview() {
+    if (previewObjectUrl) {
+      URL.revokeObjectURL(previewObjectUrl);
+      previewObjectUrl = null;
+    }
+    if (audioPreview) audioPreview.removeAttribute('src');
+    if (audioPreviewWrap) audioPreviewWrap.hidden = true;
+  }
+
+  function discardRecordingSession() {
+    try {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
+    } catch {
+      /* ignore */
+    }
+    if (audioStream) {
+      audioStream.getTracks().forEach((t) => t.stop());
+      audioStream = null;
+    }
+    mediaRecorder = null;
+    audioChunks = [];
+    recordingActive = false;
+  }
+
+  function resetAudioModal() {
+    discardRecordingSession();
+    revokeAudioPreview();
+    recordedBlob = null;
+    if (audioToggle) {
+      audioToggle.classList.remove('diario-audio-rec--stop');
+      audioToggle.setAttribute('aria-pressed', 'false');
+      audioToggle.setAttribute('aria-label', 'Iniciar gravação');
+    }
+    if (audioSave) audioSave.disabled = true;
+    if (audioHint) {
+      audioHint.textContent =
+        'Toque no microfone para gravar (até ~2 min). Pare quando terminar e ouça antes de salvar.';
+    }
+    const marco = document.querySelector('input[name="diario-audio-kind"][value="marco"]');
+    if (marco) marco.checked = true;
+  }
+
+  function openAudioSheet() {
+    resetAudioModal();
+    if (audioDayEl) audioDayEl.textContent = formatSelectedDayLabel();
+    if (audioSheet) audioSheet.hidden = false;
+    if (audioBackdrop) {
+      audioBackdrop.hidden = false;
+      audioBackdrop.setAttribute('aria-hidden', 'false');
+    }
+  }
+
+  function closeAudioSheet() {
+    discardRecordingSession();
+    revokeAudioPreview();
+    recordedBlob = null;
+    if (audioSheet) audioSheet.hidden = true;
+    if (audioBackdrop) {
+      audioBackdrop.hidden = true;
+      audioBackdrop.setAttribute('aria-hidden', 'true');
+    }
+  }
+
   fab.addEventListener('click', () => {
     if (menu.hidden) openFabMenu();
     else closeFabMenu();
   });
   backdrop.addEventListener('click', closeFabMenu);
+
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !menu.hidden) closeFabMenu();
+    if (e.key !== 'Escape') return;
+    if (textSheet && !textSheet.hidden) {
+      closeTextSheet();
+      return;
+    }
+    if (audioSheet && !audioSheet.hidden) {
+      closeAudioSheet();
+      return;
+    }
+    if (menu && !menu.hidden) closeFabMenu();
   });
+
+  if (textBackdrop) textBackdrop.addEventListener('click', closeTextSheet);
+  if (textCancel) textCancel.addEventListener('click', closeTextSheet);
+  if (textSave) {
+    textSave.addEventListener('click', () => {
+      const body = (textField && textField.value.trim()) || '';
+      if (!body) {
+        showToast('Escreva uma descrição antes de salvar.');
+        if (textField) textField.focus();
+        return;
+      }
+      const kindInput = document.querySelector('input[name="diario-text-kind"]:checked');
+      const kind = kindInput && kindInput.value === 'crise' ? 'crise' : 'marco';
+      const dateKey = selectedDateKey();
+      const store = loadDiarioStore();
+      bumpDayDelta(store, dateKey, kind);
+      pushDiarioEntry(store, {
+        dateKey,
+        kind,
+        mode: 'text',
+        text: body,
+      });
+      saveDiarioStore(store);
+      closeTextSheet();
+      closeFabMenu();
+      drawChart();
+      showToast(kind === 'marco' ? 'Marco registrado no dia selecionado.' : 'Crise registrada no dia selecionado.');
+    });
+  }
+
+  if (audioToggle) {
+    audioToggle.addEventListener('click', async () => {
+      if (recordingActive) {
+        if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+        const rec = mediaRecorder;
+        rec.addEventListener(
+          'stop',
+          () => {
+            const chunks = audioChunks.slice();
+            const mimeType = rec.mimeType || 'audio/webm';
+            if (audioStream) {
+              audioStream.getTracks().forEach((t) => t.stop());
+              audioStream = null;
+            }
+            recordedBlob = new Blob(chunks, { type: mimeType });
+            mediaRecorder = null;
+            audioChunks = [];
+            recordingActive = false;
+            revokeAudioPreview();
+            previewObjectUrl = URL.createObjectURL(recordedBlob);
+            if (audioPreview) audioPreview.src = previewObjectUrl;
+            if (audioPreviewWrap) audioPreviewWrap.hidden = false;
+            if (audioSave) audioSave.disabled = recordedBlob.size === 0;
+            if (audioHint) {
+              audioHint.textContent =
+                recordedBlob.size > MAX_AUDIO_BYTES
+                  ? 'Áudio grande: apague e grave de novo (máx. ~2 min) ou salve pode falhar no armazenamento.'
+                  : 'Ouça o áudio e toque em Salvar no diário.';
+            }
+            if (audioToggle) {
+              audioToggle.classList.remove('diario-audio-rec--stop');
+              audioToggle.setAttribute('aria-pressed', 'false');
+              audioToggle.setAttribute('aria-label', 'Gravar de novo');
+            }
+          },
+          { once: true }
+        );
+        rec.stop();
+        return;
+      }
+
+      revokeAudioPreview();
+      recordedBlob = null;
+      if (audioSave) audioSave.disabled = true;
+      discardRecordingSession();
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showToast('Seu navegador não permite gravar áudio aqui.');
+        return;
+      }
+
+      try {
+        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch {
+        showToast('Permissão do microfone negada ou indisponível.');
+        return;
+      }
+
+      const mime = pickAudioMime();
+      try {
+        mediaRecorder = mime ? new MediaRecorder(audioStream, { mimeType: mime }) : new MediaRecorder(audioStream);
+      } catch {
+        showToast('Gravação de áudio não suportada neste aparelho.');
+        audioStream.getTracks().forEach((t) => t.stop());
+        audioStream = null;
+        return;
+      }
+
+      audioChunks = [];
+      mediaRecorder.ondataavailable = (ev) => {
+        if (ev.data && ev.data.size) audioChunks.push(ev.data);
+      };
+      mediaRecorder.start(200);
+      recordingActive = true;
+      recordedBlob = null;
+      revokeAudioPreview();
+      if (audioSave) audioSave.disabled = true;
+      audioToggle.classList.add('diario-audio-rec--stop');
+      audioToggle.setAttribute('aria-pressed', 'true');
+      audioToggle.setAttribute('aria-label', 'Parar gravação');
+      if (audioHint) audioHint.textContent = 'Gravando… toque de novo para parar.';
+    });
+  }
+
+  if (audioBackdrop) audioBackdrop.addEventListener('click', closeAudioSheet);
+  if (audioCancel) audioCancel.addEventListener('click', closeAudioSheet);
+  if (audioSave) {
+    audioSave.addEventListener('click', async () => {
+      if (!recordedBlob || recordedBlob.size === 0) {
+        showToast('Grave um áudio antes de salvar.');
+        return;
+      }
+      if (recordedBlob.size > MAX_AUDIO_BYTES) {
+        showToast('Áudio muito longo. Grave outro trecho mais curto.');
+        return;
+      }
+      let audioDataUrl;
+      try {
+        audioDataUrl = await blobToDataUrl(recordedBlob);
+      } catch {
+        showToast('Não foi possível processar o áudio.');
+        return;
+      }
+      const kindInput = document.querySelector('input[name="diario-audio-kind"]:checked');
+      const kind = kindInput && kindInput.value === 'crise' ? 'crise' : 'marco';
+      const dateKey = selectedDateKey();
+      const store = loadDiarioStore();
+      try {
+        bumpDayDelta(store, dateKey, kind);
+        pushDiarioEntry(store, {
+          dateKey,
+          kind,
+          mode: 'audio',
+          audioDataUrl,
+        });
+        saveDiarioStore(store);
+      } catch {
+        showToast('Armazenamento cheio. Apague registros antigos ou use texto.');
+        return;
+      }
+      closeAudioSheet();
+      closeFabMenu();
+      drawChart();
+      showToast('Áudio salvo no diário do dia selecionado.');
+    });
+  }
 
   optAudio.addEventListener('click', () => {
     closeFabMenu();
-    showToast('Gravação por áudio: em breve você poderá anexar notas de voz ao diário.');
+    openAudioSheet();
   });
   optTexto.addEventListener('click', () => {
     closeFabMenu();
-    showToast('Registro em texto: abra o editor para descrever o dia com calma.');
+    openTextSheet();
   });
   btnRel.addEventListener('click', () => {
     showToast('Gerando PDF do período selecionado para levar ao médico…');

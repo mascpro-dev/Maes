@@ -1,0 +1,215 @@
+/* ============================================================
+   AURA — esqueci-senha.css
+   Recuperação de senha — acolhedor e minimalista
+   ============================================================ */
+
+:root {
+  --cream-bg: #f5f5dc;
+
+  --terracotta-btn: #e2725b;
+  --terracotta-btn-hover: #d4654f;
+  --terracotta-btn-active: #c35a45;
+  --terracotta-soft-glow: rgba(226, 114, 91, 0.12);
+
+  --sage-whisper: rgba(122, 158, 126, 0.14);
+
+  --ink: #2d2a26;
+  --ink-mid: #5a5550;
+  --ink-light: #8a847c;
+
+  --white: #fffef8;
+
+  --radius-input: 14px;
+  --radius-btn: 16px;
+
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-serif: 'DM Serif Display', Georgia, serif;
+
+  --shadow-input: 0 1px 4px rgba(45, 42, 38, 0.06);
+  --app-max-w: 430px;
+
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur: 0.25s;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--ink);
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: var(--cream-bg);
+  background-image:
+    radial-gradient(ellipse 680px 480px at 88% 0%, var(--sage-whisper) 0%, transparent 62%),
+    radial-gradient(ellipse 520px 420px at -5% 100%, var(--terracotta-soft-glow) 0%, transparent 58%);
+  line-height: 1.55;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: inherit;
+}
+
+/* ── Shell ───────────────────────────────────────────────── */
+.recuperar-shell {
+  width: 100%;
+  max-width: var(--app-max-w);
+  min-height: 100dvh;
+  padding: max(28px, env(safe-area-inset-top)) 24px max(28px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Topo ────────────────────────────────────────────────── */
+.recuperar-header {
+  margin-bottom: 36px;
+}
+
+.recuperar-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.55rem, 4.5vw, 1.9rem);
+  font-weight: 400;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+
+.recuperar-lead {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--ink-mid);
+  max-width: 30ch;
+  line-height: 1.5;
+}
+
+/* ── Formulário ──────────────────────────────────────────── */
+.recuperar-main {
+  flex: 1;
+}
+
+.recuperar-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-mid);
+}
+
+.field__input {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--ink);
+  padding: 14px 16px;
+  border: 1px solid rgba(45, 42, 38, 0.1);
+  border-radius: var(--radius-input);
+  background: var(--white);
+  box-shadow: var(--shadow-input);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.field__input::placeholder {
+  color: var(--ink-light);
+  opacity: 0.85;
+}
+
+.field__input:hover {
+  border-color: rgba(45, 42, 38, 0.14);
+}
+
+.field__input:focus {
+  outline: none;
+  border-color: rgba(226, 114, 91, 0.45);
+  box-shadow: 0 0 0 3px rgba(226, 114, 91, 0.12), var(--shadow-input);
+}
+
+.btn-enviar {
+  width: 100%;
+  padding: 16px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--white);
+  background: var(--terracotta-btn);
+  border-radius: var(--radius-btn);
+  box-shadow: 0 4px 16px rgba(226, 114, 91, 0.3);
+  transition: background var(--dur) var(--ease), transform 0.15s var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.btn-enviar:hover {
+  background: var(--terracotta-btn-hover);
+  box-shadow: 0 6px 22px rgba(226, 114, 91, 0.34);
+}
+
+.btn-enviar:active {
+  background: var(--terracotta-btn-active);
+  transform: scale(0.98);
+}
+
+.btn-enviar:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* ── Rodapé ──────────────────────────────────────────────── */
+.recuperar-footer {
+  margin-top: auto;
+  padding-top: 40px;
+  text-align: center;
+}
+
+.recuperar-backlink {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink-mid);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(45, 42, 38, 0.25);
+  transition: color var(--dur) var(--ease), text-decoration-color var(--dur) var(--ease);
+}
+
+.recuperar-backlink:hover {
+  color: var(--terracotta-btn);
+  text-decoration-color: rgba(226, 114, 91, 0.45);
+}
+
+.recuperar-backlink:focus-visible {
+  outline: 2px solid var(--terracotta-btn);
+  outline-offset: 3px;
+  border-radius: 4px;
+}

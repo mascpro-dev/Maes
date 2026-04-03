@@ -11,12 +11,12 @@
   const main = document.getElementById("comm-main");
   const roomPanel = document.getElementById("room-panel");
   const btnLeave = document.getElementById("btn-leave");
-  const roomPanelTitle = document.getElementById("room-panel-title");
+  const roomPanelTitleText = document.getElementById("room-panel-title-text");
   const chatMessages = document.getElementById("chat-messages");
   const chatInput = document.getElementById("chat-input");
   const btnSend = document.getElementById("btn-send");
   const fabHeart = document.getElementById("fab-heart");
-  const fabWord = document.getElementById("fab-word");
+  const fabVoice = document.getElementById("fab-voice");
   const stageGrid = document.getElementById("stage-grid");
 
   const speakers = stageGrid
@@ -67,7 +67,8 @@
     if (!card || !roomPanel) return;
     const titleEl = card.querySelector(".room-card__title");
     const title = titleEl ? titleEl.textContent.trim() : "Sala";
-    roomPanelTitle.textContent = title.replace(/^Sala:\s*/i, "") || title;
+    const shortTitle = title.replace(/^Sala:\s*/i, "") || title;
+    if (roomPanelTitleText) roomPanelTitleText.textContent = shortTitle;
     const badge = card.querySelector(".listener-badge");
     const numEl = document.getElementById("listener-count-num");
     if (badge && numEl) {
@@ -244,15 +245,162 @@
     showToast("Coração enviado com carinho");
   });
 
-  fabWord.addEventListener("click", function () {
-    const row = document.createElement("div");
-    row.className = "chat-msg chat-msg--system";
+  /* Gravador de áudio → mensagem de voz no chat (MediaRecorder ou demo) */
+  let voiceRecording = false;
+  let mediaRecorder = null;
+  let mediaChunks = [];
+  let recordStartedAt = 0;
+
+  function formatDur(sec) {
+    sec = Math.max(0, Math.round(sec));
+    var m = Math.floor(sec / 60);
+    var s = sec % 60;
+    return m + ":" + (s < 10 ? "0" : "") + s;
+  }
+
+  function appendVoiceMessage(blobUrl, durationSec, isDemo) {
+    var row = document.createElement("div");
+    row.className = "chat-msg chat-msg--voice";
+    var uid = "voice-" + Date.now();
     row.innerHTML =
-      '<div class="chat-msg__body" style="flex:1;text-align:center"><span class="chat-msg__text">Você pediu a palavra. As moderadoras foram avisadas.</span></div>';
+      '<span class="chat-msg__avatar" style="background:linear-gradient(135deg,#7a9e7e,#c47a5b)">JM</span>' +
+      '<div class="chat-msg__body">' +
+      '<span class="chat-msg__name">Você · áudio</span>' +
+      '<div class="chat-msg__voice">' +
+      '<button type="button" class="voice-play" aria-label="Ouvir mensagem de voz">' +
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>' +
+      "</button>" +
+      '<div class="voice-wave" aria-hidden="true">' +
+      '<span></span><span></span><span></span><span></span><span></span><span></span>' +
+      "</div>" +
+      '<span class="voice-dur">' +
+      formatDur(durationSec) +
+      "</span>" +
+      (blobUrl && !isDemo
+        ? '<audio preload="metadata" src="' + blobUrl + '"></audio>'
+        : "") +
+      "</div>" +
+      (isDemo
+        ? '<span class="chat-msg__voice-note">Demonstração — ative o microfone no navegador para gravar de verdade.</span>'
+        : "") +
+      "</div>";
     chatMessages.appendChild(row);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-    showToast("Pedido de palavra registrado");
-  });
+
+    var audio = row.querySelector("audio");
+    var btn = row.querySelector(".voice-play");
+    if (audio && btn) {
+      btn.addEventListener("click", function () {
+        if (audio.paused) {
+          audio.play();
+          btn.setAttribute("aria-label", "Pausar");
+          btn.innerHTML =
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
+        } else {
+          audio.pause();
+          btn.setAttribute("aria-label", "Ouvir mensagem de voz");
+          btn.innerHTML =
+            '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+        }
+      });
+      audio.addEventListener("ended", function () {
+        btn.setAttribute("aria-label", "Ouvir mensagem de voz");
+        btn.innerHTML =
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+      });
+    }
+  }
+
+  function setVoiceFabRecording(on) {
+    if (!fabVoice) return;
+    voiceRecording = on;
+    fabVoice.classList.toggle("fab--recording", on);
+    fabVoice.setAttribute("aria-pressed", on ? "true" : "false");
+    var label = fabVoice.querySelector(".fab-voice__label");
+    if (label) {
+      label.textContent = on ? "Enviar" : "Gravar áudio";
+    }
+    fabVoice.setAttribute(
+      "aria-label",
+      on
+        ? "Gravando. Toque para parar e enviar ao chat."
+        : "Gravar mensagem de voz para o chat. Toque para começar e toque de novo para enviar."
+    );
+  }
+
+  function pickMime() {
+    var types = [
+      "audio/webm;codecs=opus",
+      "audio/webm",
+      "audio/mp4",
+    ];
+    for (var i = 0; i < types.length; i++) {
+      if (MediaRecorder.isTypeSupported(types[i])) return types[i];
+    }
+    return "";
+  }
+
+  async function startVoiceRecord() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showToast("Microfone não disponível — enviando demonstração.");
+      setTimeout(function () {
+        appendVoiceMessage(null, 4 + Math.floor(Math.random() * 5), true);
+        showToast("Áudio de demonstração enviado ao chat");
+      }, 600);
+      return;
+    }
+    try {
+      var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaChunks = [];
+      var mime = pickMime();
+      mediaRecorder = mime
+        ? new MediaRecorder(stream, { mimeType: mime })
+        : new MediaRecorder(stream);
+      mediaRecorder.ondataavailable = function (e) {
+        if (e.data && e.data.size) mediaChunks.push(e.data);
+      };
+      mediaRecorder.onstop = function () {
+        stream.getTracks().forEach(function (t) {
+          t.stop();
+        });
+        var elapsed = (Date.now() - recordStartedAt) / 1000;
+        if (elapsed < 0.5 || mediaChunks.length === 0) {
+          showToast("Gravação muito curta — tente de novo.");
+          return;
+        }
+        var blob = new Blob(mediaChunks, {
+          type: mediaRecorder.mimeType || "audio/webm",
+        });
+        var url = URL.createObjectURL(blob);
+        appendVoiceMessage(url, elapsed, false);
+        showToast("Áudio enviado ao chat");
+      };
+      recordStartedAt = Date.now();
+      mediaRecorder.start();
+      setVoiceFabRecording(true);
+    } catch (err) {
+      showToast("Não foi possível acessar o microfone.");
+      appendVoiceMessage(null, 5, true);
+    }
+  }
+
+  function stopVoiceRecord() {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      mediaRecorder.stop();
+    }
+    mediaRecorder = null;
+    setVoiceFabRecording(false);
+  }
+
+  if (fabVoice) {
+    fabVoice.addEventListener("click", function () {
+      if (voiceRecording) {
+        stopVoiceRecord();
+      } else {
+        startVoiceRecord();
+      }
+    });
+  }
 
   document.getElementById("btn-search")?.addEventListener("click", function () {
     showToast("Busca em breve");

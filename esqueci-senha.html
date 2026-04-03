@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Aura — Recuperar acesso</title>
+  <meta name="description"
+    content="Recupere o acesso à sua conta Aura com segurança. Informe o e-mail cadastrado para receber instruções." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="esqueci-senha.css" />
+</head>
+
+<body>
+
+  <div class="recuperar-shell">
+
+    <header class="recuperar-header" role="banner">
+      <h1 class="recuperar-title">Recuperar Acesso</h1>
+      <p class="recuperar-lead">Não se preocupe, vamos te ajudar a voltar.</p>
+    </header>
+
+    <main class="recuperar-main" role="main">
+      <form class="recuperar-form" action="#" method="post" id="form-recuperar">
+
+        <div class="field">
+          <label class="field__label" for="email-cadastrado">E-mail cadastrado</label>
+          <input class="field__input" type="email" id="email-cadastrado" name="email" autocomplete="email" required
+            inputmode="email" placeholder="seu@email.com" />
+        </div>
+
+        <button type="submit" class="btn-enviar">Enviar Instruções</button>
+      </form>
+    </main>
+
+    <footer class="recuperar-footer" role="contentinfo">
+      <a href="login.html" class="recuperar-backlink">Voltar para o Login</a>
+    </footer>
+  </div>
+
+</body>
+
+</html>

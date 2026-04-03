@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Aura — Verificar código</title>
+  <meta name="description"
+    content="Digite o código de 6 dígitos enviado ao seu e-mail para continuar a recuperação de senha na Aura." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="verificar-codigo.css" />
+</head>
+
+<body>
+
+  <div class="verificar-shell">
+
+    <header class="verificar-header" role="banner">
+      <h1 class="verificar-title">Verifique seu E-mail</h1>
+      <p class="verificar-lead">Enviamos um código de 6 dígitos para o seu e-mail.</p>
+    </header>
+
+    <main class="verificar-main" role="main">
+      <form class="verificar-form" id="form-verificar" action="#" method="post" novalidate>
+
+        <fieldset class="otp-fieldset">
+          <legend class="visually-hidden">Código de verificação de 6 dígitos</legend>
+          <div class="otp-group" role="group" aria-labelledby="otp-instructions">
+            <span id="otp-instructions" class="visually-hidden">Digite o código de 6 dígitos, um número em cada caixa</span>
+            <input class="otp-digit" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1"
+              autocomplete="one-time-code" data-otp-index="0" id="otp-0" name="codigo_0" aria-label="Dígito 1 de 6" />
+            <input class="otp-digit" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1"
+              data-otp-index="1" id="otp-1" name="codigo_1" aria-label="Dígito 2 de 6" />
+            <input class="otp-digit" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1"
+              data-otp-index="2" id="otp-2" name="codigo_2" aria-label="Dígito 3 de 6" />
+            <input class="otp-digit" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1"
+              data-otp-index="3" id="otp-3" name="codigo_3" aria-label="Dígito 4 de 6" />
+            <input class="otp-digit" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1"
+              data-otp-index="4" id="otp-4" name="codigo_4" aria-label="Dígito 5 de 6" />
+            <input class="otp-digit" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1"
+              data-otp-index="5" id="otp-5" name="codigo_5" aria-label="Dígito 6 de 6" />
+          </div>
+        </fieldset>
+
+        <button type="submit" class="btn-verificar">Verificar Código</button>
+      </form>
+    </main>
+
+    <footer class="verificar-footer" role="contentinfo">
+      <button type="button" class="btn-reenviar" id="btn-reenviar">Não recebeu o código? Reenviar</button>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      var form = document.getElementById('form-verificar');
+      var inputs = Array.prototype.slice.call(document.querySelectorAll('.otp-digit'));
+      if (!inputs.length) return;
+
+      function onlyDigit(c) {
+        return /^[0-9]$/.test(c);
+      }
+
+      function focusAt(i) {
+        if (i >= 0 && i < inputs.length) inputs[i].focus();
+      }
+
+      inputs.forEach(function (input, i) {
+        input.addEventListener('input', function () {
+          var v = input.value.replace(/\D/g, '');
+          if (v.length > 1) {
+            input.value = v.slice(-1);
+            v = input.value;
+          } else {
+            input.value = v;
+          }
+          if (v && i < inputs.length - 1) focusAt(i + 1);
+        });
+
+        input.addEventListener('keydown', function (e) {
+          if (e.key === 'Backspace' && !input.value && i > 0) {
+            e.preventDefault();
+            inputs[i - 1].value = '';
+            focusAt(i - 1);
+          }
+          if (e.key === 'ArrowLeft' && i > 0) {
+            e.preventDefault();
+            focusAt(i - 1);
+          }
+          if (e.key === 'ArrowRight' && i < inputs.length - 1) {
+            e.preventDefault();
+            focusAt(i + 1);
+          }
+        });
+
+        input.addEventListener('paste', function (e) {
+          e.preventDefault();
+          var text = (e.clipboardData || window.clipboardData).getData('text') || '';
+          var digits = text.replace(/\D/g, '').slice(0, 6).split('');
+          if (!digits.length) return;
+          inputs.forEach(function (inp, j) {
+            inp.value = digits[j] || '';
+          });
+          focusAt(Math.min(digits.length, inputs.length) - 1);
+          if (digits.length >= inputs.length) inputs[inputs.length - 1].focus();
+        });
+      });
+
+      form.addEventListener('submit', function (e) {
+        var code = inputs.map(function (inp) { return inp.value; }).join('');
+        if (code.length !== 6) {
+          e.preventDefault();
+          var firstEmpty = inputs.findIndex(function (inp) { return !inp.value; });
+          focusAt(firstEmpty === -1 ? 0 : firstEmpty);
+        }
+      });
+
+      document.getElementById('btn-reenviar').addEventListener('click', function () {
+        inputs.forEach(function (inp) { inp.value = ''; });
+        focusAt(0);
+      });
+    })();
+  </script>
+</body>
+
+</html>
