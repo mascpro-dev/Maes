@@ -505,9 +505,9 @@ button {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 10px 8px;
-  padding-top: max(6px, env(safe-area-inset-top));
+  gap: 6px;
+  padding: 4px 8px 6px;
+  padding-top: max(4px, env(safe-area-inset-top));
   background: rgba(0, 0, 0, 0.12);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -517,8 +517,8 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   padding: 0;
   border-radius: 50%;
   color: rgba(255, 255, 255, 0.82);
@@ -545,12 +545,12 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   margin: 0;
   font-family: var(--font-sans);
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   font-weight: 600;
-  line-height: 1.25;
+  line-height: 1.2;
   color: rgba(255, 255, 255, 0.88);
 }
 
@@ -566,74 +566,82 @@ button {
 
 .live-badge {
   flex-shrink: 0;
-  font-size: 0.58rem;
+  font-size: 0.52rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: rgba(255, 138, 122, 0.75);
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: rgba(255, 90, 70, 0.12);
+  color: rgba(255, 138, 122, 0.7);
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgba(255, 90, 70, 0.1);
 }
 
 .listener-count {
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.7rem;
+  gap: 3px;
+  font-size: 0.65rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
-  padding: 4px 8px;
+  color: rgba(255, 255, 255, 0.5);
+  padding: 3px 7px;
   background: rgba(255, 255, 255, 0.06);
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* Palco — parte superior (~45%); chat ocupa o restante (≥ metade inferior) */
+/* Palco compacto — só o necessário; o chat ganha a maior parte da tela */
 .stage {
-  flex: 0 1 45%;
-  min-height: min(220px, 38vh);
-  max-height: 48vh;
+  flex: 0 0 auto;
+  min-height: 0;
+  max-height: min(200px, 30vh);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 8px 20px 16px;
-  background: radial-gradient(ellipse 120% 80% at 50% 0%, var(--stage-bg-soft) 0%, var(--stage-bg) 65%);
+  padding: 4px 12px 8px;
+  background: linear-gradient(180deg, var(--stage-bg-soft) 0%, var(--stage-bg) 100%);
 }
 
 .stage-label {
-  font-size: 0.65rem;
+  font-size: 0.52rem;
   font-weight: 700;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.38);
-  margin-bottom: 14px;
+  color: rgba(255, 255, 255, 0.32);
+  margin-bottom: 6px;
 }
 
+/* Uma linha de participantes + você, mais denso */
 .stage-grid {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 20px 24px;
-  max-width: 340px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px 2px;
+  width: 100%;
+  max-width: 268px;
+  justify-items: center;
+  align-items: start;
 }
 
 .speaker {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  width: 76px;
+  gap: 3px;
+  width: 100%;
+  max-width: 64px;
+}
+
+.speaker--you .speaker__ring {
+  box-shadow: 0 0 0 1px rgba(200, 223, 201, 0.35);
 }
 
 .speaker__ring {
-  width: 64px;
-  height: 64px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  padding: 3px;
-  background: rgba(255, 255, 255, 0.08);
+  padding: 2px;
+  background: rgba(255, 255, 255, 0.06);
   transition: box-shadow 0.4s var(--ease), transform 0.4s var(--ease);
 }
 
@@ -646,7 +654,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.62rem;
   font-weight: 800;
   color: var(--white);
 }
@@ -658,12 +666,12 @@ button {
   display: block;
 }
 
-/* Brilho verde sálvia — quem fala */
+/* Brilho verde sálvia — proporcional ao avatar menor */
 .speaker.speaking .speaker__ring {
   box-shadow:
     0 0 0 2px var(--sage-glow-soft),
-    0 0 20px 6px var(--sage-glow),
-    0 0 40px 12px rgba(122, 158, 126, 0.25);
+    0 0 12px 4px var(--sage-glow),
+    0 0 22px 6px rgba(122, 158, 126, 0.22);
   animation: sage-glow 2.2s ease-in-out infinite;
 }
 
@@ -672,26 +680,31 @@ button {
   100% {
     box-shadow:
       0 0 0 2px var(--sage-glow-soft),
-      0 0 18px 5px var(--sage-glow),
-      0 0 36px 10px rgba(122, 158, 126, 0.22);
+      0 0 10px 3px var(--sage-glow),
+      0 0 20px 5px rgba(122, 158, 126, 0.2);
   }
   50% {
     box-shadow:
-      0 0 0 3px rgba(200, 223, 201, 0.65),
-      0 0 28px 10px rgba(122, 158, 126, 0.65),
-      0 0 52px 16px rgba(122, 158, 126, 0.3);
+      0 0 0 2px rgba(200, 223, 201, 0.55),
+      0 0 16px 6px rgba(122, 158, 126, 0.55),
+      0 0 28px 8px rgba(122, 158, 126, 0.25);
   }
 }
 
 .speaker__name {
-  font-size: 0.72rem;
+  font-size: 0.6rem;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.88);
-  max-width: 76px;
+  color: rgba(255, 255, 255, 0.82);
+  max-width: 64px;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.speaker__mic svg {
+  width: 9px;
+  height: 9px;
 }
 
 .speaker--you .speaker__name {
@@ -715,7 +728,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 16px;
+  padding: 4px 12px;
   background: var(--chat-bg);
   border-top: 1px solid var(--cream-deep);
 }

@@ -59,7 +59,7 @@
     </header>
 
     <main class="personalizacao-main" role="main">
-      <form class="personalizacao-form" action="index.html" method="get">
+      <form class="personalizacao-form" id="form-personalizacao" action="index.html" method="get">
 
         <fieldset class="chip-fieldset">
           <legend class="visually-hidden">Diagnóstico da criança</legend>
@@ -108,6 +108,25 @@
     </main>
   </div>
 
+  <script src="auth.js"></script>
+  <script>
+    (function () {
+      var form = document.getElementById('form-personalizacao');
+      if (!form) return;
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!form.reportValidity()) return;
+        var fd = new FormData(form);
+        var diag = fd.get('diagnostico');
+        var nc = (fd.get('nome_crianca') || '').trim();
+        var patch = { diagnostico: diag };
+        if (nc) patch.nomeCrianca = nc;
+        window.AuraAuth.saveProfile(patch);
+        window.AuraAuth.setLoggedIn(true);
+        window.location.href = 'index.html';
+      });
+    })();
+  </script>
 </body>
 
 </html>

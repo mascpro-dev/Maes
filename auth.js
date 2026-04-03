@@ -3,6 +3,7 @@
   'use strict';
 
   var KEY = 'aura_auth';
+  var PROFILE_KEY = 'aura_user_profile';
 
   function isLoggedIn() {
     try {
@@ -31,10 +32,45 @@
     } catch (e) { /* ignore */ }
   }
 
+  function getProfile() {
+    try {
+      var raw = localStorage.getItem(PROFILE_KEY);
+      if (!raw) return {};
+      var o = JSON.parse(raw);
+      return typeof o === 'object' && o !== null ? o : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function saveProfile(partial) {
+    try {
+      var cur = getProfile();
+      Object.keys(partial).forEach(function (k) {
+        if (partial[k] !== undefined) cur[k] = partial[k];
+      });
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(cur));
+    } catch (e) { /* ignore */ }
+  }
+
+  function initialsFromNome(nome) {
+    if (!nome || !String(nome).trim()) return 'AU';
+    var parts = String(nome).trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      var a = parts[0][0] || '';
+      var b = parts[1][0] || '';
+      return (a + b).toUpperCase();
+    }
+    return String(nome).trim().slice(0, 2).toUpperCase();
+  }
+
   window.AuraAuth = {
     isLoggedIn: isLoggedIn,
     setLoggedIn: setLoggedIn,
     clearAuth: clearAuth,
+    getProfile: getProfile,
+    saveProfile: saveProfile,
+    initialsFromNome: initialsFromNome,
     logout: function () {
       clearAuth();
       window.location.replace('login.html');

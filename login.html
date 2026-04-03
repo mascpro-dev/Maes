@@ -66,6 +66,15 @@
       form.addEventListener('submit', function (e) {
         e.preventDefault();
         if (!form.reportValidity()) return;
+        var emailInput = document.getElementById('login-email');
+        var email = (emailInput && emailInput.value.trim()) || '';
+        var prev = AuraAuth.getProfile();
+        var prevEmail = (prev.email && String(prev.email).toLowerCase()) || '';
+        if (prevEmail && prevEmail !== email.toLowerCase()) {
+          AuraAuth.saveProfile({ email: email, nomeCompleto: '' });
+        } else {
+          AuraAuth.saveProfile({ email: email });
+        }
         var lembrar = form.querySelector('input[name="lembrar"]');
         AuraAuth.setLoggedIn(lembrar && lembrar.checked);
         window.location.href = 'index.html';

@@ -5,6 +5,23 @@
 
 'use strict';
 
+/* ── Nome do cadastro na topbar ─────────────────────────── */
+(function initGreetingFromProfile() {
+  if (typeof window.AuraAuth === 'undefined') return;
+
+  const profile = window.AuraAuth.getProfile();
+  const nome = profile.nomeCompleto && String(profile.nomeCompleto).trim();
+  const display = nome || 'Bem-vinda';
+
+  const h1 = document.getElementById('greeting-name');
+  const initialsEl = document.getElementById('avatar-initials');
+  const avatar = document.getElementById('topbar-avatar');
+
+  if (h1) h1.textContent = display;
+  if (initialsEl) initialsEl.textContent = window.AuraAuth.initialsFromNome(nome);
+  if (avatar) avatar.setAttribute('aria-label', 'Foto de perfil de ' + display);
+})();
+
 /* ── Mood Selector ──────────────────────────────────────── */
 (function initMood() {
   const moods = document.querySelectorAll('.mood-btn');
