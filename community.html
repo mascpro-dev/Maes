@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Aura — Comunidade</title>
+  <meta name="description" content="Comunidade Aura: salas de voz e chat para mães atípicas se conectarem, trocarem experiências e se apoiarem. Filtros por diagnóstico." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="community.css" />
+</head>
+<body>
+
+<div class="app-shell" id="app-shell">
+
+  <!-- ══ HEADER ════════════════════════════════════════════ -->
+  <header class="comm-header" role="banner">
+    <div class="comm-header__top">
+      <div>
+        <p class="comm-header__sub">Você não está sozinha 💛</p>
+        <h1 class="comm-header__title">Comunidade</h1>
+      </div>
+      <button class="btn-header-icon" id="btn-search" aria-label="Buscar salas">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </div>
+
+    <!-- Chips de filtro -->
+    <div class="filter-chips" role="group" aria-label="Filtrar por diagnóstico">
+      <button type="button" class="chip chip--active" id="chip-all" data-filter="all" aria-pressed="true">Todas</button>
+      <button type="button" class="chip" id="chip-autism" data-filter="autism" aria-pressed="false">🧩 Autismo</button>
+      <button type="button" class="chip" id="chip-adhd" data-filter="adhd" aria-pressed="false">⚡ TDAH</button>
+      <button type="button" class="chip" id="chip-general" data-filter="general" aria-pressed="false">💬 Geral</button>
+    </div>
+  </header>
+
+  <!-- ══ MAIN SCROLL ═══════════════════════════════════════ -->
+  <main class="comm-main" id="comm-main" role="main">
+
+    <!-- ── Salas em destaque ────────────────────────────── -->
+    <section class="section" aria-labelledby="section-live">
+      <h2 class="section-title" id="section-live">
+        <span class="live-dot"></span>
+        Ao vivo agora
+      </h2>
+
+      <div class="room-list" id="room-list" role="list">
+
+        <!-- Sala 1 — Ativa / Em destaque -->
+        <article class="room-card room-card--featured" id="room-desafios"
+                 role="listitem" data-tag="autism"
+                 aria-label="Sala: Desafios da Escola, 34 ouvintes">
+          <div class="room-card__body">
+            <div class="room-tag">🧩 Autismo</div>
+            <h3 class="room-card__title">Sala: Desafios da Escola</h3>
+            <p class="room-card__desc">Como lidar com professores que não entendem as necessidades especiais</p>
+            <div class="room-card__speakers">
+              <div class="mini-avatar" style="background:linear-gradient(135deg,#7a9e7e,#5d8262)" title="Ana Lima">AL</div>
+              <div class="mini-avatar" style="background:linear-gradient(135deg,#c47a5b,#a8603e)" title="Bia Rosa">BR</div>
+              <div class="mini-avatar" style="background:linear-gradient(135deg,#9b8ab4,#7b6a9a)" title="Carla M">CM</div>
+              <span class="speakers-more">+12</span>
+            </div>
+          </div>
+          <div class="room-card__meta">
+            <div class="listener-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              34 ouvindo
+            </div>
+            <button class="btn-enter" id="btn-enter-room" aria-label="Entrar na sala Desafios da Escola">Entrar</button>
+          </div>
+        </article>
+
+        <!-- Sala 2 -->
+        <article class="room-card" id="room-remedios"
+                 role="listitem" data-tag="adhd"
+                 aria-label="Sala: Medicação e Medos, 18 ouvintes">
+          <div class="room-card__body">
+            <div class="room-tag room-tag--adhd">⚡ TDAH</div>
+            <h3 class="room-card__title">Sala: Medicação e Medos</h3>
+            <p class="room-card__desc">Medos sobre remédios e como tomar decisões com segurança</p>
+            <div class="room-card__speakers">
+              <div class="mini-avatar" style="background:linear-gradient(135deg,#d4906e,#c47a5b)" title="Flávia">FL</div>
+              <div class="mini-avatar" style="background:linear-gradient(135deg,#7a9e7e,#5d8262)" title="Gabi">GB</div>
+              <span class="speakers-more">+5</span>
+            </div>
+          </div>
+          <div class="room-card__meta">
+            <div class="listener-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              18 ouvindo
+            </div>
+            <button class="btn-enter btn-enter--outline" aria-label="Entrar na sala Medicação e Medos">Entrar</button>
+          </div>
+        </article>
+
+        <!-- Sala 3 -->
+        <article class="room-card" id="room-autocuidado"
+                 role="listitem" data-tag="general"
+                 aria-label="Sala: Autocuidado sem Culpa, 27 ouvintes">
+          <div class="room-card__body">
+            <div class="room-tag room-tag--general">💬 Geral</div>
+            <h3 class="room-card__title">Sala: Autocuidado sem Culpa</h3>
+            <p class="room-card__desc">Você também importa. Sobre cuidar de si mesma sem se sentir egoísta</p>
+            <div class="room-card__speakers">
+              <div class="mini-avatar" style="background:linear-gradient(135deg,#ba8fc4,#9b6ba6)" title="Helena">HL</div>
+              <div class="mini-avatar" style="background:linear-gradient(135deg,#7a9e7e,#5d8262)" title="Inês">IS</div>
+              <div class="mini-avatar" style="background:linear-gradient(135deg,#c47a5b,#a8603e)" title="Juliana">JM</div>
+            </div>
+          </div>
+          <div class="room-card__meta">
+            <div class="listener-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              27 ouvindo
+            </div>
+            <button class="btn-enter btn-enter--outline" aria-label="Entrar na sala Autocuidado sem Culpa">Entrar</button>
+          </div>
+        </article>
+
+        <!-- Sala 4 -->
+        <article class="room-card" id="room-sensorial"
+                 role="listitem" data-tag="general"
+                 aria-label="Sala: Crises Sensoriais, 9 ouvintes">
+          <div class="room-card__body">
+            <div class="room-tag room-tag--general">💬 Geral</div>
+            <h3 class="room-card__title">Sala: Crises Sensoriais</h3>
+            <p class="room-card__desc">Estratégias práticas para momentos de sobrecarga sensorial</p>
+            <div class="room-card__speakers">
+              <div class="mini-avatar" style="background:linear-gradient(135deg,#7a9e7e,#5d8262)" title="Karen">KR</div>
+              <span class="speakers-more">+3</span>
+            </div>
+          </div>
+          <div class="room-card__meta">
+            <div class="listener-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              9 ouvindo
+            </div>
+            <button class="btn-enter btn-enter--outline" aria-label="Entrar na sala Crises Sensoriais">Entrar</button>
+          </div>
+        </article>
+
+      </div><!-- /room-list -->
+    </section>
+
+  </main>
+
+  <!-- ══ ACTIVE ROOM PANEL ═══════════════════════════════ -->
+  <div class="room-panel hidden" id="room-panel" role="dialog" aria-modal="true" aria-label="Sala ativa: Desafios da Escola">
+
+    <!-- Room header -->
+    <div class="room-panel__header">
+      <button class="btn-leave" id="btn-leave" aria-label="Sair da sala">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Sair
+      </button>
+      <div class="room-panel__title-wrap">
+        <span class="live-badge">AO VIVO</span>
+        <h2 class="room-panel__title" id="room-panel-title">Desafios da Escola</h2>
+      </div>
+      <div class="listener-count" id="listener-count" aria-label="Ouvintes">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span id="listener-count-num">34</span>
+      </div>
+    </div>
+
+    <!-- Stage: speakers -->
+    <section class="stage" aria-label="Palestrantes no palco">
+      <p class="stage-label">No palco</p>
+      <div class="stage-grid" id="stage-grid">
+
+        <!-- Speaker 1 — speaking (glow) -->
+        <div class="speaker speaking" id="sp-ana" aria-label="Ana Lima — falando agora">
+          <div class="speaker__ring">
+            <div class="speaker__avatar" style="background:linear-gradient(135deg,#7a9e7e,#5d8262)">AL</div>
+          </div>
+          <span class="speaker__name">Ana</span>
+          <div class="speaker__mic">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="23" x2="16" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </div>
+        </div>
+
+        <!-- Speaker 2 -->
+        <div class="speaker" id="sp-bia" aria-label="Bia Rosa">
+          <div class="speaker__ring">
+            <div class="speaker__avatar" style="background:linear-gradient(135deg,#c47a5b,#a8603e)">BR</div>
+          </div>
+          <span class="speaker__name">Bia</span>
+          <div class="speaker__mic speaker__mic--muted">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </div>
+        </div>
+
+        <!-- Speaker 3 -->
+        <div class="speaker" id="sp-carla" aria-label="Carla M">
+          <div class="speaker__ring">
+            <div class="speaker__avatar" style="background:linear-gradient(135deg,#9b8ab4,#7b6a9a)">CM</div>
+          </div>
+          <span class="speaker__name">Carla</span>
+          <div class="speaker__mic speaker__mic--muted">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </div>
+        </div>
+
+        <!-- Speaker 4 (you) -->
+        <div class="speaker speaker--you" id="sp-you" aria-label="Você — ouvindo">
+          <div class="speaker__ring">
+            <div class="speaker__avatar" style="background:linear-gradient(135deg,#7a9e7e,#c47a5b)">JM</div>
+          </div>
+          <span class="speaker__name">Você</span>
+          <div class="speaker__mic speaker__mic--muted">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Divider -->
+    <div class="panel-divider" aria-hidden="true">
+      <span>Chat ao vivo</span>
+    </div>
+
+    <!-- Chat feed -->
+    <section class="chat-feed" aria-label="Chat em tempo real" aria-live="polite">
+      <div class="chat-messages" id="chat-messages" role="log" aria-label="Mensagens do chat">
+
+        <div class="chat-msg" id="msg-1">
+          <span class="chat-msg__avatar" style="background:linear-gradient(135deg,#c47a5b,#a8603e)">BR</span>
+          <div class="chat-msg__body">
+            <span class="chat-msg__name">Bia Rosa</span>
+            <span class="chat-msg__text">A escola da minha filha finalmente aceitou fazer a sala de recursos 🙏</span>
+          </div>
+        </div>
+
+        <div class="chat-msg" id="msg-2">
+          <span class="chat-msg__avatar" style="background:linear-gradient(135deg,#9b8ab4,#7b6a9a)">CM</span>
+          <div class="chat-msg__body">
+            <span class="chat-msg__name">Carla M</span>
+            <span class="chat-msg__text">Que conquista!! ❤️ Como você conseguiu?</span>
+          </div>
+        </div>
+
+        <div class="chat-msg" id="msg-3">
+          <span class="chat-msg__avatar" style="background:linear-gradient(135deg,#d4906e,#c47a5b)">FL</span>
+          <div class="chat-msg__body">
+            <span class="chat-msg__name">Flávia</span>
+            <span class="chat-msg__text">Levei o laudo e pedi reunião com supervisão. Insistência é tudo 💪</span>
+          </div>
+        </div>
+
+        <div class="chat-msg chat-msg--hearts" id="msg-hearts">
+          <span class="chat-msg__hearts">❤️❤️❤️</span>
+          <span class="chat-msg__hearts-text">3 corações enviados</span>
+        </div>
+
+        <div class="chat-msg" id="msg-4">
+          <span class="chat-msg__avatar" style="background:linear-gradient(135deg,#7a9e7e,#5d8262)">AL</span>
+          <div class="chat-msg__body">
+            <span class="chat-msg__name">Ana Lima</span>
+            <span class="chat-msg__text">O importante é ter o laudo atualizado — sem isso é mais difícil</span>
+          </div>
+        </div>
+
+        <div class="chat-msg" id="msg-5">
+          <span class="chat-msg__avatar" style="background:linear-gradient(135deg,#ba8fc4,#9b6ba6)">HL</span>
+          <div class="chat-msg__body">
+            <span class="chat-msg__name">Helena</span>
+            <span class="chat-msg__text">Posso contar minha experiência com o CEJA? 🙋‍♀️</span>
+          </div>
+        </div>
+
+      </div><!-- /chat-messages -->
+
+      <!-- Chat input -->
+      <div class="chat-input-bar">
+        <input class="chat-input" id="chat-input"
+               type="text" placeholder="Escreva uma mensagem…"
+               aria-label="Escreva uma mensagem no chat"
+               maxlength="200" />
+        <button class="btn-send" id="btn-send" aria-label="Enviar mensagem">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- Floating action buttons -->
+    <div class="fab-group" id="fab-group">
+      <button type="button" class="fab fab--heart" id="fab-heart" aria-label="Enviar coração">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span>Enviar Coração</span>
+      </button>
+      <button type="button" class="fab fab--word" id="fab-word" aria-label="Pedir a palavra">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        <span>Pedir a palavra</span>
+      </button>
+    </div>
+
+  </div><!-- /room-panel -->
+
+  <!-- ══ BOTTOM NAV ════════════════════════════════════════ -->
+  <nav class="bottom-nav" role="navigation" aria-label="Navegação principal">
+    <a href="index.html" class="nav-btn" id="nav-home" aria-label="Home">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Home</span>
+    </a>
+    <button class="nav-btn nav-btn--active" id="nav-community" aria-label="Comunidade" aria-current="page">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Comunidade</span>
+    </button>
+    <button class="nav-btn" id="nav-diary" aria-label="Diário">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      <span>Diário</span>
+    </button>
+    <button class="nav-btn" id="nav-profile" aria-label="Perfil">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Perfil</span>
+    </button>
+  </nav>
+
+</div><!-- /app-shell -->
+
+<script src="community.js"></script>
+</body>
+</html>

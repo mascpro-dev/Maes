@@ -1,15 +1,20 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Aura — Dashboard</title>
-  <meta name="description" content="Dashboard Aura: seu centro de controle para mães atípicas. Gerencie compromissos, energia, reembolsos e muito mais com carinho e organização." />
+  <meta name="description"
+    content="Dashboard Aura: seu centro de controle para mães atípicas. Gerencie compromissos, energia, reembolsos e muito mais com carinho e organização." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
 
   <!-- ========== MAIN WRAPPER ========== -->
@@ -26,7 +31,11 @@
         <h1 class="greeting-name">Juliana Moreira</h1>
       </div>
       <button class="topbar__bell" id="btn-notifications" aria-label="Notificações (3 não lidas)">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
         <span class="badge">3</span>
       </button>
     </header>
@@ -35,11 +44,11 @@
     <section class="mood-strip" aria-label="Como você está se sentindo hoje?">
       <p class="mood-question">Como você está se sentindo hoje?</p>
       <div class="mood-options" role="group" aria-label="Opções de humor">
-        <button class="mood-btn" id="mood-exausta"    aria-label="Exausta"    title="Exausta">😴</button>
-        <button class="mood-btn" id="mood-cansada"    aria-label="Cansada"    title="Cansada">😔</button>
-        <button class="mood-btn mood-btn--active" id="mood-ok" aria-label="Ok"   title="Ok">😐</button>
-        <button class="mood-btn" id="mood-bem"        aria-label="Bem"        title="Bem">🙂</button>
-        <button class="mood-btn" id="mood-radiante"   aria-label="Radiante"   title="Radiante">🌟</button>
+        <button class="mood-btn" id="mood-exausta" aria-label="Exausta" title="Exausta">😴</button>
+        <button class="mood-btn" id="mood-cansada" aria-label="Cansada" title="Cansada">😔</button>
+        <button class="mood-btn mood-btn--active" id="mood-ok" aria-label="Ok" title="Ok">😐</button>
+        <button class="mood-btn" id="mood-bem" aria-label="Bem" title="Bem">🙂</button>
+        <button class="mood-btn" id="mood-radiante" aria-label="Radiante" title="Radiante">🌟</button>
       </div>
     </section>
 
@@ -49,7 +58,13 @@
       <!-- CARD 1 — Próximo Compromisso (grande, esquerda) -->
       <article class="bento-card card--appointment card--sage" id="card-appointment" aria-label="Próximo compromisso">
         <div class="card__tag">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
           Próximo Compromisso
         </div>
         <div class="appointment__body">
@@ -59,47 +74,65 @@
           <div class="appointment__info">
             <h2 class="appointment__title">Terapia ABA</h2>
             <p class="appointment__time">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
               Hoje, 14:30
             </p>
             <p class="appointment__location">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                <circle cx="12" cy="10" r="3" />
+              </svg>
               Clínica Crescer — Moema
             </p>
           </div>
         </div>
         <div class="appointment__countdown">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
           Em <strong id="countdown">2h 34min</strong>
         </div>
         <button class="btn-directions" id="btn-directions" aria-label="Como chegar à Terapia ABA">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="3 11 22 2 13 21 11 13 3 11" />
+          </svg>
           Como chegar
         </button>
       </article>
 
       <!-- CARD 2 — Bateria da Mãe (médio, direita) -->
-      <article class="bento-card card--battery card--cream" id="card-battery" aria-label="Nível de energia - Bateria da Mãe">
+      <article class="bento-card card--battery card--cream" id="card-battery"
+        aria-label="Nível de energia - Bateria da Mãe">
         <div class="card__tag card__tag--dark">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7a2 2 0 0 1 0 10v0"/><rect x="1" y="5" width="18" height="14" rx="2" ry="2"/><line x1="5" y1="12" x2="14" y2="12"/><polyline points="11 9 14 12 11 15"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M23 7a2 2 0 0 1 0 10v0" />
+            <rect x="1" y="5" width="18" height="14" rx="2" ry="2" />
+            <line x1="5" y1="12" x2="14" y2="12" />
+            <polyline points="11 9 14 12 11 15" />
+          </svg>
           Bateria da Mãe
         </div>
         <div class="battery__gauge-wrap">
           <svg class="battery__circle" viewBox="0 0 120 120" aria-hidden="true">
             <defs>
               <linearGradient id="batteryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#8fad8a"/>
-                <stop offset="100%" style="stop-color:#c47a5b"/>
+                <stop offset="0%" style="stop-color:#8fad8a" />
+                <stop offset="100%" style="stop-color:#c47a5b" />
               </linearGradient>
             </defs>
             <!-- Track -->
             <circle class="battery__track" cx="60" cy="60" r="48" />
             <!-- Progress -->
-            <circle class="battery__progress" cx="60" cy="60" r="48"
-              stroke="url(#batteryGrad)"
-              stroke-dasharray="301.59"
-              stroke-dashoffset="90.48"
-              id="battery-progress-circle" />
+            <circle class="battery__progress" cx="60" cy="60" r="48" stroke="url(#batteryGrad)"
+              stroke-dasharray="301.59" stroke-dashoffset="90.48" id="battery-progress-circle" />
           </svg>
           <div class="battery__label">
             <span class="battery__pct" id="battery-pct">70%</span>
@@ -107,7 +140,11 @@
           </div>
         </div>
         <p class="battery__insight">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="8" x2="12" y2="12" />
+            <line x1="12" y1="16" x2="12.01" y2="16" />
+          </svg>
           Boa energia! Lembre-se de pausas curtas 💛
         </p>
       </article>
@@ -117,28 +154,41 @@
         <div class="refund__content">
           <div class="refund__text">
             <div class="card__tag card__tag--light">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
               Atalho de Reembolso
             </div>
             <h2 class="refund__title">Escanear novo recibo</h2>
             <p class="refund__sub">Tire uma foto e a IA preenche os dados automaticamente</p>
           </div>
           <button class="btn-scan" id="btn-scan" aria-label="Escanear novo recibo">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+              <circle cx="12" cy="13" r="4" />
+            </svg>
             <span>Fotografar</span>
           </button>
         </div>
         <div class="refund__pending">
           <span class="pending-dot"></span>
           <span>2 reembolsos pendentes</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
         </div>
       </article>
 
       <!-- CARD 4 — Dica Rápida (extra, canto direito inferior) -->
       <article class="bento-card card--tip card--sage-light" id="card-tip" aria-label="Dica do dia">
         <div class="card__tag card__tag--dark">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon
+              points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+          </svg>
           Dica do Dia
         </div>
         <p class="tip__emoji">🌿</p>
@@ -150,19 +200,37 @@
     <!-- ========== BOTTOM NAV ========== -->
     <nav class="bottom-nav" role="navigation" aria-label="Navegação principal">
       <button class="nav-btn nav-btn--active" id="nav-home" aria-label="Home" aria-current="page">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
         <span>Home</span>
       </button>
-      <button class="nav-btn" id="nav-community" aria-label="Comunidade">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <a href="community.html" class="nav-btn" id="nav-community" aria-label="Comunidade">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
         <span>Comunidade</span>
-      </button>
-      <button class="nav-btn" id="nav-diary" aria-label="Diário">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      </a>
+      <a href="diario-evolucao.html" class="nav-btn" id="nav-diary" aria-label="Diário">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+        </svg>
         <span>Diário</span>
-      </button>
+      </a>
       <button class="nav-btn" id="nav-profile" aria-label="Perfil">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
         <span>Perfil</span>
       </button>
     </nav>
@@ -171,4 +239,5 @@
 
   <script src="app.js"></script>
 </body>
+
 </html>

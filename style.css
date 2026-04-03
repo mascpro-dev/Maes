@@ -748,3 +748,408 @@ button {
     box-shadow: 0 0 80px rgba(45,42,38,.08);
   }
 }
+
+/* ============================================================
+   Diário de Evolução Clínica
+   ============================================================ */
+
+.app-wrapper--diario {
+  /* Nav + faixa do relatório (fixos) + respiro ao rolar */
+  padding-bottom: calc(var(--nav-h) + 104px);
+}
+
+.diario-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px 8px;
+  animation: fade-up .45s var(--ease) both;
+}
+
+.diario-header__back {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cream-card);
+  border: 1.5px solid var(--cream-deep);
+  color: var(--ink-mid);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--dur) var(--ease);
+}
+
+.diario-header__back:hover,
+.diario-header__back:focus-visible {
+  background: var(--white);
+  color: var(--sage);
+  box-shadow: var(--shadow-md);
+}
+
+.diario-header__titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.diario-header__eyebrow {
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  margin-bottom: 4px;
+}
+
+.diario-header__title {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1.2;
+  letter-spacing: -.02em;
+}
+
+/* Semana horizontal */
+.diario-week {
+  padding: 0 16px 12px;
+  animation: fade-up .5s .06s var(--ease) both;
+}
+
+.diario-week__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.diario-week__nav {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cream-card);
+  border: 1.5px solid var(--cream-deep);
+  color: var(--ink-mid);
+  transition: all var(--dur) var(--ease);
+  flex-shrink: 0;
+}
+
+.diario-week__nav:hover,
+.diario-week__nav:focus-visible {
+  background: var(--white);
+  color: var(--sage);
+  box-shadow: var(--shadow-sm);
+}
+
+.diario-week__range {
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--ink-mid);
+  text-align: center;
+  flex: 1;
+  letter-spacing: .02em;
+}
+
+.diario-week__strip {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.diario-week__strip::-webkit-scrollbar {
+  display: none;
+}
+
+.diario-day {
+  flex: 1;
+  min-width: 44px;
+  max-width: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 6px 12px;
+  border-radius: var(--radius-md);
+  background: var(--cream-card);
+  border: 1.5px solid transparent;
+  color: var(--ink-mid);
+  scroll-snap-align: start;
+  transition: all var(--dur) var(--ease);
+}
+
+.diario-day__weekday {
+  font-size: .62rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+}
+
+.diario-day__num {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.diario-day:hover,
+.diario-day:focus-visible {
+  background: var(--white);
+  border-color: var(--sage-light);
+}
+
+.diario-day--selected {
+  background: var(--white);
+  border-color: var(--sage);
+  box-shadow: var(--shadow-sm);
+  color: var(--sage);
+}
+
+.diario-day--selected .diario-day__weekday {
+  color: var(--sage-mid);
+}
+
+.diario-day--selected .diario-day__num {
+  color: var(--sage);
+}
+
+/* Gráfico */
+.diario-main {
+  padding: 0 20px 24px;
+  flex: 1;
+}
+
+.diario-chart-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(122,158,126,.2);
+  box-shadow: var(--shadow-md);
+  padding: 20px 18px 16px;
+  animation: fade-up .55s .12s var(--ease) both;
+}
+
+.diario-chart-card__head {
+  margin-bottom: 14px;
+}
+
+.diario-chart-card__title {
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -.02em;
+  margin-bottom: 4px;
+}
+
+.diario-chart-card__sub {
+  font-size: .74rem;
+  color: var(--ink-light);
+  line-height: 1.45;
+  font-weight: 500;
+}
+
+.diario-chart__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.diario-chart__legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--ink-mid);
+  letter-spacing: .02em;
+}
+
+.diario-chart__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.diario-chart__dot--marcos {
+  background: var(--sage);
+}
+
+.diario-chart__dot--crises {
+  background: var(--terracotta);
+}
+
+.diario-chart__plot {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.diario-chart__svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  max-height: 200px;
+}
+
+/* FAB + menu */
+.diario-fab-backdrop {
+  position: fixed;
+  inset: 0;
+  max-width: var(--app-max-w);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(45,42,38,.25);
+  z-index: 180;
+  backdrop-filter: blur(2px);
+}
+
+.diario-fab-stack {
+  position: fixed;
+  right: max(22px, calc(50% - var(--app-max-w) / 2 + 22px));
+  bottom: calc(var(--nav-h) + 86px);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.diario-fab-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 220px;
+}
+
+.diario-fab-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--white);
+  border: 1.5px solid var(--cream-deep);
+  box-shadow: var(--shadow-md);
+  text-align: left;
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--ink);
+  transition: all var(--dur) var(--ease);
+}
+
+.diario-fab-option:hover,
+.diario-fab-option:focus-visible {
+  border-color: var(--sage-light);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+
+.diario-fab-option__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--sage-pale);
+  color: var(--sage);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.diario-fab {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, var(--sage) 0%, #5d8262 100%);
+  color: var(--white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 28px rgba(93,130,98,.45);
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.diario-fab:hover,
+.diario-fab:focus-visible {
+  transform: scale(1.06);
+  box-shadow: 0 12px 36px rgba(93,130,98,.5);
+}
+
+.diario-fab__icon--close {
+  display: none;
+}
+
+.diario-fab--open .diario-fab__icon--plus {
+  display: none;
+}
+
+.diario-fab--open .diario-fab__icon--close {
+  display: block;
+}
+
+.diario-fab--open {
+  transform: rotate(0deg);
+  background: var(--ink);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Rodapé relatório */
+.diario-report-bar {
+  position: fixed;
+  bottom: var(--nav-h);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--app-max-w);
+  padding: 10px 20px 12px;
+  background: rgba(250,246,239,.94);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-top: 1px solid rgba(122,158,126,.22);
+  z-index: 150;
+  box-shadow: 0 -6px 24px rgba(45,42,38,.06);
+}
+
+.diario-report-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  background: var(--white);
+  border: 1.5px solid rgba(122,158,126,.35);
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: .02em;
+  transition: all var(--dur) var(--ease);
+}
+
+.diario-report-btn:hover,
+.diario-report-btn:focus-visible {
+  border-color: var(--sage);
+  background: var(--sage-pale);
+  box-shadow: var(--shadow-sm);
+}
+
+.diario-report-btn__icon {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.bottom-nav a.nav-btn {
+  text-decoration: none;
+  color: inherit;
+}
