@@ -1,0 +1,344 @@
+/* ============================================================
+   AURA — cadastro-personalizacao.css
+   Etapa 2: personalização — acolhimento e empatia
+   ============================================================ */
+
+:root {
+  --sage-btn: #87a96b;
+  --sage-btn-hover: #7a9a5f;
+  --sage-btn-active: #6d8a54;
+  --sage-muted: rgba(135, 169, 107, 0.14);
+  --sage-ring: rgba(135, 169, 107, 0.35);
+
+  --cream: #f7f3ec;
+  --cream-warm: #f2ebe0;
+  --cream-card: #fffcf7;
+
+  --ink: #2a2622;
+  --ink-mid: #524c45;
+  --ink-soft: #6b655c;
+
+  --white: #ffffff;
+  --terracotta-whisper: rgba(196, 122, 91, 0.08);
+
+  --radius-chip: 999px;
+  --radius-input: 16px;
+  --radius-btn: 18px;
+
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-serif: 'DM Serif Display', Georgia, serif;
+
+  --shadow-soft: 0 2px 12px rgba(42, 38, 34, 0.05);
+  --shadow-card: 0 8px 32px rgba(42, 38, 34, 0.07);
+  --app-max-w: 430px;
+
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur: 0.28s;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--ink);
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: var(--cream);
+  background-image:
+    radial-gradient(ellipse 100% 80% at 50% -20%, var(--sage-muted) 0%, transparent 55%),
+    radial-gradient(ellipse 90% 70% at 100% 60%, var(--terracotta-whisper) 0%, transparent 50%),
+    linear-gradient(180deg, var(--cream-warm) 0%, var(--cream) 45%, var(--cream) 100%);
+  line-height: 1.55;
+  position: relative;
+  overflow-x: hidden;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Ilustração de fundo (line art) ───────────────────────── */
+.personalizacao-page {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  max-width: 100%;
+}
+
+.personalizacao-art {
+  width: min(118vw, 520px);
+  height: auto;
+  max-height: 48dvh;
+  margin-bottom: -2dvh;
+  opacity: 0.92;
+  filter: blur(0.3px);
+}
+
+/* ── Shell ───────────────────────────────────────────────── */
+.personalizacao-shell {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: var(--app-max-w);
+  min-height: 100dvh;
+  padding: max(16px, env(safe-area-inset-top)) 24px max(36px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ──────────────────────────────────────────────── */
+.personalizacao-header {
+  margin-bottom: 26px;
+}
+
+.personalizacao-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: 0 0 12px -8px;
+  border-radius: 12px;
+  color: var(--ink-soft);
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+
+.personalizacao-back:hover {
+  background: rgba(255, 255, 255, 0.65);
+  color: var(--ink-mid);
+}
+
+.personalizacao-back:focus-visible {
+  outline: 2px solid var(--sage-btn);
+  outline-offset: 2px;
+}
+
+.personalizacao-progress {
+  margin-bottom: 20px;
+}
+
+.personalizacao-progress__track {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(42, 38, 34, 0.07);
+  overflow: hidden;
+}
+
+.personalizacao-progress__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(135, 169, 107, 0.45), var(--sage-btn));
+  transition: width var(--dur) var(--ease);
+}
+
+.personalizacao-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.45rem, 4.2vw, 1.85rem);
+  font-weight: 400;
+  line-height: 1.28;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  max-width: 20ch;
+}
+
+/* ── Form & chips ─────────────────────────────────────────── */
+.personalizacao-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.personalizacao-form {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.chip-fieldset {
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chip {
+  position: relative;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.chip input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  clip: rect(0, 0, 0, 0);
+}
+
+.chip__face {
+  display: inline-block;
+  padding: 12px 18px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ink-mid);
+  background: var(--cream-card);
+  border: 1px solid rgba(42, 38, 34, 0.09);
+  border-radius: var(--radius-chip);
+  box-shadow: var(--shadow-soft);
+  transition:
+    background var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    transform 0.15s var(--ease);
+}
+
+.chip:hover .chip__face {
+  border-color: rgba(135, 169, 107, 0.35);
+  background: var(--white);
+  box-shadow: var(--shadow-card);
+}
+
+.chip input:focus-visible + .chip__face {
+  outline: 2px solid var(--sage-btn);
+  outline-offset: 2px;
+}
+
+.chip input:checked + .chip__face {
+  background: linear-gradient(145deg, rgba(135, 169, 107, 0.18), rgba(255, 252, 247, 0.95));
+  border-color: rgba(135, 169, 107, 0.55);
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 4px 20px rgba(135, 169, 107, 0.15);
+}
+
+.chip:active .chip__face {
+  transform: scale(0.98);
+}
+
+/* ── Campo opcional ──────────────────────────────────────── */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-mid);
+}
+
+.field__optional {
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+
+.field__input {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--ink);
+  padding: 16px 18px;
+  border: 1px solid rgba(42, 38, 34, 0.1);
+  border-radius: var(--radius-input);
+  background: rgba(255, 252, 247, 0.92);
+  backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-soft);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.field__input::placeholder {
+  color: var(--ink-soft);
+  opacity: 0.75;
+}
+
+.field__input:hover {
+  border-color: rgba(42, 38, 34, 0.14);
+}
+
+.field__input:focus {
+  outline: none;
+  border-color: rgba(135, 169, 107, 0.55);
+  box-shadow: 0 0 0 3px var(--sage-ring), var(--shadow-soft);
+}
+
+/* ── Botão final ─────────────────────────────────────────── */
+.btn-concluir {
+  margin-top: 8px;
+  width: 100%;
+  padding: 17px 22px;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.015em;
+  color: var(--white);
+  background: var(--sage-btn);
+  border-radius: var(--radius-btn);
+  box-shadow: 0 6px 24px rgba(135, 169, 107, 0.32);
+  transition:
+    background var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease),
+    transform 0.15s var(--ease);
+}
+
+.btn-concluir:hover {
+  background: var(--sage-btn-hover);
+  box-shadow: 0 8px 28px rgba(135, 169, 107, 0.38);
+}
+
+.btn-concluir:active {
+  background: var(--sage-btn-active);
+  transform: scale(0.985);
+}
+
+.btn-concluir:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}

@@ -29,7 +29,8 @@
     </header>
 
     <main class="cadastro-main" role="main">
-      <form class="cadastro-form" id="form-cadastro" action="#" method="post">
+      <form class="cadastro-form" id="form-cadastro" action="cadastro-personalizacao.html" method="get"
+        data-next-step="cadastro-personalizacao.html">
 
         <div class="field">
           <label class="field__label" for="nome-completo">Nome completo</label>
@@ -67,6 +68,18 @@
     </main>
   </div>
 
+  <script>
+    (function () {
+      var form = document.getElementById('form-cadastro');
+      if (!form) return;
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!form.reportValidity()) return;
+        var next = form.getAttribute('data-next-step') || 'cadastro-personalizacao.html';
+        window.location.href = next;
+      });
+    })();
+  </script>
 </body>
 
 </html>
