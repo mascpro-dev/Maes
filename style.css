@@ -737,6 +737,38 @@ a.btn-scan {
   box-shadow: 0 -8px 32px rgba(45,42,38,.08);
 }
 
+/* Logo temporária: visível só na sidebar desktop (≥960px) */
+.sidebar-brand {
+  display: none;
+  text-decoration: none;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sidebar-brand:focus-visible {
+  outline: 2px solid var(--sage);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.sidebar-brand__mark {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.sidebar-brand__mark svg {
+  display: block;
+}
+
+.sidebar-brand__text {
+  font-family: var(--font-serif);
+  font-size: 1.28rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  line-height: 1;
+}
+
 .nav-btn {
   display: flex;
   flex-direction: column;
@@ -908,6 +940,20 @@ a.btn-scan {
     box-shadow: 4px 0 24px rgba(45,42,38,.06);
   }
 
+  .sidebar-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 8px 20px;
+    margin: -4px 0 4px;
+    border-bottom: 1px solid rgba(196,122,91,.18);
+  }
+
+  .sidebar-brand:hover .sidebar-brand__text {
+    color: var(--terracotta-mid);
+  }
+
   .app-wrapper:has(> .bottom-nav) .nav-btn {
     flex-direction: row;
     justify-content: flex-start;
@@ -955,8 +1001,9 @@ a.btn-scan {
   }
 
   .card--refund {
-    grid-column: 1 / 4;
-    grid-row: 3;
+    grid-column: 2 / 4;
+    grid-row: 2;
+    align-self: stretch;
   }
 
   .app-wrapper--diario .diario-header {
