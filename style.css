@@ -1,0 +1,750 @@
+/* ============================================================
+   AURA — Dashboard CSS
+   Paleta: Verde Sálvia · Terracota Suave · Creme
+   ============================================================ */
+
+/* ── Tokens ─────────────────────────────────────────────── */
+:root {
+  /* Cores principais */
+  --sage:          #7a9e7e;
+  --sage-mid:      #8fad8a;
+  --sage-light:    #c8dfc9;
+  --sage-pale:     #e8f2e9;
+
+  --terracotta:    #c47a5b;
+  --terracotta-mid:#d4906e;
+  --terracotta-light: #f0c4aa;
+  --terracotta-pale:  #fdf0e8;
+
+  --cream:         #f5efe4;
+  --cream-deep:    #ede4d4;
+  --cream-card:    #faf6ef;
+
+  --ink:           #2d2a26;
+  --ink-mid:       #5a5550;
+  --ink-light:     #a09a92;
+
+  --white:         #ffffff;
+
+  /* Sombras */
+  --shadow-sm: 0 2px 8px rgba(45,42,38,.06);
+  --shadow-md: 0 6px 24px rgba(45,42,38,.10);
+  --shadow-lg: 0 16px 48px rgba(45,42,38,.14);
+
+  /* Radii */
+  --radius-sm:  12px;
+  --radius-md:  20px;
+  --radius-lg:  28px;
+  --radius-xl:  36px;
+
+  /* App dimensions */
+  --app-max-w:  430px;
+  --nav-h:      80px;
+
+  /* Fontes */
+  --font-sans:   'DM Sans', system-ui, sans-serif;
+  --font-serif:  'DM Serif Display', Georgia, serif;
+
+  /* Transições */
+  --ease:        cubic-bezier(.32,.72,0,1);
+  --dur:         .28s;
+}
+
+/* ── Reset & Base ────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+
+  /* Subtle organic background texture */
+  background-image:
+    radial-gradient(ellipse 800px 600px at 80% -10%, rgba(122,158,126,.12) 0%, transparent 70%),
+    radial-gradient(ellipse 600px 500px at -10% 90%, rgba(196,122,91,.08) 0%, transparent 70%);
+}
+
+button {
+  font-family: var(--font-sans);
+  cursor: pointer;
+  border: none;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── App Wrapper ─────────────────────────────────────────── */
+.app-wrapper {
+  width: 100%;
+  max-width: var(--app-max-w);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  padding-bottom: calc(var(--nav-h) + 16px);
+  overflow: hidden;
+}
+
+/* ── Top Bar ─────────────────────────────────────────────── */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 22px 10px;
+}
+
+.topbar__avatar {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.avatar-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--sage) 0%, var(--terracotta) 100%);
+  color: var(--white);
+  font-weight: 700;
+  font-size: .85rem;
+  letter-spacing: .04em;
+}
+
+.avatar-status {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #5dc872;
+  border: 2px solid var(--cream);
+}
+
+.topbar__greeting {
+  flex: 1;
+}
+
+.greeting-sub {
+  font-size: .78rem;
+  color: var(--ink-light);
+  font-weight: 400;
+  letter-spacing: .02em;
+}
+
+.greeting-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+  letter-spacing: -.02em;
+}
+
+.topbar__bell {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--cream-card);
+  border: 1.5px solid var(--cream-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-mid);
+  transition: all var(--dur) var(--ease);
+  box-shadow: var(--shadow-sm);
+}
+
+.topbar__bell:hover,
+.topbar__bell:focus-visible {
+  background: var(--white);
+  box-shadow: var(--shadow-md);
+  transform: scale(1.06);
+}
+
+.badge {
+  position: absolute;
+  top: 6px;
+  right: 7px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--terracotta);
+  color: var(--white);
+  font-size: .6rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--cream);
+}
+
+/* ── Mood Strip ──────────────────────────────────────────── */
+.mood-strip {
+  padding: 10px 22px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mood-question {
+  font-size: .82rem;
+  color: var(--ink-mid);
+  font-weight: 500;
+}
+
+.mood-options {
+  display: flex;
+  gap: 8px;
+}
+
+.mood-btn {
+  flex: 1;
+  height: 50px;
+  border-radius: var(--radius-sm);
+  background: var(--cream-card);
+  border: 1.5px solid var(--cream-deep);
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--dur) var(--ease);
+  box-shadow: var(--shadow-sm);
+  filter: grayscale(40%);
+}
+
+.mood-btn:hover,
+.mood-btn:focus-visible {
+  transform: translateY(-3px) scale(1.08);
+  box-shadow: var(--shadow-md);
+  filter: grayscale(0%);
+  border-color: var(--sage-light);
+}
+
+.mood-btn--active {
+  background: var(--sage-pale);
+  border-color: var(--sage-mid);
+  filter: grayscale(0%);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 18px rgba(122,158,126,.25);
+}
+
+/* ── Bento Grid ──────────────────────────────────────────── */
+.bento-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 14px;
+  padding: 0 16px;
+}
+
+/* Grid layout */
+.card--appointment { grid-column: 1; grid-row: 1 / 3; }
+.card--battery     { grid-column: 2; grid-row: 1; }
+.card--refund      { grid-column: 1 / 3; grid-row: 3; }
+.card--tip         { grid-column: 2; grid-row: 2; }
+
+/* ── Bento Card Base ─────────────────────────────────────── */
+.bento-card {
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+  box-shadow: var(--shadow-md);
+}
+
+.bento-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid rgba(255,255,255,.35);
+  pointer-events: none;
+}
+
+.bento-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── Card Themes ─────────────────────────────────────────── */
+.card--sage {
+  background: linear-gradient(160deg, var(--sage) 0%, #5d8262 100%);
+  color: var(--white);
+}
+
+.card--cream {
+  background: var(--cream-card);
+  color: var(--ink);
+}
+
+.card--terracotta {
+  background: linear-gradient(140deg, var(--terracotta) 0%, #a8603e 100%);
+  color: var(--white);
+}
+
+.card--sage-light {
+  background: linear-gradient(150deg, var(--sage-pale) 0%, var(--cream-card) 100%);
+  color: var(--ink);
+}
+
+/* ── Card Tag ────────────────────────────────────────────── */
+.card__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  background: rgba(255,255,255,.22);
+  color: rgba(255,255,255,.9);
+  border-radius: 30px;
+  padding: 4px 10px;
+  margin-bottom: 16px;
+  backdrop-filter: blur(4px);
+}
+
+.card__tag--dark {
+  background: rgba(45,42,38,.10);
+  color: var(--ink-mid);
+}
+
+.card__tag--light {
+  background: rgba(255,255,255,.25);
+  color: rgba(255,255,255,.9);
+}
+
+/* ── Appointment Card ────────────────────────────────────── */
+.card--appointment {
+  display: flex;
+  flex-direction: column;
+  min-height: 270px;
+}
+
+/* Decorative blob */
+.card--appointment::after {
+  content: '';
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  background: rgba(255,255,255,.08);
+  border-radius: 50%;
+  top: -30px;
+  right: -30px;
+  pointer-events: none;
+}
+
+.appointment__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  flex: 1;
+}
+
+.appointment__icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-sm);
+  background: rgba(255,255,255,.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  backdrop-filter: blur(4px);
+}
+
+.appointment__title {
+  font-family: var(--font-serif);
+  font-size: 1.4rem;
+  font-weight: 400;
+  line-height: 1.2;
+  color: var(--white);
+}
+
+.appointment__time,
+.appointment__location {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .77rem;
+  color: rgba(255,255,255,.8);
+  font-weight: 500;
+}
+
+.appointment__countdown {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: .72rem;
+  color: rgba(255,255,255,.75);
+  margin-top: 8px;
+  margin-bottom: 14px;
+}
+
+.appointment__countdown strong {
+  color: var(--white);
+  font-weight: 700;
+}
+
+.btn-directions {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--sage);
+  font-weight: 700;
+  font-size: .84rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  letter-spacing: .01em;
+  transition: all var(--dur) var(--ease);
+  box-shadow: 0 4px 16px rgba(0,0,0,.12);
+}
+
+.btn-directions:hover,
+.btn-directions:focus-visible {
+  background: var(--sage-pale);
+  transform: scale(1.02);
+  box-shadow: 0 6px 22px rgba(0,0,0,.18);
+}
+
+/* ── Battery Card ────────────────────────────────────────── */
+.card--battery {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.battery__gauge-wrap {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin: 10px auto 8px;
+}
+
+.battery__circle {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.battery__track {
+  fill: none;
+  stroke: var(--cream-deep);
+  stroke-width: 10;
+}
+
+.battery__progress {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1s var(--ease);
+}
+
+.battery__label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+
+.battery__pct {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--sage);
+  letter-spacing: -.03em;
+  line-height: 1;
+}
+
+.battery__sub {
+  font-size: .62rem;
+  color: var(--ink-light);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.battery__insight {
+  font-size: .72rem;
+  color: var(--ink-mid);
+  text-align: center;
+  line-height: 1.45;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.battery__insight svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--sage);
+}
+
+/* ── Refund Card ─────────────────────────────────────────── */
+.card--refund {
+  padding: 22px 22px 16px;
+}
+
+/* Decorative circles */
+.card--refund::after {
+  content: '';
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  background: rgba(255,255,255,.07);
+  border-radius: 50%;
+  bottom: -80px;
+  right: -60px;
+  pointer-events: none;
+}
+
+.refund__content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.refund__text {
+  flex: 1;
+}
+
+.refund__title {
+  font-family: var(--font-serif);
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: var(--white);
+  line-height: 1.2;
+  margin-bottom: 4px;
+  margin-top: 2px;
+}
+
+.refund__sub {
+  font-size: .73rem;
+  color: rgba(255,255,255,.75);
+  line-height: 1.45;
+}
+
+.btn-scan {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.22);
+  color: var(--white);
+  border: 2px solid rgba(255,255,255,.35);
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  backdrop-filter: blur(6px);
+  transition: all var(--dur) var(--ease);
+  z-index: 1;
+}
+
+.btn-scan:hover,
+.btn-scan:focus-visible {
+  background: rgba(255,255,255,.35);
+  transform: scale(1.08);
+  box-shadow: 0 8px 30px rgba(0,0,0,.2);
+}
+
+.btn-scan svg {
+  transition: transform var(--dur) var(--ease);
+}
+
+.btn-scan:hover svg {
+  transform: scale(1.15) rotate(-8deg);
+}
+
+.refund__pending {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: .74rem;
+  color: rgba(255,255,255,.82);
+  font-weight: 500;
+  border-top: 1px solid rgba(255,255,255,.2);
+  padding-top: 12px;
+}
+
+.pending-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffd166;
+  flex-shrink: 0;
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .6; transform: scale(.8); }
+}
+
+.refund__pending svg {
+  margin-left: auto;
+  opacity: .7;
+}
+
+/* ── Tip Card ────────────────────────────────────────────── */
+.card--tip {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tip__emoji {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.tip__text {
+  font-size: .75rem;
+  color: var(--ink-mid);
+  line-height: 1.55;
+  font-style: italic;
+}
+
+/* ── Bottom Navigation ───────────────────────────────────── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--app-max-w);
+  height: var(--nav-h);
+  background: rgba(245,239,228,.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-top: 1px solid rgba(196,122,91,.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 10px 10px;
+  z-index: 100;
+  box-shadow: 0 -8px 32px rgba(45,42,38,.08);
+}
+
+.nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-light);
+  font-size: .65rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  transition: all var(--dur) var(--ease);
+  position: relative;
+}
+
+.nav-btn::before {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%) scale(0);
+  width: 24px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--sage);
+  transition: transform var(--dur) var(--ease);
+}
+
+.nav-btn:hover,
+.nav-btn:focus-visible {
+  color: var(--sage);
+  background: var(--sage-pale);
+}
+
+.nav-btn--active {
+  color: var(--sage);
+}
+
+.nav-btn--active::before {
+  transform: translateX(-50%) scale(1);
+}
+
+.nav-btn--active svg {
+  stroke: var(--sage);
+}
+
+/* ── Animations ──────────────────────────────────────────── */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.topbar        { animation: fade-up .45s var(--ease) both; }
+.mood-strip    { animation: fade-up .5s .06s var(--ease) both; }
+.card--appointment { animation: fade-up .55s .12s var(--ease) both; }
+.card--battery     { animation: fade-up .55s .18s var(--ease) both; }
+.card--tip         { animation: fade-up .55s .24s var(--ease) both; }
+.card--refund      { animation: fade-up .55s .30s var(--ease) both; }
+
+/* ── Focus Styles ────────────────────────────────────────── */
+:focus-visible {
+  outline: 2.5px solid var(--sage);
+  outline-offset: 3px;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--sage-light);
+  border-radius: 4px;
+}
+
+/* ── Responsive tweaks ───────────────────────────────────── */
+@media (max-width: 380px) {
+  .appointment__title { font-size: 1.2rem; }
+  .refund__title { font-size: 1.1rem; }
+  .bento-grid { gap: 10px; padding: 0 12px; }
+  .bento-card { padding: 16px; }
+}
+
+@media (min-width: 431px) {
+  body { background-attachment: fixed; }
+  .app-wrapper {
+    border-left: 1px solid rgba(196,122,91,.12);
+    border-right: 1px solid rgba(196,122,91,.12);
+    box-shadow: 0 0 80px rgba(45,42,38,.08);
+  }
+}
