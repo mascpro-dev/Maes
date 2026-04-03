@@ -1,0 +1,268 @@
+/* ============================================================
+   AURA — cadastro.css
+   Primeira tela de cadastro — suporte materno
+   ============================================================ */
+
+:root {
+  --terracotta-btn: #e2725b;
+  --terracotta-btn-hover: #d4654f;
+  --terracotta-btn-active: #c35a45;
+
+  --sage-soft: #7a9e7e;
+  --sage-pale: #e8f2e9;
+
+  --cream: #f5efe4;
+  --cream-card: #faf6ef;
+
+  --ink: #2d2a26;
+  --ink-mid: #5a5550;
+  --ink-light: #8a847c;
+
+  --white: #ffffff;
+
+  --radius-input: 14px;
+  --radius-btn: 16px;
+
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-serif: 'DM Serif Display', Georgia, serif;
+
+  --shadow-input: 0 1px 3px rgba(45, 42, 38, 0.06);
+  --app-max-w: 430px;
+
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur: 0.25s;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--ink);
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: var(--cream);
+  background-image:
+    radial-gradient(ellipse 720px 520px at 85% -5%, rgba(122, 158, 126, 0.1) 0%, transparent 65%),
+    radial-gradient(ellipse 560px 480px at -5% 100%, rgba(226, 114, 91, 0.06) 0%, transparent 60%);
+  line-height: 1.5;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: inherit;
+}
+
+/* ── Shell ───────────────────────────────────────────────── */
+.cadastro-shell {
+  width: 100%;
+  max-width: var(--app-max-w);
+  min-height: 100dvh;
+  padding: max(20px, env(safe-area-inset-top)) 24px max(32px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header & progresso discreto ─────────────────────────── */
+.cadastro-header {
+  margin-bottom: 28px;
+}
+
+.cadastro-progress {
+  margin-bottom: 22px;
+}
+
+.cadastro-progress__track {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(45, 42, 38, 0.08);
+  overflow: hidden;
+}
+
+.cadastro-progress__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(122, 158, 126, 0.55), var(--sage-soft));
+  transition: width var(--dur) var(--ease);
+}
+
+.cadastro-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.5rem, 4.5vw, 1.75rem);
+  font-weight: 400;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+/* ── Form ─────────────────────────────────────────────────── */
+.cadastro-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.cadastro-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-mid);
+}
+
+.field__input {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--ink);
+  padding: 14px 16px;
+  border: 1px solid rgba(45, 42, 38, 0.1);
+  border-radius: var(--radius-input);
+  background: var(--white);
+  box-shadow: var(--shadow-input);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.field__input::placeholder {
+  color: var(--ink-light);
+  opacity: 0.85;
+}
+
+.field__input:hover {
+  border-color: rgba(45, 42, 38, 0.14);
+}
+
+.field__input:focus {
+  outline: none;
+  border-color: rgba(122, 158, 126, 0.65);
+  box-shadow: 0 0 0 3px var(--sage-pale), var(--shadow-input);
+}
+
+/* ── Checkbox ────────────────────────────────────────────── */
+.field--checkbox {
+  margin-top: 4px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--ink-mid);
+}
+
+.checkbox-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  clip: rect(0, 0, 0, 0);
+}
+
+.checkbox-box {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  border-radius: 6px;
+  border: 1.5px solid rgba(45, 42, 38, 0.2);
+  background: var(--white);
+  box-shadow: var(--shadow-input);
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+
+.checkbox-input:focus-visible + .checkbox-box {
+  outline: 2px solid var(--sage-soft);
+  outline-offset: 2px;
+}
+
+.checkbox-input:checked + .checkbox-box {
+  background: var(--sage-soft);
+  border-color: var(--sage-soft);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='11' viewBox='0 0 14 11' fill='none'%3E%3Cpath d='M1 5.5L5 9.5L13 1' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.checkbox-text {
+  flex: 1;
+}
+
+.inline-link {
+  color: var(--sage-soft);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(122, 158, 126, 0.45);
+  transition: color var(--dur) var(--ease), text-decoration-color var(--dur) var(--ease);
+}
+
+.inline-link:hover {
+  color: #5f8563;
+  text-decoration-color: rgba(95, 133, 99, 0.6);
+}
+
+/* ── Botão Próximo ───────────────────────────────────────── */
+.btn-proximo {
+  margin-top: 12px;
+  width: 100%;
+  padding: 16px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--white);
+  background: var(--terracotta-btn);
+  border-radius: var(--radius-btn);
+  box-shadow: 0 4px 14px rgba(226, 114, 91, 0.35);
+  transition: background var(--dur) var(--ease), transform 0.15s var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.btn-proximo:hover {
+  background: var(--terracotta-btn-hover);
+  box-shadow: 0 6px 20px rgba(226, 114, 91, 0.38);
+}
+
+.btn-proximo:active {
+  background: var(--terracotta-btn-active);
+  transform: scale(0.98);
+}
+
+.btn-proximo:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}

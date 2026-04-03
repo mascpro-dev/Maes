@@ -1186,6 +1186,30 @@ a.btn-scan {
 .diario-report-btn__icon {
   display: flex;
   flex-shrink: 0;
+  color: var(--sage);
+}
+
+.diario-pdf-icon {
+  display: block;
+}
+
+.diario-chart__y-labels,
+.diario-chart__x-labels {
+  pointer-events: none;
+}
+
+.diario-chart__y-labels {
+  font-size: 9px;
+  font-weight: 500;
+  fill: var(--ink-light);
+  font-family: var(--font-sans);
+}
+
+.diario-chart__x-labels {
+  font-size: 8.5px;
+  font-weight: 600;
+  fill: var(--ink-light);
+  font-family: var(--font-sans);
 }
 
 .bottom-nav a.nav-btn {

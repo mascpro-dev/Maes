@@ -71,7 +71,7 @@
           </span>
         </div>
         <div class="diario-chart__plot">
-          <svg class="diario-chart__svg" id="diario-chart-svg" viewBox="0 0 320 168" preserveAspectRatio="xMidYMid meet"
+          <svg class="diario-chart__svg" id="diario-chart-svg" viewBox="0 0 320 176" preserveAspectRatio="xMidYMid meet"
             aria-hidden="true">
             <defs>
               <linearGradient id="diario-fill-marcos" x1="0" y1="0" x2="0" y2="1">
@@ -83,7 +83,6 @@
                 <stop offset="100%" stop-color="#c47a5b" stop-opacity="0" />
               </linearGradient>
             </defs>
-            <!-- Grid horizontal -->
             <g class="diario-chart__grid" stroke="rgba(45,42,38,.08)" stroke-width="1">
               <line x1="36" y1="28" x2="304" y2="28" />
               <line x1="36" y1="58" x2="304" y2="58" />
@@ -91,21 +90,16 @@
               <line x1="36" y1="118" x2="304" y2="118" />
               <line x1="36" y1="138" x2="304" y2="138" stroke="rgba(45,42,38,.12)" />
             </g>
-            <g class="diario-chart__y-labels" fill="var(--ink-light)" font-size="9" font-family="var(--font-sans)">
-              <text x="30" y="32" text-anchor="end">8</text>
-              <text x="30" y="62" text-anchor="end">6</text>
-              <text x="30" y="92" text-anchor="end">4</text>
-              <text x="30" y="122" text-anchor="end">2</text>
-              <text x="30" y="142" text-anchor="end">0</text>
-            </g>
+            <g id="diario-y-labels" class="diario-chart__y-labels"></g>
             <path id="diario-area-marcos" fill="url(#diario-fill-marcos)" />
             <path id="diario-area-crises" fill="url(#diario-fill-crises)" />
-            <path id="diario-line-marcos" fill="none" stroke="#7a9e7e" stroke-width="2.25" stroke-linecap="round"
+            <path id="diario-line-marcos" fill="none" stroke="#7a9e7e" stroke-width="2" stroke-linecap="round"
               stroke-linejoin="round" />
-            <path id="diario-line-crises" fill="none" stroke="#c47a5b" stroke-width="2.25" stroke-linecap="round"
+            <path id="diario-line-crises" fill="none" stroke="#c47a5b" stroke-width="2" stroke-linecap="round"
               stroke-linejoin="round" />
             <g id="diario-dots-marcos" fill="#7a9e7e" />
             <g id="diario-dots-crises" fill="#c47a5b" />
+            <g id="diario-x-labels" class="diario-chart__x-labels"></g>
           </svg>
         </div>
       </section>
@@ -161,13 +155,15 @@
     <footer class="diario-report-bar" role="contentinfo">
       <button type="button" class="diario-report-btn" id="diario-btn-relatorio">
         <span class="diario-report-btn__icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="#7a9e7e"
-              stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
-            <polyline points="14 2 14 8 20 8" stroke="#7a9e7e" stroke-width="1.75" stroke-linecap="round"
+          <svg class="diario-pdf-icon" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor"
+              stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="M14 2v6h6" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"
               stroke-linejoin="round" />
-            <path d="M9 15h6M9 11h6M9 19h4" stroke="#7a9e7e" stroke-width="1.75" stroke-linecap="round"
-              stroke-linejoin="round" />
+            <text x="12" y="17.2" text-anchor="middle" fill="currentColor"
+              font-family="'DM Sans', system-ui, sans-serif" font-size="6.2" font-weight="700"
+              letter-spacing="-0.02em">PDF</text>
           </svg>
         </span>
         <span class="diario-report-btn__label">Gerar Relatório para o Médico</span>

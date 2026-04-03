@@ -95,6 +95,43 @@ function renderDots(group, pts, r) {
   });
 }
 
+const Y_LABEL_YS = [32, 62, 92, 122, 142];
+
+function niceCeilMax(n) {
+  if (n <= 4) return 4;
+  if (n <= 6) return 6;
+  if (n <= 8) return 8;
+  return Math.ceil(n / 2) * 2;
+}
+
+function renderYAxisLabels(group, vmax) {
+  if (!group) return;
+  group.innerHTML = '';
+  for (let i = 0; i < 5; i++) {
+    const v = Math.round((vmax * (4 - i)) / 4);
+    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    t.setAttribute('x', '30');
+    t.setAttribute('y', String(Y_LABEL_YS[i]));
+    t.setAttribute('text-anchor', 'end');
+    t.textContent = String(v);
+    group.appendChild(t);
+  }
+}
+
+function renderXAxisLabels(group, pts, weekdays) {
+  if (!group || !pts.length) return;
+  group.innerHTML = '';
+  const y = 166;
+  pts.forEach((p, i) => {
+    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    t.setAttribute('x', String(p.x));
+    t.setAttribute('y', String(y));
+    t.setAttribute('text-anchor', 'middle');
+    t.textContent = weekdays[i] || '';
+    group.appendChild(t);
+  });
+}
+
 function showToast(message) {
   document.querySelectorAll('.aura-toast').forEach((t) => t.remove());
   const toast = document.createElement('div');
@@ -147,6 +184,8 @@ function showToast(message) {
   const areaCrises = document.getElementById('diario-area-crises');
   const dotsMarcos = document.getElementById('diario-dots-marcos');
   const dotsCrises = document.getElementById('diario-dots-crises');
+  const yLabels = document.getElementById('diario-y-labels');
+  const xLabels = document.getElementById('diario-x-labels');
 
   const fab = document.getElementById('diario-fab');
   const menu = document.getElementById('diario-fab-menu');
@@ -189,7 +228,8 @@ function showToast(message) {
     const yTop = 28;
     const yBottom = 138;
     const vmin = 0;
-    const vmax = 8;
+    const peak = Math.max(1, ...data.marcos, ...data.crises);
+    const vmax = niceCeilMax(peak);
 
     const pm = pointsFromValues(data.marcos, x0, x1, yBottom, yTop, vmin, vmax);
     const pc = pointsFromValues(data.crises, x0, x1, yBottom, yTop, vmin, vmax);
@@ -200,8 +240,10 @@ function showToast(message) {
     lineCrises.setAttribute('d', dC);
     areaMarcos.setAttribute('d', areaUnderLine(dM, yBottom));
     areaCrises.setAttribute('d', areaUnderLine(dC, yBottom));
-    renderDots(dotsMarcos, pm, 4);
-    renderDots(dotsCrises, pc, 4);
+    renderDots(dotsMarcos, pm, 3.5);
+    renderDots(dotsCrises, pc, 3.5);
+    renderYAxisLabels(yLabels, vmax);
+    renderXAxisLabels(xLabels, pm, WEEKDAYS);
   }
 
   function renderWeek() {

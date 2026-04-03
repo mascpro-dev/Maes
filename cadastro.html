@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Aura — Cadastro</title>
+  <meta name="description"
+    content="Primeiro passo do cadastro no app de suporte materno Aura: seus dados com segurança e acolhimento." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="cadastro.css" />
+</head>
+
+<body>
+
+  <div class="cadastro-shell">
+
+    <header class="cadastro-header" role="banner">
+      <div class="cadastro-progress" aria-label="Progresso do cadastro: etapa 1 de 4">
+        <div class="cadastro-progress__track" role="presentation">
+          <div class="cadastro-progress__fill" style="width: 25%"></div>
+        </div>
+      </div>
+      <h1 class="cadastro-title">Vamos começar sua jornada</h1>
+    </header>
+
+    <main class="cadastro-main" role="main">
+      <form class="cadastro-form" id="form-cadastro" action="#" method="post">
+
+        <div class="field">
+          <label class="field__label" for="nome-completo">Nome completo</label>
+          <input class="field__input" type="text" id="nome-completo" name="nome_completo" autocomplete="name"
+            required placeholder="Como você gostaria de ser chamada" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="email">E-mail</label>
+          <input class="field__input" type="email" id="email" name="email" autocomplete="email" required
+            inputmode="email" placeholder="seu@email.com" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="senha">Criar senha</label>
+          <input class="field__input" type="password" id="senha" name="senha" autocomplete="new-password" required
+            minlength="8" placeholder="Mínimo 8 caracteres" />
+        </div>
+
+        <div class="field field--checkbox">
+          <label class="checkbox-label">
+            <input class="checkbox-input" type="checkbox" name="termos" id="termos" required value="1" />
+            <span class="checkbox-box" aria-hidden="true"></span>
+            <span class="checkbox-text">
+              Li e aceito os
+              <a href="#" class="inline-link">Termos de Uso</a>
+              e
+              <a href="#" class="inline-link">Política de Privacidade (LGPD)</a>.
+            </span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-proximo">Próximo</button>
+      </form>
+    </main>
+  </div>
+
+</body>
+
+</html>
