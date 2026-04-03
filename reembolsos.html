@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Aura — Reembolsos</title>
+  <meta name="description"
+    content="Acompanhe reembolsos pendentes e enviados ao plano de saúde no Aura." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <div class="app-wrapper app-wrapper--reemb">
+
+    <header class="reemb-header" role="banner">
+      <a href="index.html" class="reemb-header__back" aria-label="Voltar ao início">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12" />
+          <polyline points="12 19 5 12 12 5" />
+        </svg>
+      </a>
+      <div class="reemb-header__titles">
+        <p class="reemb-header__eyebrow">Plano de saúde</p>
+        <h1 class="reemb-header__title">Meus reembolsos</h1>
+      </div>
+    </header>
+
+    <main class="reemb-main" role="main">
+      <p class="reemb-intro" id="reemb-summary">Você tem <strong id="reemb-pending-count">2</strong> pedidos que aguardam
+        envio ou análise.</p>
+
+      <section class="reemb-section" aria-labelledby="reemb-pending-heading">
+        <h2 class="reemb-section__title" id="reemb-pending-heading">Pendentes</h2>
+        <ul class="reemb-list" role="list">
+          <li>
+            <article class="reemb-card reemb-card--pending">
+              <div class="reemb-card__top">
+                <span class="reemb-card__tag">Fisioterapia</span>
+                <span class="reemb-card__status">Pendente</span>
+              </div>
+              <p class="reemb-card__provider">Clínica Crescer — Moema</p>
+              <p class="reemb-card__meta">28 mar 2026 · <strong>R$ 180,00</strong></p>
+            </article>
+          </li>
+          <li>
+            <article class="reemb-card reemb-card--pending">
+              <div class="reemb-card__top">
+                <span class="reemb-card__tag">Consulta</span>
+                <span class="reemb-card__status">Aguardando análise</span>
+              </div>
+              <p class="reemb-card__provider">Dra. Helena Martins — Neurologia</p>
+              <p class="reemb-card__meta">15 mar 2026 · <strong>R$ 350,00</strong></p>
+            </article>
+          </li>
+        </ul>
+      </section>
+
+      <section class="reemb-section" aria-labelledby="reemb-sent-heading">
+        <h2 class="reemb-section__title" id="reemb-sent-heading">Enviados recentemente</h2>
+        <ul class="reemb-list" role="list">
+          <li>
+            <article class="reemb-card reemb-card--done">
+              <div class="reemb-card__top">
+                <span class="reemb-card__tag">Exame</span>
+                <span class="reemb-card__status reemb-card__status--ok">Enviado</span>
+              </div>
+              <p class="reemb-card__provider">Laboratório Vida</p>
+              <p class="reemb-card__meta">2 mar 2026 · R$ 89,00</p>
+            </article>
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="reemb-footer">
+      <a href="scanner.html" class="reemb-footer__cta">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+          <circle cx="12" cy="13" r="4" />
+        </svg>
+        Escanear novo recibo
+      </a>
+    </footer>
+  </div>
+
+  <script src="reembolsos.js"></script>
+</body>
+
+</html>

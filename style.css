@@ -588,6 +588,28 @@ button {
   transform: scale(1.15) rotate(-8deg);
 }
 
+.refund__scan-link {
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+  border-radius: var(--radius-sm);
+  transition: background var(--dur) var(--ease);
+  z-index: 1;
+}
+
+.refund__scan-link:hover,
+.refund__scan-link:focus-visible {
+  background: rgba(255,255,255,.1);
+}
+
+a.btn-scan {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  cursor: pointer;
+}
+
 .refund__pending {
   display: flex;
   align-items: center;
@@ -597,6 +619,23 @@ button {
   font-weight: 500;
   border-top: 1px solid rgba(255,255,255,.2);
   padding-top: 12px;
+}
+
+.refund__pending--link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 0 0 calc(var(--radius-lg) - 2px) calc(var(--radius-lg) - 2px);
+  margin: 0 -4px -6px;
+  padding: 12px 4px 6px;
+  transition: background var(--dur) var(--ease);
+  z-index: 1;
+  position: relative;
+}
+
+.refund__pending--link:hover,
+.refund__pending--link:focus-visible {
+  background: rgba(255,255,255,.12);
 }
 
 .pending-dot {
@@ -1152,4 +1191,200 @@ button {
 .bottom-nav a.nav-btn {
   text-decoration: none;
   color: inherit;
+}
+
+/* ============================================================
+   Reembolsos — lista
+   ============================================================ */
+
+.app-wrapper--reemb {
+  padding-bottom: 100px;
+}
+
+.reemb-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px 12px;
+  animation: fade-up .45s var(--ease) both;
+}
+
+.reemb-header__back {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cream-card);
+  border: 1.5px solid var(--cream-deep);
+  color: var(--ink-mid);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--dur) var(--ease);
+}
+
+.reemb-header__back:hover,
+.reemb-header__back:focus-visible {
+  background: var(--white);
+  color: var(--terracotta);
+  box-shadow: var(--shadow-md);
+}
+
+.reemb-header__titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.reemb-header__eyebrow {
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  margin-bottom: 4px;
+}
+
+.reemb-header__title {
+  font-family: var(--font-serif);
+  font-size: 1.35rem;
+  font-weight: 400;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.reemb-main {
+  padding: 0 20px 24px;
+  flex: 1;
+}
+
+.reemb-intro {
+  font-size: .86rem;
+  color: var(--ink-mid);
+  line-height: 1.5;
+  margin-bottom: 22px;
+  animation: fade-up .5s .06s var(--ease) both;
+}
+
+.reemb-intro strong {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.reemb-section {
+  margin-bottom: 24px;
+  animation: fade-up .55s .1s var(--ease) both;
+}
+
+.reemb-section__title {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  margin-bottom: 12px;
+}
+
+.reemb-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reemb-card {
+  background: var(--white);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(196,122,91,.2);
+  padding: 16px 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+.reemb-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.reemb-card__tag {
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--terracotta);
+  background: var(--terracotta-pale);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.reemb-card__status {
+  font-size: .7rem;
+  font-weight: 600;
+  color: var(--ink-light);
+}
+
+.reemb-card__status--ok {
+  color: var(--sage);
+}
+
+.reemb-card--pending .reemb-card__status {
+  color: #b8860b;
+}
+
+.reemb-card__provider {
+  font-size: .92rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+
+.reemb-card__meta {
+  font-size: .78rem;
+  color: var(--ink-light);
+}
+
+.reemb-card__meta strong {
+  color: var(--ink-mid);
+  font-weight: 700;
+}
+
+.reemb-footer {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--app-max-w);
+  padding: 14px 20px calc(14px + env(safe-area-inset-bottom, 0));
+  background: rgba(250,246,239,.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(196,122,91,.18);
+  z-index: 50;
+  box-shadow: 0 -8px 28px rgba(45,42,38,.06);
+}
+
+.reemb-footer__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--terracotta) 0%, var(--terracotta-mid) 100%);
+  color: var(--white);
+  font-size: .88rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 8px 24px rgba(196,122,91,.35);
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.reemb-footer__cta:hover,
+.reemb-footer__cta:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(196,122,91,.4);
 }

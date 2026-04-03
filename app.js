@@ -135,22 +135,23 @@
   });
 })();
 
-/* ── Scan Button Feedback ───────────────────────────────── */
-(function initScan() {
-  const btn = document.getElementById('btn-scan');
-  if (!btn) return;
+/* ── Texto de reembolsos pendentes (sincroniza com localStorage, mesma chave que reembolsos.html) ── */
+(function initRefundPendingLabel() {
+  const el = document.getElementById('refund-pending-label');
+  if (!el) return;
 
-  btn.addEventListener('click', () => {
-    // Pulse animation
-    btn.style.transform = 'scale(0.92)';
-    setTimeout(() => {
-      btn.style.transform = 'scale(1.08)';
-      setTimeout(() => { btn.style.transform = ''; }, 180);
-    }, 120);
+  const raw = localStorage.getItem('aura_refund_pending');
+  const c =
+    raw === null
+      ? 2
+      : (() => {
+          const n = parseInt(raw, 10);
+          return Number.isFinite(n) && n >= 0 ? n : 2;
+        })();
 
-    // Show toast
-    showToast('📸 Câmera pronta! Aponte para o recibo.');
-  });
+  if (c === 0) el.textContent = 'Nenhum reembolso pendente';
+  else if (c === 1) el.textContent = '1 reembolso pendente';
+  else el.textContent = `${c} reembolsos pendentes`;
 })();
 
 /* ── Directions Button ──────────────────────────────────── */
