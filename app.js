@@ -174,6 +174,17 @@
   });
 })();
 
+/* ── Sair (logout) ─────────────────────────────────────── */
+(function initLogout() {
+  const btn = document.getElementById('btn-logout');
+  if (!btn || typeof window.AuraAuth === 'undefined') return;
+
+  btn.addEventListener('click', () => {
+    if (navigator.vibrate) navigator.vibrate(25);
+    window.AuraAuth.logout();
+  });
+})();
+
 /* ── Toast Utility ──────────────────────────────────────── */
 function showToast(message) {
   // Remove existing toasts

@@ -157,6 +157,46 @@ button {
   letter-spacing: -.02em;
 }
 
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.topbar__logout {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-mid);
+  padding: 9px 14px;
+  border-radius: 999px;
+  background: var(--cream-card);
+  border: 1.5px solid var(--cream-deep);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--dur) var(--ease), background var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease), transform 0.15s var(--ease);
+}
+
+.topbar__logout:hover,
+.topbar__logout:focus-visible {
+  color: var(--terracotta);
+  background: var(--white);
+  box-shadow: var(--shadow-md);
+}
+
+.topbar__logout:focus-visible {
+  outline: 2px solid var(--terracotta);
+  outline-offset: 2px;
+}
+
+.topbar__logout:active {
+  transform: scale(0.97);
+}
+
 .topbar__bell {
   position: relative;
   width: 42px;
