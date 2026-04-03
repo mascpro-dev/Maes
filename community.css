@@ -196,7 +196,107 @@ button {
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--ink-light);
+  margin-bottom: 10px;
+}
+
+.section-title--secondary {
+  margin-top: 8px;
+}
+
+.section-lead {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--ink-mid);
   margin-bottom: 14px;
+}
+
+.section--spaced {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--cream-deep);
+}
+
+/* Critérios (salas em destaque vs. comunidade) */
+.criteria-box {
+  margin-bottom: 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--cream-deep);
+  background: var(--white);
+  overflow: hidden;
+}
+
+.criteria-box summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 12px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--sage);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: background var(--dur) var(--ease);
+}
+
+.criteria-box summary::-webkit-details-marker {
+  display: none;
+}
+
+.criteria-box summary::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--sage);
+  border-bottom: 2px solid var(--sage);
+  transform: rotate(45deg);
+  flex-shrink: 0;
+  transition: transform var(--dur) var(--ease);
+}
+
+.criteria-box[open] summary::after {
+  transform: rotate(-135deg);
+  margin-top: 4px;
+}
+
+.criteria-box summary:hover,
+.criteria-box summary:focus-visible {
+  background: var(--sage-pale);
+}
+
+.criteria-box__body {
+  padding: 0 14px 14px;
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--ink-mid);
+}
+
+.criteria-box__body p + p {
+  margin-top: 10px;
+}
+
+.criteria-box__body strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.btn-open-room {
+  width: 100%;
+  margin-top: 4px;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--sage);
+  background: var(--sage-pale);
+  border: 1.5px dashed var(--sage-mid);
+  transition: background var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+.btn-open-room:hover,
+.btn-open-room:focus-visible {
+  background: var(--sage-light);
+  transform: translateY(-1px);
 }
 
 .live-dot {
@@ -215,30 +315,18 @@ button {
   }
 }
 
-/* Lista horizontal de salas */
+/* Lista de salas — vertical (uma abaixo da outra) */
 .room-list {
   display: flex;
-  flex-direction: row;
-  gap: 14px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding: 4px 20px 16px;
-  margin: 0 -20px 8px;
-  scrollbar-width: thin;
-}
-
-.room-list::-webkit-scrollbar {
-  height: 4px;
-}
-
-.room-list::-webkit-scrollbar-thumb {
-  background: var(--sage-light);
-  border-radius: 4px;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 0 8px;
+  margin: 0;
 }
 
 .room-card {
-  flex: 0 0 min(300px, 82vw);
-  scroll-snap-align: start;
+  width: 100%;
+  flex-shrink: 0;
   display: flex;
   flex-direction: row;
   align-items: stretch;
@@ -249,6 +337,16 @@ button {
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition: transform var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.room-card--community {
+  border-style: dashed;
+  border-color: var(--sage-light);
+  background: var(--white);
+}
+
+.room-card--community .room-card__meta {
+  background: linear-gradient(180deg, var(--sage-pale) 0%, var(--cream-card) 100%);
 }
 
 .room-card:hover {

@@ -38,14 +38,22 @@
   <!-- ══ MAIN SCROLL ═══════════════════════════════════════ -->
   <main class="comm-main" id="comm-main" role="main">
 
-    <!-- ── Salas em destaque ────────────────────────────── -->
+    <!-- ── Salas em destaque (critério Aura) ─────────────── -->
     <section class="section" aria-labelledby="section-live">
       <h2 class="section-title" id="section-live">
         <span class="live-dot"></span>
         Ao vivo agora
       </h2>
 
-      <div class="room-list" id="room-list" role="list">
+      <details class="criteria-box">
+        <summary>Como funcionam as salas em destaque e as da comunidade</summary>
+        <div class="criteria-box__body">
+          <p><strong>Salas em destaque:</strong> tema alinhado ao filtro (Autismo, TDAH ou Geral), com pauta clara e ambiente acolhedor. São organizadas com apoio da Aura (moderadoras parceiras ou voluntárias da comunidade).</p>
+          <p><strong>Outras salas:</strong> mães podem abrir salas livremente quando o recurso estiver ativo, desde que sigam o mesmo cuidado: sem julgamento, sem expor dados de terceiros e com respeito ao neurodivergente. Todas usam a mesma experiência — voz no palco e chat.</p>
+        </div>
+      </details>
+
+      <div class="room-list" id="room-list-featured" role="list" aria-label="Salas em destaque">
 
         <!-- Sala 1 — Ativa / Em destaque -->
         <article class="room-card room-card--featured" id="room-desafios"
@@ -139,7 +147,62 @@
           </div>
         </article>
 
-      </div><!-- /room-list -->
+      </div><!-- /room-list-featured -->
+
+      <div class="section--spaced" aria-hidden="true"></div>
+
+      <!-- ── Salas abertas pela comunidade ─────────────── -->
+      <h2 class="section-title section-title--secondary" id="section-community-rooms">Outras salas abertas</h2>
+      <p class="section-lead" id="section-community-desc">Salas criadas por mães no momento; entram no mesmo formato de voz e chat. Use o botão abaixo quando quiser propor um novo tema ou horário.</p>
+
+      <div class="room-list" id="room-list-community" role="list" aria-labelledby="section-community-rooms">
+        <article class="room-card room-card--community" id="room-sono"
+                 role="listitem" data-tag="general"
+                 aria-label="Sala: Sono e rotina, 6 ouvintes">
+          <div class="room-card__body">
+            <div class="room-tag room-tag--general">💬 Geral · Comunidade</div>
+            <h3 class="room-card__title">Sala: Sono e rotina</h3>
+            <p class="room-card__desc">Troca rápida sobre horários impossíveis e pequenas vitórias</p>
+            <div class="room-card__speakers">
+              <div class="mini-avatar" style="background:linear-gradient(135deg,#6b9bd1,#4a7ab0)" title="Patrícia">PT</div>
+              <span class="speakers-more">+4</span>
+            </div>
+          </div>
+          <div class="room-card__meta">
+            <div class="listener-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              6 ouvindo
+            </div>
+            <button type="button" class="btn-enter btn-enter--outline" aria-label="Entrar na sala Sono e rotina">Entrar</button>
+          </div>
+        </article>
+
+        <article class="room-card room-card--community" id="room-irmaos"
+                 role="listitem" data-tag="autism"
+                 aria-label="Sala: Irmãos e ciúmes, 11 ouvintes">
+          <div class="room-card__body">
+            <div class="room-tag">🧩 Autismo · Comunidade</div>
+            <h3 class="room-card__title">Sala: Irmãos e ciúmes</h3>
+            <p class="room-card__desc">Quando o irmão mais novo “rouba” a atenção da terapia</p>
+            <div class="room-card__speakers">
+              <div class="mini-avatar" style="background:linear-gradient(135deg,#c9a0dc,#9b6ba6)" title="Renata">RN</div>
+              <div class="mini-avatar" style="background:linear-gradient(135deg,#7a9e7e,#5d8262)" title="Luísa">LS</div>
+              <span class="speakers-more">+7</span>
+            </div>
+          </div>
+          <div class="room-card__meta">
+            <div class="listener-badge">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              11 ouvindo
+            </div>
+            <button type="button" class="btn-enter btn-enter--outline" aria-label="Entrar na sala Irmãos e ciúmes">Entrar</button>
+          </div>
+        </article>
+      </div>
+
+      <button type="button" class="btn-open-room" id="btn-propose-room" aria-label="Abrir ou agendar uma nova sala com a comunidade">
+        + Abrir ou agendar uma sala
+      </button>
     </section>
 
   </main>

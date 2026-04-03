@@ -9,7 +9,6 @@
   };
 
   const main = document.getElementById("comm-main");
-  const roomList = document.getElementById("room-list");
   const roomPanel = document.getElementById("room-panel");
   const btnLeave = document.getElementById("btn-leave");
   const roomPanelTitle = document.getElementById("room-panel-title");
@@ -56,7 +55,7 @@
     chip.addEventListener("click", function () {
       setActiveChip(chip);
       const f = chip.getAttribute("data-filter");
-      roomList.querySelectorAll(".room-card").forEach(function (card) {
+      main.querySelectorAll(".room-card").forEach(function (card) {
         const tag = card.getAttribute("data-tag") || "";
         const show = f === "all" || tag === f;
         card.classList.toggle("hidden", !show);
@@ -92,12 +91,20 @@
     stopChatSimulation();
   }
 
-  roomList.addEventListener("click", function (e) {
+  main.addEventListener("click", function (e) {
     const enter = e.target.closest(".btn-enter");
     if (!enter) return;
     const card = enter.closest(".room-card");
     openRoom(card);
   });
+
+  document
+    .getElementById("btn-propose-room")
+    ?.addEventListener("click", function () {
+      showToast(
+        "Em breve: escolha tema, horário e convide outras mães — com as mesmas regras de respeito da Aura."
+      );
+    });
 
   btnLeave.addEventListener("click", closeRoom);
 
