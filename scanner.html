@@ -166,7 +166,7 @@
         <span>Galeria</span>
       </button>
 
-      <!-- Shutter button -->
+      <!-- Shutter button — dispara câmera ou simula no desktop -->
       <button class="btn-shutter" id="btn-shutter" aria-label="Fotografar recibo">
         <span class="shutter-outer">
           <span class="shutter-inner">
@@ -205,6 +205,11 @@
     </div>
 
   </div><!-- /app-shell -->
+
+  <!-- INPUT OCULTO: abre câmera traseira do celular -->
+  <input type="file" id="input-camera"  accept="image/*" capture="environment" style="display:none" aria-hidden="true" />
+  <!-- INPUT OCULTO: abre galeria de fotos -->
+  <input type="file" id="input-gallery" accept="image/*" style="display:none" aria-hidden="true" />
 
   <script src="scanner.js"></script>
 </body>
