@@ -1,0 +1,215 @@
+/* ============================================================
+   AURA — login.css
+   ============================================================ */
+
+:root {
+  --cream-bg: #f5f5dc;
+  --terracotta: #e2725b;
+  --terracotta-hover: #d4654f;
+  --ink: #2d2a26;
+  --ink-mid: #5a5550;
+  --ink-muted: #8a847c;
+  --white: #fffef8;
+  --radius: 14px;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-serif: 'DM Serif Display', Georgia, serif;
+  --app-max-w: 430px;
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur: 0.25s;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--ink);
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: var(--cream-bg);
+  background-image:
+    radial-gradient(ellipse 680px 480px at 88% 0%, rgba(122, 158, 126, 0.12) 0%, transparent 62%),
+    radial-gradient(ellipse 520px 420px at -5% 100%, rgba(226, 114, 91, 0.08) 0%, transparent 58%);
+  line-height: 1.5;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: inherit;
+}
+
+.login-shell {
+  width: 100%;
+  max-width: var(--app-max-w);
+  min-height: 100dvh;
+  padding: max(28px, env(safe-area-inset-top)) 24px max(32px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+}
+
+.login-header {
+  margin-bottom: 32px;
+}
+
+.login-title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.55rem, 4.5vw, 1.9rem);
+  font-weight: 400;
+  line-height: 1.22;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+
+.login-lead {
+  font-size: 0.9375rem;
+  color: var(--ink-mid);
+  max-width: 32ch;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--ink-mid);
+}
+
+.field__input {
+  width: 100%;
+  font-size: 1rem;
+  padding: 14px 16px;
+  border: 1px solid rgba(45, 42, 38, 0.1);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: 0 1px 4px rgba(45, 42, 38, 0.06);
+  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.field__input::placeholder {
+  color: var(--ink-muted);
+  opacity: 0.85;
+}
+
+.field__input:focus {
+  outline: none;
+  border-color: rgba(226, 114, 91, 0.45);
+  box-shadow: 0 0 0 3px rgba(226, 114, 91, 0.12);
+}
+
+.login-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.login-remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+  color: var(--ink-mid);
+  cursor: pointer;
+}
+
+.login-forgot {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--terracotta);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(226, 114, 91, 0.4);
+  transition: color var(--dur) var(--ease);
+}
+
+.login-forgot:hover {
+  color: var(--terracotta-hover);
+}
+
+.login-forgot:focus-visible {
+  outline: 2px solid var(--terracotta);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.btn-entrar {
+  width: 100%;
+  padding: 16px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--white);
+  background: var(--terracotta);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 16px rgba(226, 114, 91, 0.3);
+  transition: background var(--dur) var(--ease), transform 0.15s var(--ease);
+}
+
+.btn-entrar:hover {
+  background: var(--terracotta-hover);
+}
+
+.btn-entrar:active {
+  transform: scale(0.98);
+}
+
+.btn-entrar:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.login-footer-text {
+  margin-top: 28px;
+  text-align: center;
+  font-size: 0.9375rem;
+  color: var(--ink-mid);
+}
+
+.login-link {
+  font-weight: 600;
+  color: var(--terracotta);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.login-link:hover {
+  color: var(--terracotta-hover);
+}
+
+.login-link:focus-visible {
+  outline: 2px solid var(--terracotta);
+  outline-offset: 2px;
+  border-radius: 4px;
+}

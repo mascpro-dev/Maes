@@ -83,7 +83,38 @@
     startChatSimulation();
   }
 
+  function abortActiveRecording() {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      var rec = mediaRecorder;
+      var stream = mediaStream;
+      mediaRecorder = null;
+      mediaChunks = [];
+      rec.onstop = function () {
+        if (stream) {
+          stream.getTracks().forEach(function (t) {
+            t.stop();
+          });
+        }
+        mediaStream = null;
+        setVoiceFabRecording(false);
+      };
+      rec.stop();
+    } else {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(function (t) {
+          t.stop();
+        });
+        mediaStream = null;
+      }
+      mediaRecorder = null;
+      mediaChunks = [];
+      setVoiceFabRecording(false);
+    }
+  }
+
   function closeRoom() {
+    abortActiveRecording();
+
     roomPanel.classList.add("hidden");
     roomPanel.setAttribute("aria-hidden", "true");
     if (main) main.setAttribute("aria-hidden", "false");
@@ -248,6 +279,7 @@
   /* Gravador de áudio → mensagem de voz no chat (MediaRecorder ou demo) */
   let voiceRecording = false;
   let mediaRecorder = null;
+  let mediaStream = null;
   let mediaChunks = [];
   let recordStartedAt = 0;
 
@@ -261,7 +293,6 @@
   function appendVoiceMessage(blobUrl, durationSec, isDemo) {
     var row = document.createElement("div");
     row.className = "chat-msg chat-msg--voice";
-    var uid = "voice-" + Date.now();
     row.innerHTML =
       '<span class="chat-msg__avatar" style="background:linear-gradient(135deg,#7a9e7e,#c47a5b)">JM</span>' +
       '<div class="chat-msg__body">' +
@@ -289,6 +320,11 @@
 
     var audio = row.querySelector("audio");
     var btn = row.querySelector(".voice-play");
+    if (isDemo && btn) {
+      btn.disabled = true;
+      btn.classList.add("voice-play--disabled");
+      btn.setAttribute("aria-label", "Demonstração sem áudio");
+    }
     if (audio && btn) {
       btn.addEventListener("click", function () {
         if (audio.paused) {
@@ -329,6 +365,7 @@
   }
 
   function pickMime() {
+    if (typeof MediaRecorder === "undefined") return "";
     var types = [
       "audio/webm;codecs=opus",
       "audio/webm",
@@ -341,6 +378,11 @@
   }
 
   async function startVoiceRecord() {
+    if (typeof MediaRecorder === "undefined") {
+      showToast("Gravação não suportada neste navegador.");
+      appendVoiceMessage(null, 5, true);
+      return;
+    }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       showToast("Microfone não disponível — enviando demonstração.");
       setTimeout(function () {
@@ -351,32 +393,40 @@
     }
     try {
       var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaStream = stream;
       mediaChunks = [];
       var mime = pickMime();
-      mediaRecorder = mime
+      var rec = mime
         ? new MediaRecorder(stream, { mimeType: mime })
         : new MediaRecorder(stream);
-      mediaRecorder.ondataavailable = function (e) {
+      mediaRecorder = rec;
+      rec.ondataavailable = function (e) {
         if (e.data && e.data.size) mediaChunks.push(e.data);
       };
-      mediaRecorder.onstop = function () {
-        stream.getTracks().forEach(function (t) {
-          t.stop();
-        });
+      rec.onstop = function () {
+        if (mediaStream) {
+          mediaStream.getTracks().forEach(function (t) {
+            t.stop();
+          });
+          mediaStream = null;
+        }
+        var mimeType = rec.mimeType || "audio/webm";
+        var chunks = mediaChunks.slice();
+        mediaRecorder = null;
+        mediaChunks = [];
         var elapsed = (Date.now() - recordStartedAt) / 1000;
-        if (elapsed < 0.5 || mediaChunks.length === 0) {
+        setVoiceFabRecording(false);
+        if (elapsed < 0.5 || chunks.length === 0) {
           showToast("Gravação muito curta — tente de novo.");
           return;
         }
-        var blob = new Blob(mediaChunks, {
-          type: mediaRecorder.mimeType || "audio/webm",
-        });
+        var blob = new Blob(chunks, { type: mimeType });
         var url = URL.createObjectURL(blob);
         appendVoiceMessage(url, elapsed, false);
         showToast("Áudio enviado ao chat");
       };
       recordStartedAt = Date.now();
-      mediaRecorder.start();
+      rec.start(250);
       setVoiceFabRecording(true);
     } catch (err) {
       showToast("Não foi possível acessar o microfone.");
@@ -387,9 +437,9 @@
   function stopVoiceRecord() {
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop();
+    } else {
+      setVoiceFabRecording(false);
     }
-    mediaRecorder = null;
-    setVoiceFabRecording(false);
   }
 
   if (fabVoice) {

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Aura — Nova senha</title>
+  <meta name="description"
+    content="Defina uma nova senha segura para sua conta Aura após verificar o código enviado ao seu e-mail." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="nova-senha.css" />
+</head>
+
+<body>
+
+  <div class="nova-senha-shell">
+
+    <header class="nova-senha-header" role="banner">
+      <h1 class="nova-senha-title">Nova Senha</h1>
+      <p class="nova-senha-lead">Escolha uma senha segura e fácil de lembrar.</p>
+    </header>
+
+    <main class="nova-senha-main" role="main">
+      <form class="nova-senha-form" id="form-nova-senha" action="#" method="post" novalidate>
+
+        <div class="field field--password">
+          <label class="field__label" for="nova-senha">Nova Senha</label>
+          <div class="password-wrap">
+            <input class="field__input field__input--with-toggle" type="password" id="nova-senha" name="nova_senha"
+              autocomplete="new-password" required minlength="8" placeholder="Mínimo 8 caracteres" />
+            <button type="button" class="btn-toggle-visibility" data-target="nova-senha" aria-label="Mostrar senha"
+              aria-pressed="false">
+              <svg class="icon-eye" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <svg class="icon-eye-off" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="field field--password">
+          <label class="field__label" for="confirmar-senha">Confirmar Nova Senha</label>
+          <div class="password-wrap">
+            <input class="field__input field__input--with-toggle" type="password" id="confirmar-senha"
+              name="confirmar_senha" autocomplete="new-password" required minlength="8" placeholder="Repita a nova senha" />
+            <button type="button" class="btn-toggle-visibility" data-target="confirmar-senha"
+              aria-label="Mostrar senha" aria-pressed="false">
+              <svg class="icon-eye" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                <circle cx="12" cy="12" r="3" />
+              </svg>
+              <svg class="icon-eye-off" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden>
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+                <line x1="1" y1="1" x2="23" y2="23" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <p class="field-error" id="erro-confirmacao" role="alert" hidden>As senhas não coincidem.</p>
+
+        <button type="submit" class="btn-redefinir">Redefinir Senha</button>
+      </form>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      document.querySelectorAll('.btn-toggle-visibility').forEach(function (btn) {
+        var id = btn.getAttribute('data-target');
+        var input = document.getElementById(id);
+        if (!input) return;
+        var eye = btn.querySelector('.icon-eye');
+        var eyeOff = btn.querySelector('.icon-eye-off');
+
+        btn.addEventListener('click', function () {
+          var show = input.type === 'password';
+          input.type = show ? 'text' : 'password';
+          btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+          btn.setAttribute('aria-label', show ? 'Ocultar senha' : 'Mostrar senha');
+          if (eye) eye.hidden = show;
+          if (eyeOff) eyeOff.hidden = !show;
+        });
+      });
+
+      var form = document.getElementById('form-nova-senha');
+      var pass = document.getElementById('nova-senha');
+      var confirm = document.getElementById('confirmar-senha');
+      var erro = document.getElementById('erro-confirmacao');
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        erro.hidden = true;
+        if (!form.reportValidity()) return;
+        if (pass.value !== confirm.value) {
+          erro.hidden = false;
+          confirm.focus();
+          return;
+        }
+        window.alert('Senha alterada com sucesso!');
+        window.location.href = 'login.html';
+      });
+    })();
+  </script>
+</body>
+
+</html>

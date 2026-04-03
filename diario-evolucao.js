@@ -541,14 +541,19 @@ function pickAudioMime() {
       const kind = kindInput && kindInput.value === 'crise' ? 'crise' : 'marco';
       const dateKey = selectedDateKey();
       const store = loadDiarioStore();
-      bumpDayDelta(store, dateKey, kind);
-      pushDiarioEntry(store, {
-        dateKey,
-        kind,
-        mode: 'text',
-        text: body,
-      });
-      saveDiarioStore(store);
+      try {
+        bumpDayDelta(store, dateKey, kind);
+        pushDiarioEntry(store, {
+          dateKey,
+          kind,
+          mode: 'text',
+          text: body,
+        });
+        saveDiarioStore(store);
+      } catch {
+        showToast('Não foi possível salvar. Armazenamento pode estar cheio.');
+        return;
+      }
       closeTextSheet();
       closeFabMenu();
       drawChart();

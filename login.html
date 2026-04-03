@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Aura — Entrar</title>
+  <meta name="description" content="Acesse sua conta Aura — suporte materno com acolhimento e organização." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="login.css" />
+</head>
+
+<body>
+
+  <div class="login-shell">
+
+    <header class="login-header" role="banner">
+      <h1 class="login-title">Entrar na Aura</h1>
+      <p class="login-lead">Bem-vinda de volta. Use seu e-mail e senha para continuar.</p>
+    </header>
+
+    <main class="login-main" role="main">
+      <form class="login-form" id="form-login" action="index.html" method="get">
+
+        <div class="field">
+          <label class="field__label" for="login-email">E-mail</label>
+          <input class="field__input" type="email" id="login-email" name="email" autocomplete="email" required
+            inputmode="email" placeholder="seu@email.com" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="login-senha">Senha</label>
+          <input class="field__input" type="password" id="login-senha" name="senha" autocomplete="current-password"
+            required placeholder="Sua senha" />
+        </div>
+
+        <div class="login-row">
+          <label class="login-remember">
+            <input type="checkbox" name="lembrar" value="1" />
+            <span>Lembrar de mim</span>
+          </label>
+          <a href="esqueci-senha.html" class="login-forgot">Esqueci minha senha</a>
+        </div>
+
+        <button type="submit" class="btn-entrar">Entrar</button>
+      </form>
+
+      <p class="login-footer-text">
+        Ainda não tem conta? <a href="cadastro.html" class="login-link">Criar conta</a>
+      </p>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      var form = document.getElementById('form-login');
+      if (!form) return;
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (!form.reportValidity()) return;
+        window.location.href = 'index.html';
+      });
+    })();
+  </script>
+</body>
+
+</html>

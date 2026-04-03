@@ -1490,6 +1490,7 @@ a.btn-scan {
 .diario-kind__opt {
   flex: 1;
   position: relative;
+  cursor: pointer;
 }
 
 .diario-kind__opt input {
