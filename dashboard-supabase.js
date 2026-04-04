@@ -44,46 +44,134 @@ function moodScoreFromRow(row) {
   return null;
 }
 
-/**
- * Sempre auth.users.id — exigido pelas políticas RLS (auth.uid() = user_id).
- * Ative "Anonymous sign-ins" em Supabase → Authentication → Providers.
- */
+/** Sempre auth.users.id — RLS exige sessão real (e-mail, Google, etc.). */
 async function resolveSupabaseSession(supabase) {
-  let {
+  const {
     data: { session },
   } = await supabase.auth.getSession();
-
-  if (!session && typeof supabase.auth.signInAnonymously === 'function') {
-    const { data, error } = await supabase.auth.signInAnonymously();
-    if (error) {
-      console.warn('[Aura] signInAnonymously:', error.message);
-      return { userId: null, session: null, authError: error };
-    }
-    if (data?.session) session = data.session;
-  }
-
   const uid = session?.user?.id;
-  return { userId: uid || null, session, authError: null };
+  return {
+    userId: uid || null,
+    session,
+    authError: uid ? null : new Error('Sem sessão'),
+  };
 }
 
-/** Lê profiles no Supabase e sincroniza localStorage + topbar */
-async function hydrateProfileFromSupabase(supabase, userId) {
-  if (typeof AuraAuth === 'undefined') return;
-  const { data, error } = await supabase
+const TIP_BY_CHALLENGE = {
+  sono: 'Uma rotina de sono simples — horário fixo para desligar — ajuda você e a criança a prever o fim do dia.',
+  alimentacao: 'Explorar um alimento de cada vez reduz a sobrecarga sensorial à mesa.',
+  escola: 'Check-ins curtos com a escola mantêm todos alinhados sem esgotar você.',
+  comportamento: 'Nomear o sentimento antes da regra (“estás frustrada…”) costuma abrir espaço para acalmar.',
+  rotina: 'Pré-visualizar o dia em duas frases diminui imprevistos para o cérebro.',
+  saude_mental: 'Cinco minutos só seus — chá, ar fresco — não é luxo; é combustível.',
+  inclusao_social: 'Encontros curtos e previsíveis socializam sem esgotar.',
+  rede_apoio: 'Pedir ajuda específica (“podes ficar 1h?”) funciona melhor que “preciso de tudo”.',
+};
+
+const DEFAULT_TIP = 'Respirar fundo 3 vezes antes de responder seu filho pode mudar tudo.';
+
+function greetingForHour() {
+  const h = new Date().getHours();
+  if (h < 12) return 'Bom dia';
+  if (h < 18) return 'Boa tarde';
+  return 'Boa noite';
+}
+
+async function fetchRefundPendingCount(supabase, userId) {
+  const { count, error } = await supabase
+    .from('refunds')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('status', REFUND_STATUS);
+  if (error) return null;
+  return typeof count === 'number' ? count : 0;
+}
+
+/** Perfil + filhos → localStorage, topbar, cards e dica do dia. */
+async function hydrateDashboardContext(supabase, userId) {
+  const { data: profile, error: pErr } = await supabase
     .from('profiles')
-    .select('full_name, email')
+    .select('full_name, email, phone, onboarding_challenges, avatar_url, bio, nome_crianca')
     .eq('id', userId)
     .maybeSingle();
 
-  if (error || !data) return;
+  if (pErr) console.warn('[Aura] profiles read:', pErr.message);
 
-  const patch = {};
-  if (data.full_name) patch.nomeCompleto = data.full_name;
-  if (data.email) patch.email = data.email;
+  let children = [];
+  const { data: kids, error: cErr } = await supabase
+    .from('children')
+    .select('nome, data_nascimento, diagnosticos, created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: true });
 
-  if (Object.keys(patch).length) {
-    AuraAuth.saveProfile(patch);
+  if (cErr) console.warn('[Aura] children read:', cErr.message);
+  else children = kids || [];
+
+  const sub = document.getElementById('greeting-sub');
+  if (sub) sub.textContent = `${greetingForHour()} ✨`;
+
+  const displayName = (profile?.full_name || '').trim() || 'Bem-vinda';
+  const h1 = document.getElementById('greeting-name');
+  if (h1) h1.textContent = displayName;
+
+  if (typeof AuraAuth !== 'undefined' && profile) {
+    const patch = {};
+    if (profile.full_name) patch.nomeCompleto = profile.full_name;
+    if (profile.email) patch.email = profile.email;
+    if (profile.phone != null && profile.phone !== '') patch.phone = profile.phone;
+    if (profile.onboarding_challenges && profile.onboarding_challenges.length) {
+      patch.onboardingChallenges = profile.onboarding_challenges;
+    }
+    if (profile.avatar_url) patch.avatarUrl = profile.avatar_url;
+    if (profile.bio != null && String(profile.bio).trim() !== '') patch.bio = String(profile.bio).trim();
+    if (Object.keys(patch).length) AuraAuth.saveProfile(patch);
     AuraAuth.applyProfileToUI?.();
+  }
+
+  const primaryChild = children[0];
+  const childName = primaryChild?.nome?.trim() || profile?.nome_crianca?.trim() || '';
+
+  const apptTitle = document.getElementById('appointment-title');
+  if (apptTitle) {
+    apptTitle.textContent = childName ? `Próxima terapia de ${childName}` : 'Próxima terapia';
+  }
+
+  const timeEl = document.getElementById('appointment-time');
+  const locEl = document.getElementById('appointment-location');
+  if (timeEl) timeEl.textContent = 'Horário a combinar com a clínica';
+  if (locEl) locEl.textContent = 'Local a definir com a equipe';
+
+  window.AuraDashboard?.setAppointmentTarget?.(null, { countdownText: 'a combinar' });
+  const cdLabel = document.getElementById('appointment-countdown-label');
+  if (cdLabel) cdLabel.textContent = '';
+
+  const tipEl = document.getElementById('tip-text');
+  if (tipEl) {
+    const challenges = profile?.onboarding_challenges || [];
+    let tip = DEFAULT_TIP;
+    for (const slug of challenges) {
+      if (TIP_BY_CHALLENGE[slug]) {
+        tip = TIP_BY_CHALLENGE[slug];
+        break;
+      }
+    }
+    tipEl.textContent = `"${tip}"`;
+  }
+
+  const dirs = document.getElementById('btn-directions');
+  if (dirs) {
+    dirs.setAttribute('data-place', childName ? `terapia (${childName})` : 'o local da terapia');
+    dirs.setAttribute(
+      'aria-label',
+      childName ? `Como chegar à terapia de ${childName}` : 'Como chegar à terapia'
+    );
+  }
+
+  const pending = await fetchRefundPendingCount(supabase, userId);
+  if (pending != null && typeof window.AuraDashboard?.setRefundPendingCount === 'function') {
+    window.AuraDashboard.setRefundPendingCount(pending);
+  } else {
+    window.AuraDashboard?.refreshRefundPendingLabel?.();
   }
 }
 
@@ -192,7 +280,7 @@ function initMoodWithSupabase(supabase, userId) {
         if (typeof showToast === 'function') {
           showToast(
             error.message?.includes('RLS') || error.code === '42501'
-              ? 'Sessão Supabase inválida. Ative login anónimo ou use utilizador com Auth.'
+              ? 'Sessão expirada. Entra de novo na Aura.'
               : 'Não foi possível salvar o humor: ' + (error.message || 'erro desconhecido')
           );
         }
@@ -275,6 +363,11 @@ async function initRefundAssistant(supabase, userId) {
 }
 
 async function main() {
+  if (window.__auraAuthReady) {
+    const ok = await window.__auraAuthReady;
+    if (!ok) return;
+  }
+
   const url = window.AURA_SUPABASE_URL;
   const key = window.AURA_SUPABASE_ANON_KEY;
 
@@ -284,16 +377,19 @@ async function main() {
     return;
   }
 
-  const supabase = createClient(url, key);
+  const supabase =
+    window.__auraSupabaseClient ||
+    createClient(url, key, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+    });
+
   const { userId, authError } = await resolveSupabaseSession(supabase);
 
   if (!userId) {
     initMoodLocalFallback();
     window.AuraDashboard?.setBatteryFromMoodAverage?.(null, { sampleCount: 0 });
     if (typeof showToast === 'function' && authError) {
-      showToast(
-        'Supabase: ative "Anonymous sign-ins" (Auth → Providers) para gravar humor, ou inicie sessão com e-mail.'
-      );
+      showToast('Sessão não encontrada. Entra de novo em login.html.');
     }
     return;
   }
@@ -309,7 +405,7 @@ async function main() {
       { onConflict: 'id' }
     );
   }
-  await hydrateProfileFromSupabase(supabase, userId);
+  await hydrateDashboardContext(supabase, userId);
 
   const { avg, count, lastSlug } = await fetchSevenDayMoodAverage(supabase, userId);
   window.AuraDashboard?.setBatteryFromMoodAverage?.(avg, { sampleCount: count });

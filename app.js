@@ -226,6 +226,18 @@ let auraAppointmentCountdownTimer = null;
       else if (c === 1) el.textContent = '1 reembolso pendente';
       else el.textContent = `${c} reembolsos pendentes`;
     },
+
+    setRefundPendingCount(n) {
+      const el = document.getElementById('refund-pending-label');
+      if (!el) return;
+      const c = typeof n === 'number' && n >= 0 ? n : 0;
+      try {
+        localStorage.setItem('aura_refund_pending', String(c));
+      } catch (e) { /* ignore */ }
+      if (c === 0) el.textContent = 'Nenhum reembolso pendente';
+      else if (c === 1) el.textContent = '1 reembolso pendente';
+      else el.textContent = `${c} reembolsos pendentes`;
+    },
   };
 
   window.AuraDashboard.setBatteryFromMoodAverage(null, { sampleCount: 0 });

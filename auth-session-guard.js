@@ -1,6 +1,7 @@
 /**
  * Páginas protegidas: exige sessão Supabase Auth (RLS).
  * Espera: supabase-config.js + auth.js antes deste módulo.
+ * window.__auraAuthReady: Promise<boolean> — outros módulos devem await antes de usar o cliente.
  */
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm';
 
@@ -21,12 +22,12 @@ async function syncOAuthAvatarToProfile(supabase, session) {
   await supabase.from('profiles').update({ avatar_url: pic }).eq('id', uid);
 }
 
-(async function auraSessionGuard() {
+window.__auraAuthReady = (async function auraSessionGuard() {
   const url = window.AURA_SUPABASE_URL;
   const key = window.AURA_SUPABASE_ANON_KEY;
   if (!url || !key) {
     window.location.replace('login.html');
-    return;
+    return false;
   }
 
   const supabase = createClient(url, key, {
@@ -44,7 +45,7 @@ async function syncOAuthAvatarToProfile(supabase, session) {
 
   if (error || !session?.user?.id) {
     window.location.replace('login.html');
-    return;
+    return false;
   }
 
   window.__auraSupabaseClient = supabase;
@@ -59,4 +60,5 @@ async function syncOAuthAvatarToProfile(supabase, session) {
   await syncOAuthAvatarToProfile(supabase, session);
 
   document.documentElement.classList.remove('aura-auth-checking');
+  return true;
 })();
