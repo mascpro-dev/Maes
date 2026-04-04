@@ -1,18 +1,21 @@
 /* ============================================================
-   Aura — Diário de Evolução Clínica
+   Aura — Diário de Evolução Clínica (Supabase + fallback local)
    ============================================================ */
 
-'use strict';
+const DIARY_TABLE = 'diary_entries';
+const AUDIO_BUCKET = 'diary-audio';
 
 const MONTHS_SHORT = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 const WEEKDAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
 
-/** Dados de exemplo: uma série por semana (índice 0 = semana atual) */
 const SAMPLE_WEEKS = [
   { marcos: [4, 5, 3, 6, 5, 7, 5], crises: [2, 1, 3, 2, 1, 2, 1] },
   { marcos: [3, 4, 5, 4, 6, 5, 6], crises: [3, 2, 2, 1, 2, 1, 0] },
   { marcos: [5, 5, 6, 7, 6, 8, 7], crises: [1, 2, 1, 1, 2, 1, 1] },
 ];
+
+const STORAGE_KEY = 'aura-diario-v1';
+const MAX_AUDIO_BYTES = 1_200_000;
 
 function startOfWeekMonday(d) {
   const x = new Date(d);
@@ -170,11 +173,8 @@ function showToast(message) {
     toast.style.opacity = '0';
     toast.style.transform = 'translateX(-50%) translateY(12px)';
     setTimeout(() => toast.remove(), 300);
-  }, 2800);
+  }, 3200);
 }
-
-const STORAGE_KEY = 'aura-diario-v1';
-const MAX_AUDIO_BYTES = 1_200_000;
 
 function loadDiarioStore() {
   try {
@@ -237,7 +237,44 @@ function pickAudioMime() {
   return '';
 }
 
-(function initDiario() {
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function aggregateEntryRows(rows) {
+  const byDay = {};
+  for (const r of rows || []) {
+    let dk = r.entry_date;
+    if (dk && typeof dk === 'string') dk = dk.slice(0, 10);
+    if (!dk) continue;
+    if (!byDay[dk]) byDay[dk] = { marcos: 0, crises: 0 };
+    if (r.kind === 'marco') byDay[dk].marcos += 1;
+    else if (r.kind === 'crise') byDay[dk].crises += 1;
+  }
+  return byDay;
+}
+
+async function main() {
+  if (!window.__auraAuthReady) {
+    console.warn('[Aura] diario: falta auth-session-guard.js');
+    return;
+  }
+  const authOk = await window.__auraAuthReady;
+  if (!authOk) return;
+
+  const supabase = window.__auraSupabaseClient;
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  const userId = session?.user?.id || null;
+
+  /** null = usar localStorage no gráfico; objeto = contagens só da nuvem para a semana */
+  let weekDbCounts = null;
+
   const strip = document.getElementById('diario-week-strip');
   const labelEl = document.getElementById('diario-week-label');
   const btnPrev = document.getElementById('diario-week-prev');
@@ -279,12 +316,10 @@ function pickAudioMime() {
 
   const today = new Date();
   let weekStart = startOfWeekMonday(today);
-  /** Offset em semanas relativas à semana que contém "hoje" */
   let weekOffset = 0;
   let selectedIndex = (() => {
     const s = startOfWeekMonday(today);
-    let i = 0;
-    for (; i < 7; i++) {
+    for (let i = 0; i < 7; i++) {
       const d = addDays(s, i);
       if (
         d.getDate() === today.getDate() &&
@@ -297,22 +332,49 @@ function pickAudioMime() {
     return 0;
   })();
 
+  async function refreshWeekEntriesFromDb() {
+    if (!supabase || !userId) {
+      weekDbCounts = null;
+      return;
+    }
+    const start = dateKeyLocal(weekStart);
+    const end = dateKeyLocal(addDays(weekStart, 6));
+    const { data, error } = await supabase
+      .from(DIARY_TABLE)
+      .select('entry_date, kind')
+      .eq('user_id', userId)
+      .gte('entry_date', start)
+      .lte('entry_date', end);
+    if (error) {
+      console.warn('[Aura] diary_entries:', error.message);
+      weekDbCounts = null;
+      return;
+    }
+    weekDbCounts = aggregateEntryRows(data);
+  }
+
   function weekDataIndex() {
-    const o = ((weekOffset % SAMPLE_WEEKS.length) + SAMPLE_WEEKS.length) % SAMPLE_WEEKS.length;
-    return o;
+    return ((weekOffset % SAMPLE_WEEKS.length) + SAMPLE_WEEKS.length) % SAMPLE_WEEKS.length;
   }
 
   function getMergedWeekSeries() {
-    const store = loadDiarioStore();
     const data = SAMPLE_WEEKS[weekDataIndex()];
     const marcos = [...data.marcos];
     const crises = [...data.crises];
+    const local = loadDiarioStore();
     for (let i = 0; i < 7; i++) {
       const k = dateKeyLocal(addDays(weekStart, i));
-      const d = store.dayDeltas[k];
-      if (d) {
-        marcos[i] += d.marcos || 0;
-        crises[i] += d.crises || 0;
+      if (weekDbCounts !== null) {
+        const d = weekDbCounts[k];
+        if (d) {
+          marcos[i] += d.marcos || 0;
+          crises[i] += d.crises || 0;
+        }
+      }
+      const loc = local.dayDeltas[k];
+      if (loc) {
+        marcos[i] += loc.marcos || 0;
+        crises[i] += loc.crises || 0;
       }
     }
     return { marcos, crises };
@@ -352,7 +414,70 @@ function pickAudioMime() {
     renderXAxisLabels(xLabels, pm, WEEKDAYS);
   }
 
-  function renderWeek() {
+  async function persistTextToCloud(kind, dateKey, body) {
+    if (!supabase || !userId) return { ok: false };
+    const { error } = await supabase.from(DIARY_TABLE).insert({
+      user_id: userId,
+      entry_date: dateKey,
+      kind,
+      mode: 'text',
+      text_content: body,
+      audio_storage_path: null,
+    });
+    if (error) {
+      console.warn('[Aura] diary text insert:', error.message);
+      return { ok: false, error };
+    }
+    await refreshWeekEntriesFromDb();
+    return { ok: true };
+  }
+
+  async function persistAudioToCloud(kind, dateKey, blob) {
+    if (!supabase || !userId) return { ok: false };
+    const ext = blob.type.includes('webm') ? 'webm' : blob.type.includes('mp4') ? 'm4a' : 'webm';
+    const fileName = `${crypto.randomUUID ? crypto.randomUUID() : Date.now()}.${ext}`;
+    const path = `${userId}/${fileName}`;
+    const { error: upErr } = await supabase.storage.from(AUDIO_BUCKET).upload(path, blob, {
+      contentType: blob.type || 'audio/webm',
+      upsert: false,
+    });
+    if (upErr) {
+      console.warn('[Aura] diary-audio:', upErr.message);
+      return { ok: false, error: upErr };
+    }
+    const { error: insErr } = await supabase.from(DIARY_TABLE).insert({
+      user_id: userId,
+      entry_date: dateKey,
+      kind,
+      mode: 'audio',
+      text_content: null,
+      audio_storage_path: path,
+    });
+    if (insErr) {
+      await supabase.storage.from(AUDIO_BUCKET).remove([path]);
+      console.warn('[Aura] diary audio row:', insErr.message);
+      return { ok: false, error: insErr };
+    }
+    await refreshWeekEntriesFromDb();
+    return { ok: true };
+  }
+
+  function saveTextLocalFallback(kind, dateKey, body) {
+    const store = loadDiarioStore();
+    bumpDayDelta(store, dateKey, kind);
+    pushDiarioEntry(store, { dateKey, kind, mode: 'text', text: body });
+    saveDiarioStore(store);
+  }
+
+  async function saveAudioLocalFallback(kind, dateKey, blob) {
+    const audioDataUrl = await blobToDataUrl(blob);
+    const store = loadDiarioStore();
+    bumpDayDelta(store, dateKey, kind);
+    pushDiarioEntry(store, { dateKey, kind, mode: 'audio', audioDataUrl });
+    saveDiarioStore(store);
+  }
+
+  async function renderWeek() {
     strip.innerHTML = '';
     const end = addDays(weekStart, 6);
     labelEl.textContent = formatRange(weekStart, end);
@@ -376,24 +501,25 @@ function pickAudioMime() {
 
       btn.appendChild(w);
       btn.appendChild(n);
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         selectedIndex = i;
-        renderWeek();
+        await renderWeek();
       });
       strip.appendChild(btn);
     }
+    await refreshWeekEntriesFromDb();
     drawChart();
   }
 
-  btnPrev.addEventListener('click', () => {
+  btnPrev.addEventListener('click', async () => {
     weekStart = addDays(weekStart, -7);
     weekOffset -= 1;
-    renderWeek();
+    await renderWeek();
   });
-  btnNext.addEventListener('click', () => {
+  btnNext.addEventListener('click', async () => {
     weekStart = addDays(weekStart, 7);
     weekOffset += 1;
-    renderWeek();
+    await renderWeek();
   });
 
   function closeFabMenu() {
@@ -530,7 +656,7 @@ function pickAudioMime() {
   if (textBackdrop) textBackdrop.addEventListener('click', closeTextSheet);
   if (textCancel) textCancel.addEventListener('click', closeTextSheet);
   if (textSave) {
-    textSave.addEventListener('click', () => {
+    textSave.addEventListener('click', async () => {
       const body = (textField && textField.value.trim()) || '';
       if (!body) {
         showToast('Escreva uma descrição antes de salvar.');
@@ -540,24 +666,23 @@ function pickAudioMime() {
       const kindInput = document.querySelector('input[name="diario-text-kind"]:checked');
       const kind = kindInput && kindInput.value === 'crise' ? 'crise' : 'marco';
       const dateKey = selectedDateKey();
-      const store = loadDiarioStore();
-      try {
-        bumpDayDelta(store, dateKey, kind);
-        pushDiarioEntry(store, {
-          dateKey,
-          kind,
-          mode: 'text',
-          text: body,
-        });
-        saveDiarioStore(store);
-      } catch {
-        showToast('Não foi possível salvar. Armazenamento pode estar cheio.');
-        return;
+
+      const cloud = await persistTextToCloud(kind, dateKey, body);
+      if (!cloud.ok) {
+        try {
+          saveTextLocalFallback(kind, dateKey, body);
+          showToast('Guardado neste dispositivo. Corre supabase/COLE_DIARIO_EVOLUCAO.sql para gravar na conta.');
+        } catch {
+          showToast('Não foi possível guardar.');
+          return;
+        }
+      } else {
+        showToast(kind === 'marco' ? 'Marco guardado na tua conta.' : 'Crise guardada na tua conta.');
       }
+
       closeTextSheet();
       closeFabMenu();
       drawChart();
-      showToast(kind === 'marco' ? 'Marco registrado no dia selecionado.' : 'Crise registrada no dia selecionado.');
     });
   }
 
@@ -587,7 +712,7 @@ function pickAudioMime() {
             if (audioHint) {
               audioHint.textContent =
                 recordedBlob.size > MAX_AUDIO_BYTES
-                  ? 'Áudio grande: apague e grave de novo (máx. ~2 min) ou salve pode falhar no armazenamento.'
+                  ? 'Áudio grande: apague e grave de novo (máx. ~2 min).'
                   : 'Ouça o áudio e toque em Salvar no diário.';
             }
             if (audioToggle) {
@@ -657,34 +782,26 @@ function pickAudioMime() {
         showToast('Áudio muito longo. Grave outro trecho mais curto.');
         return;
       }
-      let audioDataUrl;
-      try {
-        audioDataUrl = await blobToDataUrl(recordedBlob);
-      } catch {
-        showToast('Não foi possível processar o áudio.');
-        return;
-      }
       const kindInput = document.querySelector('input[name="diario-audio-kind"]:checked');
       const kind = kindInput && kindInput.value === 'crise' ? 'crise' : 'marco';
       const dateKey = selectedDateKey();
-      const store = loadDiarioStore();
-      try {
-        bumpDayDelta(store, dateKey, kind);
-        pushDiarioEntry(store, {
-          dateKey,
-          kind,
-          mode: 'audio',
-          audioDataUrl,
-        });
-        saveDiarioStore(store);
-      } catch {
-        showToast('Armazenamento cheio. Apague registros antigos ou use texto.');
-        return;
+
+      const cloud = await persistAudioToCloud(kind, dateKey, recordedBlob);
+      if (!cloud.ok) {
+        try {
+          await saveAudioLocalFallback(kind, dateKey, recordedBlob);
+          showToast('Áudio guardado neste dispositivo. Configura o bucket no Supabase para a nuvem.');
+        } catch {
+          showToast('Não foi possível guardar o áudio.');
+          return;
+        }
+      } else {
+        showToast('Áudio guardado na tua conta.');
       }
+
       closeAudioSheet();
       closeFabMenu();
       drawChart();
-      showToast('Áudio salvo no diário do dia selecionado.');
     });
   }
 
@@ -696,9 +813,98 @@ function pickAudioMime() {
     closeFabMenu();
     openTextSheet();
   });
-  btnRel.addEventListener('click', () => {
-    showToast('Gerando PDF do período selecionado para levar ao médico…');
+
+  btnRel.addEventListener('click', async () => {
+    const start = dateKeyLocal(weekStart);
+    const end = dateKeyLocal(addDays(weekStart, 6));
+    const rangeLabel = formatRange(weekStart, addDays(weekStart, 6));
+
+    let cloudRows = [];
+    if (supabase && userId) {
+      const { data, error } = await supabase
+        .from(DIARY_TABLE)
+        .select('entry_date, kind, mode, text_content, created_at')
+        .eq('user_id', userId)
+        .gte('entry_date', start)
+        .lte('entry_date', end)
+        .order('entry_date', { ascending: true })
+        .order('created_at', { ascending: true });
+      if (error) {
+        showToast('Não foi possível carregar os registos da nuvem.');
+        return;
+      }
+      cloudRows = data || [];
+    }
+
+    const local = loadDiarioStore();
+    const localRows = (local.entries || []).filter((e) => e.dateKey >= start && e.dateKey <= end);
+
+    const rowsHtml = [];
+
+    cloudRows.forEach((r) => {
+      const dk = typeof r.entry_date === 'string' ? r.entry_date.slice(0, 10) : r.entry_date;
+      const tipo = r.kind === 'marco' ? 'Marco alcançado' : 'Crise';
+      const forma = r.mode === 'audio' ? 'Áudio' : 'Texto';
+      const conteudo =
+        r.mode === 'audio'
+          ? 'Nota de voz (ficheiro na Aura)'
+          : escapeHtml((r.text_content || '').replace(/\s+/g, ' ').trim());
+      const hora = r.created_at ? new Date(r.created_at).toLocaleString('pt-BR') : '—';
+      rowsHtml.push(
+        `<tr><td>${escapeHtml(dk)}</td><td>${tipo}</td><td>${forma}</td><td>${conteudo}</td><td>${escapeHtml(hora)}</td></tr>`
+      );
+    });
+
+    localRows.forEach((r) => {
+      const tipo = r.kind === 'marco' ? 'Marco alcançado' : 'Crise';
+      const forma = r.mode === 'audio' ? 'Áudio' : 'Texto';
+      let conteudo = '—';
+      if (r.mode === 'text' && r.text) conteudo = escapeHtml(r.text.replace(/\s+/g, ' ').trim());
+      else if (r.mode === 'audio') conteudo = 'Nota de voz (só neste dispositivo)';
+      const hora = r.createdAt ? new Date(r.createdAt).toLocaleString('pt-BR') : '—';
+      rowsHtml.push(
+        `<tr><td>${escapeHtml(r.dateKey)}</td><td>${tipo}</td><td>${forma} (local)</td><td>${conteudo}</td><td>${escapeHtml(hora)}</td></tr>`
+      );
+    });
+
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"/><title>Relatório — Diário clínico</title>
+<style>
+body{font-family:system-ui,sans-serif;padding:24px;color:#2d2a26;max-width:800px;margin:0 auto;}
+h1{font-size:1.25rem;margin:0 0 8px;}
+p.meta{color:#5a5550;font-size:.9rem;margin:0 0 20px;}
+table{width:100%;border-collapse:collapse;font-size:.85rem;}
+th,td{border:1px solid #ede4d4;padding:8px;text-align:left;vertical-align:top;}
+th{background:#e8f2e9;}
+@media print{body{padding:12px;}}
+</style></head><body>
+<h1>Diário de evolução clínica</h1>
+<p class="meta">Semana: ${escapeHtml(rangeLabel)} · Aura</p>
+<table>
+<thead><tr><th>Data</th><th>Tipo</th><th>Forma</th><th>Conteúdo / nota</th><th>Registado</th></tr></thead>
+<tbody>${rowsHtml.length ? rowsHtml.join('') : '<tr><td colspan="5">Nenhum registo nesta semana.</td></tr>'}</tbody>
+</table>
+<p style="margin-top:20px;font-size:.8rem;color:#a09a92;">Documento gerado para partilha com profissionais de saúde. Confirme os dados antes de enviar.</p>
+</body></html>`;
+
+    const w = window.open('', '_blank', 'noopener,noreferrer');
+    if (!w) {
+      showToast('Permite pop-ups para abrir o relatório.');
+      return;
+    }
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    requestAnimationFrame(() => {
+      try {
+        w.print();
+      } catch {
+        /* ignore */
+      }
+    });
+    showToast('Relatório aberto — use «Guardar como PDF» na impressão se quiser.');
   });
 
-  renderWeek();
-})();
+  await renderWeek();
+}
+
+main().catch((e) => console.warn('[Aura] diario-evolucao:', e));

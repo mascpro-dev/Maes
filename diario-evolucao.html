@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="aura-auth-checking">
 
 <head>
   <meta charset="UTF-8" />
@@ -16,6 +16,10 @@
 </head>
 
 <body>
+  <script src="supabase-config.js"></script>
+  <script src="auth.js"></script>
+  <script type="module" src="auth-session-guard.js"></script>
+  <script type="module" src="diario-evolucao.js"></script>
 
   <div class="app-wrapper app-wrapper--diario">
 
@@ -300,8 +304,6 @@
       </a>
     </nav>
   </div>
-
-  <script src="diario-evolucao.js"></script>
 </body>
 
 </html>
