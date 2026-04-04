@@ -56,6 +56,71 @@ function toast(msg) {
   else alert(msg);
 }
 
+const AVATAR_BUCKET = 'avatars';
+const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
+
+function extFromAvatarFile(file) {
+  const t = (file.type || '').toLowerCase();
+  if (t.includes('png')) return 'png';
+  if (t.includes('webp')) return 'webp';
+  if (t.includes('gif')) return 'gif';
+  return 'jpg';
+}
+
+function validateAvatarFile(file) {
+  const t = (file.type || '').toLowerCase();
+  const ok = /^image\/(jpeg|jpg|png|webp|gif)$/i.test(t);
+  if (!ok) {
+    toast('Formato inválido. Usa JPG, PNG, WebP ou GIF.');
+    return false;
+  }
+  if (file.size > AVATAR_MAX_BYTES) {
+    toast('A imagem deve ter no máximo 5 MB.');
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Upload para Storage `avatars/{uid}/avatar.{ext}` + atualiza profiles.avatar_url.
+ * @returns {Promise<string|null>} URL pública guardada (com cache-bust) ou null
+ */
+async function uploadProfileAvatar(file, supabase, uid) {
+  if (!validateAvatarFile(file)) return null;
+  const ext = extFromAvatarFile(file);
+  const path = `${uid}/avatar.${ext}`;
+  const { error: upErr } = await supabase.storage.from(AVATAR_BUCKET).upload(path, file, {
+    upsert: true,
+    cacheControl: '86400',
+    contentType: file.type || 'image/jpeg',
+  });
+  if (upErr) {
+    console.warn('[Aura] avatar upload:', upErr);
+    const m = String(upErr.message || '');
+    if (/bucket|not found|404/i.test(m)) {
+      toast('Bucket "avatars" em falta. Corre supabase/COLE_STORAGE_AVATARS.sql no SQL Editor.');
+    } else if (/row-level security|RLS|policy|403|permission/i.test(m)) {
+      toast('Sem permissão no Storage. Verifica as políticas do bucket avatars.');
+    } else {
+      toast('Não foi possível enviar a foto: ' + m);
+    }
+    return null;
+  }
+  const { data: pub } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(path);
+  const base = pub?.publicUrl;
+  if (!base) {
+    toast('Upload ok mas falhou a URL pública.');
+    return null;
+  }
+  const avatar_url = `${base.split('?')[0]}?v=${Date.now()}`;
+  const { error: dbErr } = await supabase.from('profiles').update({ avatar_url }).eq('id', uid);
+  if (dbErr) {
+    toast('Foto enviada mas falhou ao guardar no perfil: ' + (dbErr.message || ''));
+    return null;
+  }
+  return avatar_url;
+}
+
 async function getClient() {
   if (window.__auraAuthReady) {
     const ok = await window.__auraAuthReady;
@@ -407,10 +472,32 @@ function renderProfile(profile, children) {
   });
 
   const avatarInput = document.getElementById('perfil-avatar-input');
-  document.getElementById('btn-perfil-avatar-trigger')?.addEventListener('click', () => avatarInput?.click());
-  avatarInput?.addEventListener('change', () => {
+  const btnAvatar = document.getElementById('btn-perfil-avatar-trigger');
+  btnAvatar?.addEventListener('click', () => avatarInput?.click());
+  avatarInput?.addEventListener('change', async () => {
+    const file = avatarInput.files && avatarInput.files[0];
     avatarInput.value = '';
-    toast('Upload de foto em breve — por agora podes colar avatar_url diretamente no Supabase (tabela profiles).');
+    if (!file) return;
+    if (btnAvatar) {
+      btnAvatar.disabled = true;
+      btnAvatar.textContent = 'A enviar…';
+    }
+    try {
+      const url = await uploadProfileAvatar(file, supabase, uid);
+      if (!url) return;
+      merged = { ...merged, avatar_url: url };
+      renderProfile(merged, children || []);
+      if (typeof AuraAuth !== 'undefined') {
+        AuraAuth.saveProfile({ avatarUrl: url });
+        AuraAuth.applyProfileToUI?.();
+      }
+      toast('Foto de perfil atualizada ✨');
+    } finally {
+      if (btnAvatar) {
+        btnAvatar.disabled = false;
+        btnAvatar.textContent = 'Carregar nova foto';
+      }
+    }
   });
 
   bindLogout(document.getElementById('btn-perfil-sair'));

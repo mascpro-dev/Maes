@@ -417,13 +417,11 @@ a {
   border: 1px solid rgba(226, 114, 91, 0.25);
 }
 
-.aura-turnstile-wrap {
-  margin-top: 16px;
-  margin-bottom: 4px;
-  min-height: 0;
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
+.login-password-hint {
+  margin-top: 14px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: var(--ink-muted);
 }
 
 /* ── Rodapé ─────────────────────────────────────────────── */

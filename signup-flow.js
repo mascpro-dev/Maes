@@ -80,10 +80,6 @@ export function humanizeAuthError(message) {
     return 'A senha não cumpre os requisitos do Supabase (comprimento ou complexidade). Tenta uma senha mais forte.';
   }
 
-  if (/captcha|verification challenge|bot/i.test(msg)) {
-    return 'Verificação anti-robô falhou ou expirou. Recarrega a página, completa o desafio outra vez e tenta de novo.';
-  }
-
   return msg;
 }
 
@@ -98,22 +94,19 @@ export async function getSessionUserId(client) {
  * Passo 1: Auth + perfil da mãe.
  * Requer confirmação de e-mail desativada (Auth → Providers → Email) ou sessão imediata após signUp.
  */
-export async function signupStep1Mother({ fullName, email, phone, password, captchaToken }) {
+export async function signupStep1Mother({ fullName, email, phone, password }) {
   const { client, error } = getSignupClient();
   if (error) return { ok: false, message: error };
-
-  const options = {
-    data: {
-      full_name: fullName.trim(),
-      phone: (phone || '').trim(),
-    },
-  };
-  if (captchaToken) options.captchaToken = captchaToken;
 
   const { data, error: signErr } = await client.auth.signUp({
     email: email.trim(),
     password,
-    options,
+    options: {
+      data: {
+        full_name: fullName.trim(),
+        phone: (phone || '').trim(),
+      },
+    },
   });
 
   if (signErr) return { ok: false, message: humanizeAuthError(signErr.message) };
