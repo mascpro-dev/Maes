@@ -1,9 +1,8 @@
 /**
  * Dashboard Aura — Supabase
- * - mood_logs: mood_score (1–5), mood (slug), user_id
- * - refunds + Storage bucket `receipts`
- *
- * Ajuste REFUNDS_COLUMNS se a sua tabela usar outros nomes.
+ * - mood_logs (schema Aura): mood, energy_score (guardamos 1–5 = nível do emoji), user_id = auth.uid()
+ * - RLS: só funciona com sessão real (anon ou e-mail). UUID em localStorage NÃO bate com auth.uid().
+ * - refunds + Storage `receipts`
  */
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm';
 
@@ -23,61 +22,56 @@ function slugFromBtnId(id) {
   return String(id || '').replace(/^mood-/, '');
 }
 
+/** Interpreta linha mood_logs: energy_score 1–5, legado 22–94, ou slug mood */
 function moodScoreFromRow(row) {
   if (row == null) return null;
-  const n = row.mood_score;
-  if (n != null && n !== '' && Number.isFinite(Number(n))) {
-    const v = Number(n);
+  if (row.mood_score != null && row.mood_score !== '' && Number.isFinite(Number(row.mood_score))) {
+    const v = Number(row.mood_score);
     return Math.min(5, Math.max(1, v));
+  }
+  const e = row.energy_score;
+  if (e != null && e !== '' && Number.isFinite(Number(e))) {
+    const n = Number(e);
+    if (n >= 1 && n <= 5) return n;
+    if (n <= 30) return 1;
+    if (n <= 45) return 2;
+    if (n <= 62) return 3;
+    if (n <= 85) return 4;
+    return 5;
   }
   const slug = row.mood;
   if (slug && MOOD_SCORE_BY_SLUG[slug] != null) return MOOD_SCORE_BY_SLUG[slug];
   return null;
 }
 
-async function resolveUserId(supabase) {
+/**
+ * Sempre auth.users.id — exigido pelas políticas RLS (auth.uid() = user_id).
+ * Ative "Anonymous sign-ins" em Supabase → Authentication → Providers.
+ */
+async function resolveSupabaseSession(supabase) {
   let {
     data: { session },
   } = await supabase.auth.getSession();
 
   if (!session && typeof supabase.auth.signInAnonymously === 'function') {
-    try {
-      const { data, error } = await supabase.auth.signInAnonymously();
-      if (!error && data?.session) session = data.session;
-    } catch (e) {
-      console.warn('[Aura] login anônimo indisponível:', e?.message || e);
+    const { data, error } = await supabase.auth.signInAnonymously();
+    if (error) {
+      console.warn('[Aura] signInAnonymously:', error.message);
+      return { userId: null, session: null, authError: error };
     }
+    if (data?.session) session = data.session;
   }
 
-  if (session?.user?.id) return { userId: session.user.id, isAuth: true };
-
-  if (typeof AuraAuth !== 'undefined' && AuraAuth.getOrCreateSupabaseUserId) {
-    const id = AuraAuth.getOrCreateSupabaseUserId();
-    if (id) return { userId: id, isAuth: false };
-  }
-
-  return { userId: null, isAuth: false };
+  const uid = session?.user?.id;
+  return { userId: uid || null, session, authError: null };
 }
 
-async function ensureProfileRow(supabase, userId) {
-  const p = typeof AuraAuth !== 'undefined' ? AuraAuth.getProfile() : {};
-  const row = { id: userId };
-  if (p.email) row.email = p.email;
-  if (p.nomeCompleto) row.full_name = p.nomeCompleto;
-
-  const { error } = await supabase.from('profiles').upsert(row, { onConflict: 'id' });
-  if (error) {
-    const minimal = await supabase.from('profiles').upsert({ id: userId }, { onConflict: 'id' });
-    if (minimal.error) console.warn('[Aura] profiles upsert:', minimal.error.message);
-  }
-}
-
-/** Lê profiles no Supabase e sincroniza localStorage + topbar (nome, e-mail, telefone, desafios). */
+/** Lê profiles no Supabase e sincroniza localStorage + topbar */
 async function hydrateProfileFromSupabase(supabase, userId) {
   if (typeof AuraAuth === 'undefined') return;
   const { data, error } = await supabase
     .from('profiles')
-    .select('full_name, email, phone, onboarding_challenges')
+    .select('full_name, email')
     .eq('id', userId)
     .maybeSingle();
 
@@ -86,9 +80,6 @@ async function hydrateProfileFromSupabase(supabase, userId) {
   const patch = {};
   if (data.full_name) patch.nomeCompleto = data.full_name;
   if (data.email) patch.email = data.email;
-  if (data.phone != null && data.phone !== '') patch.phone = data.phone;
-  if (data.onboarding_challenges && data.onboarding_challenges.length)
-    patch.onboardingChallenges = data.onboarding_challenges;
 
   if (Object.keys(patch).length) {
     AuraAuth.saveProfile(patch);
@@ -104,7 +95,7 @@ async function fetchSevenDayMoodAverage(supabase, userId) {
 
   const { data, error } = await supabase
     .from('mood_logs')
-    .select('mood_score, mood, created_at')
+    .select('energy_score, mood, created_at')
     .eq('user_id', userId)
     .gte('created_at', since.toISOString())
     .order('created_at', { ascending: false });
@@ -194,14 +185,18 @@ function initMoodWithSupabase(supabase, userId) {
       const { error } = await supabase.from('mood_logs').insert({
         user_id: userId,
         mood: slug,
-        mood_score: moodScore,
+        energy_score: moodScore,
       });
 
       if (error) {
         if (typeof showToast === 'function') {
-          showToast('Não foi possível salvar o humor. Confira RLS e colunas mood_score/mood.');
+          showToast(
+            error.message?.includes('RLS') || error.code === '42501'
+              ? 'Sessão Supabase inválida. Ative login anónimo ou use utilizador com Auth.'
+              : 'Não foi possível salvar o humor: ' + (error.message || 'erro desconhecido')
+          );
         }
-        console.warn('[Aura] mood_logs insert:', error.message);
+        console.warn('[Aura] mood_logs insert:', error.message, error);
         return;
       }
 
@@ -290,29 +285,31 @@ async function main() {
   }
 
   const supabase = createClient(url, key);
-  const { userId, isAuth } = await resolveUserId(supabase);
+  const { userId, authError } = await resolveSupabaseSession(supabase);
 
   if (!userId) {
     initMoodLocalFallback();
     window.AuraDashboard?.setBatteryFromMoodAverage?.(null, { sampleCount: 0 });
+    if (typeof showToast === 'function' && authError) {
+      showToast(
+        'Supabase: ative "Anonymous sign-ins" (Auth → Providers) para gravar humor, ou inicie sessão com e-mail.'
+      );
+    }
     return;
   }
 
-  if (!isAuth) await ensureProfileRow(supabase, userId);
-  else {
-    const p = typeof AuraAuth !== 'undefined' ? AuraAuth.getProfile() : {};
-    if (p.nomeCompleto || p.email) {
-      await supabase.from('profiles').upsert(
-        {
-          id: userId,
-          ...(p.email ? { email: p.email } : {}),
-          ...(p.nomeCompleto ? { full_name: p.nomeCompleto } : {}),
-        },
-        { onConflict: 'id' }
-      );
-    }
-    await hydrateProfileFromSupabase(supabase, userId);
+  const p = typeof AuraAuth !== 'undefined' ? AuraAuth.getProfile() : {};
+  if (p.nomeCompleto || p.email) {
+    await supabase.from('profiles').upsert(
+      {
+        id: userId,
+        ...(p.email ? { email: p.email } : {}),
+        ...(p.nomeCompleto ? { full_name: p.nomeCompleto } : {}),
+      },
+      { onConflict: 'id' }
+    );
   }
+  await hydrateProfileFromSupabase(supabase, userId);
 
   const { avg, count, lastSlug } = await fetchSevenDayMoodAverage(supabase, userId);
   window.AuraDashboard?.setBatteryFromMoodAverage?.(avg, { sampleCount: count });

@@ -82,6 +82,9 @@ COMMENT ON COLUMN public.profiles.terms_accepted_at IS 'Momento em que aceitou T
 
 -- -----------------------------------------------------------------------------
 -- 2) mood_logs — humor no dashboard (usado em dashboard-supabase.js)
+--     O front grava mood (slug) + energy_score = nível 1–5 (não use coluna mood_score a menos
+--     que a acrescentes manualmente). RLS exige user_id = auth.uid() → sessão Supabase obrigatória
+--     (ex.: login anónimo ativo em Authentication → Providers).
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.mood_logs (
   id uuid NOT NULL DEFAULT gen_random_uuid(),

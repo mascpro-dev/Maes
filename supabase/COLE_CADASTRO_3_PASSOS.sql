@@ -8,6 +8,8 @@
 -- -----------------------------------------------------------------------------
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS phone text;
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS onboarding_challenges text[];
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS avatar_url text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS bio text;
 
 COMMENT ON COLUMN public.profiles.phone IS 'Telefone da mãe (passo 1).';
 COMMENT ON COLUMN public.profiles.onboarding_challenges IS 'Slugs dos maiores desafios hoje (passo 3), ex: sono, alimentacao.';

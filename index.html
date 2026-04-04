@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="aura-auth-checking">
 
 <head>
   <meta charset="UTF-8" />
@@ -16,10 +16,9 @@
 </head>
 
 <body>
+  <script src="supabase-config.js"></script>
   <script src="auth.js"></script>
-  <script>
-    AuraAuth.requireAuth();
-  </script>
+  <script type="module" src="auth-session-guard.js"></script>
 
   <!-- ========== MAIN WRAPPER ========== -->
   <div class="app-wrapper">
@@ -34,11 +33,12 @@
     <!-- ========== TOP BAR ========== -->
     <header class="topbar" role="banner">
       <div class="topbar__avatar" id="topbar-avatar" aria-label="Foto de perfil">
+        <img class="avatar-photo" id="avatar-photo" alt="" width="48" height="48" hidden />
         <span class="avatar-initials" id="avatar-initials">AU</span>
         <span class="avatar-status"></span>
       </div>
       <div class="topbar__greeting">
-        <p class="greeting-sub">Bom dia ✨</p>
+        <p class="greeting-sub" id="greeting-sub">Bom dia ✨</p>
         <h1 class="greeting-name" id="greeting-name">Bem-vinda</h1>
       </div>
       <div class="topbar__actions">

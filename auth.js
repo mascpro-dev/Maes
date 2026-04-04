@@ -94,9 +94,23 @@
     var h1 = document.getElementById('greeting-name');
     var initialsEl = document.getElementById('avatar-initials');
     var avatar = document.getElementById('topbar-avatar');
+    var img = document.getElementById('avatar-photo');
     if (h1) h1.textContent = display;
     if (initialsEl) initialsEl.textContent = initialsFromNome(nome);
     if (avatar) avatar.setAttribute('aria-label', 'Foto de perfil de ' + display);
+    var pic = profile.avatarUrl && String(profile.avatarUrl).trim();
+    if (img) {
+      if (pic) {
+        img.src = pic;
+        img.alt = 'Foto de ' + display;
+        img.hidden = false;
+        if (initialsEl) initialsEl.style.display = 'none';
+      } else {
+        img.removeAttribute('src');
+        img.hidden = true;
+        if (initialsEl) initialsEl.style.display = '';
+      }
+    }
   }
 
   window.AuraAuth = {
@@ -108,8 +122,27 @@
     initialsFromNome: initialsFromNome,
     getOrCreateSupabaseUserId: getOrCreateSupabaseUserId,
     logout: function () {
-      clearAuth();
-      window.location.replace('login.html');
+      function finalize() {
+        try {
+          localStorage.removeItem(KEY);
+          sessionStorage.removeItem(KEY);
+          localStorage.removeItem(PROFILE_KEY);
+          localStorage.removeItem(SUPABASE_USER_KEY);
+        } catch (e) { /* ignore */ }
+        try {
+          Object.keys(localStorage).forEach(function (k) {
+            if (/^sb-[\w-]+-auth-token$/.test(k)) localStorage.removeItem(k);
+          });
+        } catch (e2) { /* ignore */ }
+        window.__auraSupabaseClient = undefined;
+        window.__auraSignOut = undefined;
+        window.location.replace('login.html');
+      }
+      if (typeof window.__auraSignOut === 'function') {
+        window.__auraSignOut().then(finalize).catch(finalize);
+      } else {
+        finalize();
+      }
     },
     requireAuth: function () {
       if (!isLoggedIn()) window.location.replace('login.html');

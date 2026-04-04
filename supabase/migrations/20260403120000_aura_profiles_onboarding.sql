@@ -57,7 +57,7 @@ COMMENT ON COLUMN public.profiles.nome_crianca IS 'Nome opcional da criança (LG
 COMMENT ON COLUMN public.profiles.terms_accepted_at IS 'Momento em que aceitou Termos + Política (etapa 1 do cadastro).';
 
 -- -----------------------------------------------------------------------------
--- 2) mood_logs — humor no dashboard (já usado em dashboard-supabase.js)
+-- 2) mood_logs — humor (dashboard-supabase.js grava energy_score 1–5 + mood; RLS = auth.uid())
 -- -----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS public.mood_logs (
   id uuid NOT NULL DEFAULT gen_random_uuid(),

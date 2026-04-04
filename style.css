@@ -3,6 +3,10 @@
    Paleta: Verde Sálvia · Terracota Suave · Creme
    ============================================================ */
 
+html.aura-auth-checking .app-wrapper {
+  visibility: hidden;
+}
+
 /* ── Tokens (Bento: Verde Sálvia · Terracota · Creme) ───── */
 :root {
   /* Cores principais — especificação Aura */
@@ -177,6 +181,16 @@ button {
   font-weight: 700;
   font-size: .85rem;
   letter-spacing: .04em;
+}
+
+.topbar__avatar .avatar-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: none;
 }
 
 .avatar-status {

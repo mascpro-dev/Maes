@@ -406,6 +406,62 @@ a {
   transform: translateX(4px);
 }
 
+.login-error {
+  margin-top: 12px;
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: #8b2e2e;
+  background: rgba(226, 114, 91, 0.12);
+  border-radius: 12px;
+  border: 1px solid rgba(226, 114, 91, 0.25);
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 22px 0 6px;
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(45, 42, 38, 0.1);
+}
+
+.btn-google {
+  width: 100%;
+  margin-top: 14px;
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 0.94rem;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--white);
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(45, 42, 38, 0.12);
+  box-shadow: 0 2px 8px rgba(45, 42, 38, 0.06);
+  transition: background var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+
+.btn-google:hover {
+  background: #faf8f4;
+  box-shadow: 0 4px 14px rgba(45, 42, 38, 0.08);
+}
+
+.btn-google:focus-visible {
+  outline: 2px solid var(--sage);
+  outline-offset: 3px;
+}
+
 /* ── Rodapé ─────────────────────────────────────────────── */
 .login-footer-text {
   margin-top: 28px;
