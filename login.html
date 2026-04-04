@@ -24,33 +24,45 @@
 
   <div class="login-shell">
 
-    <header class="login-brand" role="banner">
-      <p class="login-brand__eyebrow">Suporte materno</p>
-      <h1 class="login-brand__logo">Aura</h1>
-      <div class="login-brand__rule" aria-hidden="true"></div>
-      <p class="login-brand__tagline">Um espaço feito para você respirar, organizar e ser acolhida.</p>
-    </header>
-
     <main class="login-main" role="main">
       <div class="login-card">
-        <div class="login-card__head">
-          <h2 class="login-card__title">Entrar</h2>
-          <p class="login-card__subtitle">Bem-vinda de volta — seus dados continuam seguros aqui.</p>
-        </div>
+        <header class="login-card__brand" role="banner">
+          <p class="login-brand__eyebrow">Suporte materno</p>
+          <h1 class="login-brand__logo">Aura</h1>
+          <div class="login-brand__rule" aria-hidden="true"></div>
+          <p class="login-brand__tagline">Um espaço feito para você respirar, organizar e ser acolhida.</p>
+          <p class="login-card__acesso">Acesse sua conta com segurança</p>
+        </header>
 
         <form class="login-form" id="form-login" action="index.html" method="get">
 
-          <div class="field">
+          <div class="field field--icon">
             <label class="field__label" for="login-email">E-mail</label>
-            <input class="field__input" type="email" id="login-email" name="email" autocomplete="email" required
-              inputmode="email" placeholder="nome@email.com" />
+            <div class="field__control">
+              <span class="field__icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                  <polyline points="22,6 12,13 2,6" />
+                </svg>
+              </span>
+              <input class="field__input field__input--pill" type="email" id="login-email" name="email"
+                autocomplete="email" required inputmode="email" placeholder="nome@email.com" />
+            </div>
           </div>
 
-          <div class="field field--password">
+          <div class="field field--icon field--password">
             <label class="field__label" for="login-senha">Senha</label>
-            <div class="password-wrap">
-              <input class="field__input field__input--with-toggle" type="password" id="login-senha" name="senha"
-                autocomplete="current-password" required placeholder="••••••••" />
+            <div class="field__control field__control--password">
+              <span class="field__icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.65"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+              </span>
+              <input class="field__input field__input--pill field__input--with-toggle" type="password" id="login-senha"
+                name="senha" autocomplete="current-password" required placeholder="Sua senha" />
               <button type="button" class="btn-toggle-visibility" data-target="login-senha" aria-label="Mostrar senha"
                 aria-pressed="false">
                 <svg class="icon-eye" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"

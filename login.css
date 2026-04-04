@@ -1,31 +1,36 @@
 /* ============================================================
-   AURA — login.css (entrada elegante)
+   AURA — login.css (premium: marca no cartão + pílulas, paleta Aura)
    ============================================================ */
 
 :root {
   --cream: #f3efe6;
   --cream-deep: #ebe4d6;
-  --card: rgba(255, 252, 247, 0.82);
-  --card-border: rgba(45, 42, 38, 0.08);
+  --card: rgba(255, 252, 247, 0.92);
+  --card-border: rgba(45, 42, 38, 0.07);
   --terracotta: #e2725b;
   --terracotta-hover: #d4654f;
   --terracotta-soft: rgba(226, 114, 91, 0.12);
   --sage: #7a9e7e;
-  --sage-soft: rgba(122, 158, 126, 0.18);
+  --sage-soft: rgba(122, 158, 126, 0.14);
+  --sage-input: rgba(122, 158, 126, 0.11);
   --ink: #2d2a26;
   --ink-mid: #5a5550;
   --ink-muted: #8a847c;
   --white: #fffcf7;
-  --radius-card: 22px;
-  --radius-input: 14px;
-  --radius-btn: 16px;
+  --radius-card: 26px;
+  --radius-pill: 999px;
   --font-sans: 'DM Sans', system-ui, sans-serif;
   --font-serif: 'DM Serif Display', Georgia, serif;
   --app-max-w: 420px;
   --ease: cubic-bezier(0.32, 0.72, 0, 1);
   --dur: 0.28s;
-  --shadow-card: 0 4px 24px rgba(45, 42, 38, 0.06), 0 24px 48px rgba(45, 42, 38, 0.04);
-  --shadow-card-hover: 0 8px 32px rgba(45, 42, 38, 0.08);
+  --shadow-card:
+    0 2px 4px rgba(45, 42, 38, 0.02),
+    0 12px 40px rgba(45, 42, 38, 0.07),
+    0 0 0 1px rgba(255, 255, 255, 0.6) inset;
+  --shadow-card-hover:
+    0 16px 48px rgba(45, 42, 38, 0.09),
+    0 0 0 1px rgba(255, 255, 255, 0.65) inset;
 }
 
 *,
@@ -47,7 +52,7 @@ body {
   min-height: 100dvh;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: stretch;
   background: var(--cream);
   line-height: 1.5;
   position: relative;
@@ -66,98 +71,56 @@ a {
   color: inherit;
 }
 
-/* ── Fundo atmosférico ───────────────────────────────────── */
+/* ── Fundo ───────────────────────────────────────────────── */
 .login-bg {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 90% 55% at 50% -15%, var(--sage-soft) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 50% at 105% 40%, var(--terracotta-soft) 0%, transparent 45%),
-    radial-gradient(ellipse 55% 45% at -10% 85%, rgba(122, 158, 126, 0.1) 0%, transparent 50%),
-    linear-gradient(165deg, var(--cream) 0%, var(--cream-deep) 48%, #e8e2d6 100%);
+    radial-gradient(ellipse 95% 60% at 50% -20%, var(--sage-soft) 0%, transparent 58%),
+    radial-gradient(ellipse 75% 55% at 108% 35%, var(--terracotta-soft) 0%, transparent 48%),
+    radial-gradient(ellipse 60% 50% at -12% 88%, rgba(122, 158, 126, 0.09) 0%, transparent 52%),
+    linear-gradient(168deg, var(--cream) 0%, var(--cream-deep) 50%, #e6dfd4 100%);
 }
 
 .login-bg::after {
   content: '';
   position: absolute;
   inset: 0;
-  opacity: 0.35;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.32;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
 }
 
-/* ── Shell ───────────────────────────────────────────────── */
+/* ── Shell: cartão centrado na vertical ──────────────────── */
 .login-shell {
   position: relative;
   z-index: 1;
   width: 100%;
   max-width: var(--app-max-w);
   min-height: 100dvh;
-  padding: max(24px, env(safe-area-inset-top)) 22px max(36px, env(safe-area-inset-bottom));
+  padding: max(20px, env(safe-area-inset-top)) 22px max(28px, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
+  justify-content: center;
 }
 
-/* ── Marca (fora do cartão) ──────────────────────────────── */
-.login-brand {
-  text-align: center;
-  margin-bottom: 28px;
-  padding-top: 8px;
-}
-
-.login-brand__eyebrow {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--sage);
-  margin-bottom: 10px;
-}
-
-.login-brand__logo {
-  font-family: var(--font-serif);
-  font-size: clamp(2.75rem, 12vw, 3.35rem);
-  font-weight: 400;
-  line-height: 1;
-  letter-spacing: 0.04em;
-  color: var(--ink);
-  margin-bottom: 16px;
-}
-
-.login-brand__rule {
-  width: 48px;
-  height: 3px;
-  margin: 0 auto 18px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, transparent, var(--terracotta), var(--sage), transparent);
-  opacity: 0.65;
-}
-
-.login-brand__tagline {
-  font-size: 0.9375rem;
-  font-weight: 400;
-  color: var(--ink-mid);
-  max-width: 26ch;
-  margin: 0 auto;
-  line-height: 1.55;
-}
-
-/* ── Cartão do formulário ────────────────────────────────── */
 .login-main {
-  flex: 1;
+  flex: 0 1 auto;
+  width: 100%;
   display: flex;
   flex-direction: column;
 }
 
+/* ── Cartão ──────────────────────────────────────────────── */
 .login-card {
   background: var(--card);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
-  padding: 28px 24px 30px;
+  padding: 32px 26px 34px;
   transition: box-shadow var(--dur) var(--ease);
 }
 
@@ -165,32 +128,67 @@ a {
   box-shadow: var(--shadow-card-hover);
 }
 
-.login-card__head {
-  margin-bottom: 26px;
-  padding-bottom: 22px;
-  border-bottom: 1px solid rgba(45, 42, 38, 0.06);
+/* Marca premium *dentro* do cartão (substitui o antigo cabeçalho “Entrar”) */
+.login-card__brand {
+  text-align: center;
+  margin-bottom: 28px;
+  padding-bottom: 26px;
+  border-bottom: 1px solid rgba(45, 42, 38, 0.055);
 }
 
-.login-card__title {
+.login-brand__eyebrow {
+  font-size: 0.625rem;
+  font-weight: 600;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--sage);
+  margin-bottom: 14px;
+  opacity: 0.95;
+}
+
+.login-brand__logo {
   font-family: var(--font-serif);
-  font-size: 1.5rem;
+  font-size: clamp(2.85rem, 13vw, 3.5rem);
   font-weight: 400;
-  letter-spacing: -0.02em;
+  line-height: 1;
+  letter-spacing: 0.06em;
   color: var(--ink);
-  margin-bottom: 8px;
+  margin-bottom: 18px;
 }
 
-.login-card__subtitle {
-  font-size: 0.875rem;
+.login-brand__rule {
+  width: 56px;
+  height: 3px;
+  margin: 0 auto 20px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, transparent, var(--terracotta) 30%, var(--sage) 70%, transparent);
+  opacity: 0.7;
+}
+
+.login-brand__tagline {
+  font-size: 0.9375rem;
+  font-weight: 400;
+  color: var(--ink-mid);
+  max-width: 28ch;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.login-card__acesso {
+  margin-top: 18px;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
   color: var(--ink-muted);
-  line-height: 1.5;
-  max-width: 32ch;
+  opacity: 0.88;
 }
 
+/* ── Formulário ──────────────────────────────────────────── */
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
 }
 
 .field {
@@ -200,66 +198,88 @@ a {
 }
 
 .field__label {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--ink-mid);
+  padding-left: 4px;
 }
 
-.field__input {
-  width: 100%;
-  font-size: 1rem;
-  padding: 14px 16px;
-  border: 1px solid rgba(45, 42, 38, 0.1);
-  border-radius: var(--radius-input);
-  background: var(--white);
-  box-shadow: 0 1px 3px rgba(45, 42, 38, 0.04);
-  transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
-}
-
-.field__input::placeholder {
-  color: var(--ink-muted);
-  opacity: 0.75;
-}
-
-.field__input:hover {
-  border-color: rgba(45, 42, 38, 0.14);
-}
-
-.field__input:focus {
-  outline: none;
-  border-color: rgba(122, 158, 126, 0.5);
-  box-shadow: 0 0 0 3px rgba(122, 158, 126, 0.14);
-}
-
-.password-wrap {
-  position: relative;
+.field__control {
   display: flex;
   align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 0 6px 0 16px;
+  background: var(--sage-input);
+  border: 1px solid rgba(45, 42, 38, 0.06);
+  border-radius: var(--radius-pill);
+  transition:
+    background var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+
+.field__control:focus-within {
+  background: rgba(255, 252, 247, 0.95);
+  border-color: rgba(122, 158, 126, 0.42);
+  box-shadow: 0 0 0 3px rgba(122, 158, 126, 0.12);
+}
+
+.field__control--password {
+  padding-right: 6px;
+}
+
+.field__icon {
+  flex-shrink: 0;
+  display: flex;
+  color: var(--sage);
+  opacity: 0.85;
+}
+
+.field__input--pill {
+  flex: 1;
+  min-width: 0;
+  font-size: 1rem;
+  padding: 14px 12px 14px 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink);
+}
+
+.field__input--pill::placeholder {
+  color: var(--ink-muted);
+  opacity: 0.72;
+}
+
+.field__input--pill:focus {
+  outline: none;
+  box-shadow: none;
 }
 
 .field__input--with-toggle {
-  padding-right: 50px;
+  padding-right: 6px;
 }
 
 .btn-toggle-visibility {
-  position: absolute;
-  right: 4px;
-  top: 50%;
-  transform: translateY(-50%);
+  position: relative;
+  flex-shrink: 0;
   width: 44px;
   height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--ink-muted);
-  border-radius: 10px;
+  border-radius: var(--radius-pill);
   transition: color var(--dur) var(--ease), background var(--dur) var(--ease);
 }
 
 .btn-toggle-visibility:hover {
   color: var(--ink-mid);
-  background: rgba(45, 42, 38, 0.05);
+  background: rgba(45, 42, 38, 0.06);
 }
 
 .btn-toggle-visibility:focus-visible {
@@ -267,14 +287,14 @@ a {
   outline-offset: 1px;
 }
 
-/* ── Linha lembrar / esqueci ──────────────────────────────── */
+/* ── Lembrar / esqueci ───────────────────────────────────── */
 .login-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 14px;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .login-remember {
@@ -301,7 +321,7 @@ a {
   height: 20px;
   flex-shrink: 0;
   border-radius: 6px;
-  border: 1.5px solid rgba(45, 42, 38, 0.2);
+  border: 1.5px solid rgba(45, 42, 38, 0.18);
   background: var(--white);
   transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease);
 }
@@ -340,32 +360,36 @@ a {
   border-radius: 4px;
 }
 
-/* ── Botão principal ─────────────────────────────────────── */
+/* ── Botão (pílula, terracota) ───────────────────────────── */
 .btn-entrar {
   width: 100%;
-  margin-top: 8px;
-  padding: 16px 22px;
+  margin-top: 10px;
+  padding: 17px 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   font-size: 1rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
   color: var(--white);
   background: linear-gradient(135deg, #e8846f 0%, var(--terracotta) 45%, #c95e48 100%);
-  border-radius: var(--radius-btn);
-  box-shadow: 0 6px 20px rgba(226, 114, 91, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-pill);
+  box-shadow:
+    0 8px 24px rgba(226, 114, 91, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
   transition: transform 0.15s var(--ease), box-shadow var(--dur) var(--ease), filter var(--dur) var(--ease);
 }
 
 .btn-entrar:hover {
-  filter: brightness(1.04);
-  box-shadow: 0 8px 28px rgba(226, 114, 91, 0.38);
+  filter: brightness(1.03);
+  box-shadow:
+    0 10px 32px rgba(226, 114, 91, 0.36),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .btn-entrar:active {
-  transform: scale(0.985);
+  transform: scale(0.987);
 }
 
 .btn-entrar:focus-visible {
@@ -379,12 +403,12 @@ a {
 }
 
 .btn-entrar:hover .btn-entrar__arrow {
-  transform: translateX(3px);
+  transform: translateX(4px);
 }
 
-/* ── Rodapé ──────────────────────────────────────────────── */
+/* ── Rodapé ─────────────────────────────────────────────── */
 .login-footer-text {
-  margin-top: 26px;
+  margin-top: 28px;
   text-align: center;
   font-size: 0.875rem;
   color: var(--ink-mid);
