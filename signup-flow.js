@@ -68,6 +68,14 @@ export function humanizeAuthError(message) {
     return 'O e-mail não parece válido. Verifica se está correto.';
   }
 
+  if (/invalid login|invalid credentials|invalid password|wrong password/i.test(msg)) {
+    return 'E-mail ou senha incorretos. Se acabaste de criar a conta, confirma o e-mail no Supabase ou na tua caixa de entrada.';
+  }
+
+  if (/email not confirmed|not confirmed/i.test(msg)) {
+    return 'Este e-mail ainda não foi confirmado. Abre o link que enviámos ou pede um novo e-mail no painel do Supabase.';
+  }
+
   if (/password/i.test(msg) && /short|least|characters/i.test(msg)) {
     return 'A senha não cumpre os requisitos do Supabase (comprimento ou complexidade). Tenta uma senha mais forte.';
   }

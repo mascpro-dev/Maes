@@ -93,22 +93,22 @@
             <span class="appointment__icon">🧩</span>
           </div>
           <div class="appointment__info">
-            <h2 class="appointment__title">Terapia ABA</h2>
-            <p class="appointment__time">
+            <h2 class="appointment__title" id="appointment-title">Próxima terapia</h2>
+            <p class="appointment__time" id="appointment-time-row">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
               </svg>
-              Hoje, 14:30
+              <span id="appointment-time">Horário a combinar</span>
             </p>
-            <p class="appointment__location">
+            <p class="appointment__location" id="appointment-location-row">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                 <circle cx="12" cy="10" r="3" />
               </svg>
-              Clínica Crescer — Moema
+              <span id="appointment-location">Local a definir com a equipe</span>
             </p>
           </div>
         </div>
@@ -117,7 +117,7 @@
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
-          Em <strong id="countdown">2h 34min</strong>
+          <span id="appointment-countdown-label">Em </span><strong id="countdown">breve</strong>
         </div>
         <button class="btn-directions" id="btn-directions" aria-label="Como chegar à Terapia ABA">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -187,7 +187,7 @@
           Dica do Dia
         </div>
         <p class="tip__emoji">🌿</p>
-        <p class="tip__text">"Respirar fundo 3 vezes antes de responder seu filho pode mudar tudo."</p>
+        <p class="tip__text" id="tip-text">"Respirar fundo 3 vezes antes de responder seu filho pode mudar tudo."</p>
       </article>
 
       <!-- CARD 4 — Assistente de Reembolso (Storage + refunds) -->
@@ -276,19 +276,18 @@
         </svg>
         <span>Diário</span>
       </a>
-      <button class="nav-btn" id="nav-profile" aria-label="Perfil">
+      <a href="perfil.html" class="nav-btn" id="nav-profile" aria-label="Perfil">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
           stroke-linecap="round" stroke-linejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
           <circle cx="12" cy="7" r="4" />
         </svg>
         <span>Perfil</span>
-      </button>
+      </a>
     </nav>
 
   </div><!-- /app-wrapper -->
 
-  <script src="supabase-config.js"></script>
   <script src="app.js"></script>
   <script type="module" src="dashboard-supabase.js"></script>
 </body>

@@ -69,23 +69,40 @@
 
 /* ── Humor + bateria: UI principal em dashboard-supabase.js (Supabase) ── */
 
-/* ── Countdown Timer ────────────────────────────────────── */
+/* ── Countdown / próximo compromisso (horário dinâmico via AuraDashboard.setAppointmentTarget) ── */
+let auraAppointmentCountdownTimer = null;
+
 (function initCountdown() {
   const el = document.getElementById('countdown');
   if (!el) return;
 
-  // Appointment fixed at 14:30
-  function update() {
-    const now  = new Date();
-    const appt = new Date();
-    appt.setHours(14, 30, 0, 0);
+  function clearTimer() {
+    if (auraAppointmentCountdownTimer != null) {
+      clearInterval(auraAppointmentCountdownTimer);
+      auraAppointmentCountdownTimer = null;
+    }
+  }
 
+  function update() {
+    if (el.dataset.mode === 'static') return;
+    const iso = el.dataset.appointmentAt;
+    if (!iso) return;
+
+    const appt = new Date(iso);
+    if (Number.isNaN(appt.getTime())) return;
+
+    const now = new Date();
     let diff = appt - now;
+    const label = document.getElementById('appointment-countdown-label');
 
     if (diff < 0) {
-      el.parentElement.textContent = 'Compromisso encerrado';
+      if (label) label.textContent = '';
+      el.textContent = 'Compromisso encerrado';
+      clearTimer();
       return;
     }
+
+    if (label) label.textContent = 'Em ';
 
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
@@ -100,7 +117,7 @@
   }
 
   update();
-  setInterval(update, 30000); // update every 30s
+  auraAppointmentCountdownTimer = setInterval(update, 30000);
 })();
 
 /* ── Bateria da Mãe: média mood_score 7d + barra (dashboard-supabase.js) ── */
