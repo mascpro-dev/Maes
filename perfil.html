@@ -38,13 +38,23 @@
             </svg>
             Editar perfil
           </a>
-          <a href="index.html#card-appointment" class="perfil-sidebar__link">
+          <a href="index.html" class="perfil-sidebar__link">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               aria-hidden="true">
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
               <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </svg>
             Notificações
+          </a>
+          <a href="cadastro-passo2.html" class="perfil-sidebar__link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+            Dados dos filhos
           </a>
 
           <p class="perfil-sidebar__group-label">Apoio</p>
@@ -89,6 +99,7 @@
         </div>
       </aside>
 
+      <div class="perfil-main-wrap">
       <div class="perfil-dash">
         <header class="perfil-dash__header">
           <a href="index.html" class="perfil-dash__back">← Início</a>
@@ -188,38 +199,13 @@
             </div>
           </section>
 
-          <section class="perfil-card" aria-labelledby="perfil-comp-heading">
-            <div class="perfil-card__head">
-              <h2 class="perfil-card__title" id="perfil-comp-heading">Próximo compromisso</h2>
-            </div>
-            <p class="perfil-compromisso__hint">Estes dados alimentam o cartão na página inicial (horário, título e
-              rota).</p>
-            <label class="perfil-field">
-              <span class="perfil-field__label">Data e hora</span>
-              <input type="datetime-local" id="perfil-appt-datetime" class="perfil-input" autocomplete="off" />
-            </label>
-            <label class="perfil-field">
-              <span class="perfil-field__label">Título (ex.: Terapia ABA)</span>
-              <input type="text" id="perfil-appt-title" class="perfil-input" maxlength="120" placeholder="Opcional" />
-            </label>
-            <label class="perfil-field">
-              <span class="perfil-field__label">Local (morada ou clínica)</span>
-              <input type="text" id="perfil-appt-location" class="perfil-input" maxlength="200"
-                placeholder="Para abrir no mapa" />
-            </label>
-            <button type="button" class="btn-perfil-primary btn-perfil-primary--full" id="btn-perfil-save-appt">Guardar
-              compromisso</button>
-            <p class="perfil-compromisso__status" id="perfil-appt-status" role="status" aria-live="polite"></p>
-          </section>
-
           <section class="perfil-card" aria-labelledby="perfil-children-heading">
             <div class="perfil-card__head">
               <h2 class="perfil-card__title" id="perfil-children-heading">Filhos registados</h2>
+              <a href="cadastro-passo2.html" class="btn-perfil-add-child">Adicionar filho</a>
             </div>
             <div class="perfil-children-grid" id="perfil-children-list"></div>
           </section>
-
-          <button type="button" class="btn-perfil-sair-mobile" id="btn-perfil-sair-mobile">Sair da conta</button>
         </div>
       </div>
 
@@ -235,6 +221,7 @@
         </div>
         <ul class="perfil-completion__list" id="perfil-completion-list"></ul>
       </aside>
+      </div>
     </div>
 
     <nav class="bottom-nav" role="navigation" aria-label="Navegação principal">
@@ -264,7 +251,7 @@
         </svg>
         <span>Home</span>
       </a>
-      <a href="index.html#card-appointment" class="nav-btn" id="nav-appointment" aria-label="Próximo compromisso">
+      <a href="agenda.html" class="nav-btn" id="nav-appointment" aria-label="Compromissos">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
           stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />

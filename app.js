@@ -69,7 +69,7 @@
 
 /* ── Humor + bateria: UI principal em dashboard-supabase.js (Supabase) ── */
 
-/* ── Countdown do compromisso: AuraDashboard.setAppointmentTarget (dashboard-supabase.js) ── */
+/* ── Countdown do compromisso (home + página Agenda) ── */
 let auraAppointmentCountdownTimer = null;
 
 /* ── Bateria da Mãe: média mood_score 7d + barra (dashboard-supabase.js) ── */
@@ -99,11 +99,17 @@ let auraAppointmentCountdownTimer = null;
   window.AuraDashboard = {
     /**
      * @param {string|null} iso Data/hora do próximo compromisso (ISO). null = só texto estático.
-     * @param {{ countdownText?: string }} options
+     * @param {{
+     *   countdownText?: string,
+     *   countdownId?: string,
+     *   countdownLabelId?: string
+     * }} options
      */
     setAppointmentTarget(iso, options = {}) {
-      const el = document.getElementById('countdown');
-      const label = document.getElementById('appointment-countdown-label');
+      const cid = options.countdownId || 'countdown';
+      const lid = options.countdownLabelId || 'appointment-countdown-label';
+      const el = document.getElementById(cid);
+      const label = document.getElementById(lid);
       if (!el) return;
 
       if (auraAppointmentCountdownTimer != null) {
@@ -242,43 +248,30 @@ let auraAppointmentCountdownTimer = null;
 
   window.AuraDashboard.setBatteryFromMoodAverage(null, { sampleCount: 0 });
   window.AuraDashboard.setAppointmentTarget(null, { countdownText: 'breve' });
-})();
 
-/* ── Navigation ─────────────────────────────────────────── */
-(function initNav() {
-  const navBtns = document.querySelectorAll('.nav-btn');
-
-  navBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      navBtns.forEach(b => {
-        b.classList.remove('nav-btn--active');
-        b.removeAttribute('aria-current');
+  (function applyLocalNextAppointmentHome() {
+    if (typeof window.AuraAppointments?.getNextOccurrence !== 'function') return;
+    const next = window.AuraAppointments.getNextOccurrence();
+    if (!next?.startAt) return;
+    const d = next.startAt;
+    const apptTitle = document.getElementById('appointment-title');
+    const timeEl = document.getElementById('appointment-time');
+    const locEl = document.getElementById('appointment-location');
+    const cdLabel = document.getElementById('appointment-countdown-label');
+    if (apptTitle) apptTitle.textContent = next.title || 'Próximo compromisso';
+    if (timeEl) {
+      timeEl.textContent = d.toLocaleString('pt-BR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        hour: '2-digit',
+        minute: '2-digit',
       });
-      btn.classList.add('nav-btn--active');
-      btn.setAttribute('aria-current', 'page');
-    });
-  });
-})();
-
-/* ── Ícone Compromisso: destacar quando a âncora #card-appointment está ativa ── */
-(function initAppointmentHashNav() {
-  const apptNav = document.getElementById('nav-appointment');
-  if (!apptNav || !document.getElementById('card-appointment')) return;
-
-  function syncFromHash() {
-    const h = (window.location.hash || '').replace(/^#/, '');
-    if (h !== 'card-appointment') return;
-    const navBtns = document.querySelectorAll('.bottom-nav .nav-btn');
-    navBtns.forEach((b) => {
-      b.classList.remove('nav-btn--active');
-      b.removeAttribute('aria-current');
-    });
-    apptNav.classList.add('nav-btn--active');
-    apptNav.setAttribute('aria-current', 'page');
-  }
-
-  window.addEventListener('hashchange', syncFromHash);
-  syncFromHash();
+    }
+    if (locEl) locEl.textContent = (next.location || '').trim() || 'Local a definir na agenda';
+    window.AuraDashboard.setAppointmentTarget(d.toISOString(), {});
+    if (cdLabel) cdLabel.textContent = 'Em ';
+  })();
 })();
 
 /* ── Texto de reembolsos pendentes (localStorage; atualizado após upload) ── */
@@ -288,21 +281,20 @@ let auraAppointmentCountdownTimer = null;
   }
 })();
 
-/* ── Directions Button ──────────────────────────────────── */
-(function initDirections() {
-  const btn = document.getElementById('btn-directions');
-  if (!btn) return;
-
-  btn.addEventListener('click', () => {
-    const q = btn.getAttribute('data-maps-query');
-    if (q && String(q).trim()) {
-      const url =
-        'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(String(q).trim());
-      window.open(url, '_blank', 'noopener,noreferrer');
-      showToast('A abrir o mapa…');
-      return;
-    }
-    showToast('Indica o local do compromisso no perfil para abrir rotas no mapa.');
+/* ── Mapa (Agenda) ───────────────────────────────────────── */
+(function initAgendaMapsButtons() {
+  document.querySelectorAll('[data-aura-maps]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const q = btn.getAttribute('data-maps-query');
+      if (q && String(q).trim()) {
+        const url =
+          'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(String(q).trim());
+        window.open(url, '_blank', 'noopener,noreferrer');
+        showToast('A abrir o mapa…');
+        return;
+      }
+      showToast('Preenche o local na agenda para abrir rotas no mapa.');
+    });
   });
 })();
 

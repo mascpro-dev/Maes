@@ -1,5 +1,5 @@
 /**
- * /perfil — layout dashboard: profiles, children, compromisso, conclusão.
+ * /perfil — layout dashboard: profiles, children, conclusão.
  */
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm';
 
@@ -41,14 +41,6 @@ function initials(name) {
   const p = String(name).trim().split(/\s+/).filter(Boolean);
   if (p.length >= 2) return (p[0][0] + p[1][0]).toUpperCase();
   return String(name).trim().slice(0, 2).toUpperCase();
-}
-
-function toDatetimeLocalValue(iso) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function toast(msg) {
@@ -348,9 +340,7 @@ function renderProfile(profile, children) {
   const [{ data: profile, error: pErr }, { data: children, error: cErr }] = await Promise.all([
     supabase
       .from('profiles')
-      .select(
-        'full_name, email, phone, avatar_url, bio, next_appointment_at, next_appointment_title, next_appointment_location'
-      )
+      .select('full_name, email, phone, avatar_url, bio')
       .eq('id', uid)
       .maybeSingle(),
     supabase
@@ -369,49 +359,6 @@ function renderProfile(profile, children) {
   };
 
   renderProfile(merged, children || []);
-
-  const dtEl = document.getElementById('perfil-appt-datetime');
-  const titleEl = document.getElementById('perfil-appt-title');
-  const locElForm = document.getElementById('perfil-appt-location');
-  const statusEl = document.getElementById('perfil-appt-status');
-
-  if (dtEl) dtEl.value = merged.next_appointment_at ? toDatetimeLocalValue(merged.next_appointment_at) : '';
-  if (titleEl) titleEl.value = (merged.next_appointment_title || '').trim();
-  if (locElForm) locElForm.value = (merged.next_appointment_location || '').trim();
-
-  const saveAppt = document.getElementById('btn-perfil-save-appt');
-  if (saveAppt && statusEl) {
-    saveAppt.addEventListener('click', async () => {
-      statusEl.textContent = '';
-      const atVal = dtEl?.value?.trim();
-      const title = (titleEl?.value || '').trim();
-      const location = (locElForm?.value || '').trim();
-
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          next_appointment_title: title || null,
-          next_appointment_location: location || null,
-          next_appointment_at: atVal ? new Date(atVal).toISOString() : null,
-        })
-        .eq('id', uid);
-      if (error) {
-        const msg = error.message || '';
-        statusEl.textContent =
-          msg.includes('column') || error.code === '42703'
-            ? 'Corre no Supabase o SQL das colunas do compromisso (pasta supabase / COLE_AQUI).'
-            : 'Não foi possível guardar: ' + msg;
-        return;
-      }
-      merged = {
-        ...merged,
-        next_appointment_at: atVal ? new Date(atVal).toISOString() : null,
-        next_appointment_title: title || null,
-        next_appointment_location: location || null,
-      };
-      statusEl.textContent = 'Guardado. O início mostra o cartão atualizado.';
-    });
-  }
 
   document.getElementById('btn-toggle-personal')?.addEventListener('click', () => setPersonalEditMode(true));
   document.getElementById('btn-cancel-personal')?.addEventListener('click', () => {
@@ -501,5 +448,4 @@ function renderProfile(profile, children) {
   });
 
   bindLogout(document.getElementById('btn-perfil-sair'));
-  bindLogout(document.getElementById('btn-perfil-sair-mobile'));
 })();

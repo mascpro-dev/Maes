@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Aura — Dashboard</title>
   <meta name="description"
-    content="Dashboard Aura: seu centro de controle para mães atípicas. Gerencie compromissos, energia, reembolsos e muito mais com carinho e organização." />
+    content="Dashboard Aura: humor, energia, reembolsos e lembrete da agenda — tudo num só lugar para mães atípicas." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -18,6 +18,7 @@
 <body>
   <script src="supabase-config.js"></script>
   <script src="auth.js"></script>
+  <script src="appointments.js"></script>
   <script type="module" src="auth-session-guard.js"></script>
 
   <!-- ========== MAIN WRAPPER ========== -->
@@ -76,8 +77,9 @@
     <!-- ========== BENTO GRID ========== -->
     <main class="bento-grid" id="bento-grid" role="main">
 
-      <!-- CARD 1 — Próximo Compromisso (grande, esquerda) -->
-      <article class="bento-card card--appointment card--sage" id="card-appointment" aria-label="Próximo compromisso">
+      <!-- CARD 1 — Lembrete rápido → página Agenda -->
+      <article class="bento-card card--appointment card--agenda-reminder card--sage" id="card-agenda-reminder"
+        aria-label="Lembrete da agenda">
         <div class="card__tag">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
@@ -86,14 +88,14 @@
             <line x1="8" y1="2" x2="8" y2="6" />
             <line x1="3" y1="10" x2="21" y2="10" />
           </svg>
-          Próximo Compromisso
+          Agenda
         </div>
-        <div class="appointment__body">
-          <div class="appointment__icon-wrap">
-            <span class="appointment__icon">🧩</span>
+        <div class="agenda-reminder__body">
+          <div class="appointment__icon-wrap agenda-reminder__icon-wrap">
+            <span class="appointment__icon" aria-hidden="true">📅</span>
           </div>
-          <div class="appointment__info">
-            <h2 class="appointment__title" id="appointment-title">Próxima terapia</h2>
+          <div class="appointment__info agenda-reminder__info">
+            <h2 class="appointment__title" id="appointment-title">Próximo compromisso</h2>
             <p class="appointment__time" id="appointment-time-row">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
@@ -102,30 +104,30 @@
               </svg>
               <span id="appointment-time">Horário a combinar</span>
             </p>
-            <p class="appointment__location" id="appointment-location-row">
+            <p class="appointment__location appointment__location--ellipsis" id="appointment-location-row">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                 <circle cx="12" cy="10" r="3" />
               </svg>
-              <span id="appointment-location">Local a definir com a equipe</span>
+              <span id="appointment-location">Abre a agenda para planear</span>
             </p>
           </div>
         </div>
-        <div class="appointment__countdown">
+        <div class="appointment__countdown agenda-reminder__countdown">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
           <span id="appointment-countdown-label">Em </span><strong id="countdown">breve</strong>
         </div>
-        <button class="btn-directions" id="btn-directions" aria-label="Como chegar à Terapia ABA">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="3 11 22 2 13 21 11 13 3 11" />
+        <a href="agenda.html" class="agenda-reminder__cta">
+          <span>Abrir agenda</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            aria-hidden="true">
+            <polyline points="9 18 15 12 9 6" />
           </svg>
-          Como chegar
-        </button>
+        </a>
       </article>
 
       <!-- CARD 2 — Bateria da Mãe -->
@@ -258,7 +260,7 @@
         </svg>
         <span>Home</span>
       </button>
-      <a href="#card-appointment" class="nav-btn" id="nav-appointment" aria-label="Próximo compromisso">
+      <a href="agenda.html" class="nav-btn" id="nav-appointment" aria-label="Abrir compromissos">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
           stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />

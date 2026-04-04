@@ -37,36 +37,52 @@
   box-sizing: border-box;
 }
 
-/* Mobile / tablet: conteúdo principal primeiro, depois menu, por fim “perfil completo” */
-.perfil-layout > .perfil-dash {
+/* Mobile: área principal (sem “Perfil completo”) primeiro, menu em baixo */
+.perfil-layout > .perfil-main-wrap {
   order: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
 }
 
 .perfil-layout > .perfil-sidebar {
   order: 2;
 }
 
-.perfil-layout > .perfil-completion {
-  order: 3;
+/* “Perfil completo” só em ecrãs largos — evita bloco extra no telemóvel */
+.perfil-main-wrap .perfil-completion {
+  display: none;
 }
 
 @media (min-width: 1024px) {
   .perfil-layout {
-    grid-template-columns: minmax(200px, 240px) minmax(0, 1fr) minmax(260px, 300px);
+    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
     gap: clamp(16px, 2.5vw, 28px);
     padding: 24px clamp(16px, 3vw, 32px) 32px;
   }
 
-  .perfil-layout > .perfil-sidebar {
+  .perfil-layout > .perfil-sidebar,
+  .perfil-layout > .perfil-main-wrap {
     order: 0;
   }
 
-  .perfil-layout > .perfil-dash {
-    order: 0;
+  .perfil-layout > .perfil-main-wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
   }
 
-  .perfil-layout > .perfil-completion {
-    order: 0;
+  .perfil-main-wrap .perfil-completion {
+    display: block;
+  }
+}
+
+/* Desktop largo: conteúdo + coluna “Perfil completo”; ecrãs médios empilham o donut por baixo */
+@media (min-width: 1180px) {
+  .perfil-layout > .perfil-main-wrap {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
   }
 }
 
@@ -578,20 +594,6 @@
   color: var(--ink-light, #a09a92);
 }
 
-.perfil-compromisso__hint {
-  font-size: 0.82rem;
-  color: var(--ink-mid, #5a5550);
-  line-height: 1.45;
-  margin: -8px 0 14px;
-}
-
-.perfil-compromisso__status {
-  margin-top: 12px;
-  font-size: 0.82rem;
-  color: var(--ink-mid, #5a5550);
-  min-height: 1.2em;
-}
-
 /* Filhos em grelha */
 .perfil-children-grid {
   display: grid;
@@ -642,27 +644,27 @@
   margin: 0;
 }
 
-.btn-perfil-sair-mobile {
-  display: flex;
+.btn-perfil-add-child {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 100%;
-  margin-top: 8px;
-  padding: 14px 20px;
+  padding: 8px 14px;
   font-family: inherit;
-  font-size: 0.9rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  color: #b03030;
-  background: rgba(226, 114, 91, 0.1);
-  border: 1px solid rgba(226, 114, 91, 0.3);
-  border-radius: 14px;
-  cursor: pointer;
+  color: var(--sage-mid, #5a7a4e);
+  background: rgba(135, 169, 107, 0.14);
+  border: 1px solid rgba(135, 169, 107, 0.35);
+  border-radius: 10px;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
-@media (min-width: 1024px) {
-  .btn-perfil-sair-mobile {
-    display: none;
-  }
+.btn-perfil-add-child:hover {
+  background: rgba(135, 169, 107, 0.22);
+  color: var(--ink, #2d2a26);
 }
 
 .perfil-loading {

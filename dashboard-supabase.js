@@ -133,25 +133,21 @@ async function hydrateDashboardContext(supabase, userId) {
   const primaryChild = children[0];
   const childName = primaryChild?.nome?.trim() || profile?.nome_crianca?.trim() || '';
 
-  const customTitle = (profile?.next_appointment_title || '').trim();
-  const locText = (profile?.next_appointment_location || '').trim();
-  const apptIso = profile?.next_appointment_at || null;
-  const apptDate = apptIso ? new Date(apptIso) : null;
-  const apptValid = apptDate && !Number.isNaN(apptDate.getTime());
+  const localNext =
+    typeof window.AuraAppointments?.getNextOccurrence === 'function'
+      ? window.AuraAppointments.getNextOccurrence()
+      : null;
 
   const apptTitle = document.getElementById('appointment-title');
-  if (apptTitle) {
-    if (customTitle) apptTitle.textContent = customTitle;
-    else apptTitle.textContent = childName ? `Próxima terapia de ${childName}` : 'Próxima terapia';
-  }
-
   const timeEl = document.getElementById('appointment-time');
   const locEl = document.getElementById('appointment-location');
   const cdLabel = document.getElementById('appointment-countdown-label');
 
-  if (apptValid) {
+  if (localNext?.startAt) {
+    const d = localNext.startAt;
+    if (apptTitle) apptTitle.textContent = localNext.title || 'Próximo compromisso';
     if (timeEl) {
-      timeEl.textContent = apptDate.toLocaleString('pt-BR', {
+      timeEl.textContent = d.toLocaleString('pt-BR', {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
@@ -159,14 +155,40 @@ async function hydrateDashboardContext(supabase, userId) {
         minute: '2-digit',
       });
     }
-    if (locEl) locEl.textContent = locText || 'Local a definir com a equipe';
-    window.AuraDashboard?.setAppointmentTarget?.(apptDate.toISOString(), {});
+    if (locEl) locEl.textContent = (localNext.location || '').trim() || 'Local a definir na agenda';
+    window.AuraDashboard?.setAppointmentTarget?.(d.toISOString(), {});
     if (cdLabel) cdLabel.textContent = 'Em ';
   } else {
-    if (timeEl) timeEl.textContent = 'Horário a combinar com a clínica';
-    if (locEl) locEl.textContent = locText || 'Local a definir com a equipe';
-    window.AuraDashboard?.setAppointmentTarget?.(null, { countdownText: 'a combinar' });
-    if (cdLabel) cdLabel.textContent = '';
+    const customTitle = (profile?.next_appointment_title || '').trim();
+    const locText = (profile?.next_appointment_location || '').trim();
+    const apptIso = profile?.next_appointment_at || null;
+    const apptDate = apptIso ? new Date(apptIso) : null;
+    const apptValid = apptDate && !Number.isNaN(apptDate.getTime());
+
+    if (apptTitle) {
+      if (customTitle) apptTitle.textContent = customTitle;
+      else apptTitle.textContent = childName ? `Próxima terapia de ${childName}` : 'Próxima terapia';
+    }
+
+    if (apptValid) {
+      if (timeEl) {
+        timeEl.textContent = apptDate.toLocaleString('pt-BR', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      }
+      if (locEl) locEl.textContent = locText || 'Adiciona o local na agenda';
+      window.AuraDashboard?.setAppointmentTarget?.(apptDate.toISOString(), {});
+      if (cdLabel) cdLabel.textContent = 'Em ';
+    } else {
+      if (timeEl) timeEl.textContent = 'Horário a combinar com a clínica';
+      if (locEl) locEl.textContent = locText || 'Marca data e local na agenda Aura';
+      window.AuraDashboard?.setAppointmentTarget?.(null, { countdownText: 'a combinar' });
+      if (cdLabel) cdLabel.textContent = '';
+    }
   }
 
   const tipEl = document.getElementById('tip-text');
@@ -180,22 +202,6 @@ async function hydrateDashboardContext(supabase, userId) {
       }
     }
     tipEl.textContent = `"${tip}"`;
-  }
-
-  const dirs = document.getElementById('btn-directions');
-  if (dirs) {
-    const mapsQ = locText || '';
-    if (mapsQ) dirs.setAttribute('data-maps-query', mapsQ);
-    else dirs.removeAttribute('data-maps-query');
-    dirs.setAttribute('data-place', childName ? `terapia (${childName})` : 'o local da terapia');
-    dirs.setAttribute(
-      'aria-label',
-      mapsQ
-        ? 'Abrir rotas no mapa para o local do compromisso'
-        : childName
-          ? `Como chegar à terapia de ${childName}`
-          : 'Como chegar à terapia'
-    );
   }
 
   const pending = await fetchRefundPendingCount(supabase, userId);

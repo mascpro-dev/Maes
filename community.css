@@ -1119,16 +1119,22 @@ button.nav-btn {
   color: inherit;
 }
 
+/* Ativo = mesmo contraste que style.css (texto/ícone escuros) */
 .nav-btn--active {
-  color: var(--sage);
+  color: var(--ink);
+  font-weight: 700;
 }
 
 .nav-btn svg {
-  opacity: 0.85;
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  stroke-width: 1.8;
 }
 
 .nav-btn--active svg {
-  opacity: 1;
+  stroke: var(--ink);
+  stroke-width: 1.8;
 }
 
 .toast {
