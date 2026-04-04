@@ -69,56 +69,8 @@
 
 /* ── Humor + bateria: UI principal em dashboard-supabase.js (Supabase) ── */
 
-/* ── Countdown / próximo compromisso (horário dinâmico via AuraDashboard.setAppointmentTarget) ── */
+/* ── Countdown do compromisso: AuraDashboard.setAppointmentTarget (dashboard-supabase.js) ── */
 let auraAppointmentCountdownTimer = null;
-
-(function initCountdown() {
-  const el = document.getElementById('countdown');
-  if (!el) return;
-
-  function clearTimer() {
-    if (auraAppointmentCountdownTimer != null) {
-      clearInterval(auraAppointmentCountdownTimer);
-      auraAppointmentCountdownTimer = null;
-    }
-  }
-
-  function update() {
-    if (el.dataset.mode === 'static') return;
-    const iso = el.dataset.appointmentAt;
-    if (!iso) return;
-
-    const appt = new Date(iso);
-    if (Number.isNaN(appt.getTime())) return;
-
-    const now = new Date();
-    let diff = appt - now;
-    const label = document.getElementById('appointment-countdown-label');
-
-    if (diff < 0) {
-      if (label) label.textContent = '';
-      el.textContent = 'Compromisso encerrado';
-      clearTimer();
-      return;
-    }
-
-    if (label) label.textContent = 'Em ';
-
-    const h = Math.floor(diff / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-
-    if (h > 0) {
-      el.textContent = `${h}h ${m}min`;
-    } else if (m > 0) {
-      el.textContent = `${m} min`;
-    } else {
-      el.textContent = 'agora!';
-    }
-  }
-
-  update();
-  auraAppointmentCountdownTimer = setInterval(update, 30000);
-})();
 
 /* ── Bateria da Mãe: média mood_score 7d + barra (dashboard-supabase.js) ── */
 (function initBatteryDashboardApi() {
@@ -145,6 +97,57 @@ let auraAppointmentCountdownTimer = null;
   }
 
   window.AuraDashboard = {
+    /**
+     * @param {string|null} iso Data/hora do próximo compromisso (ISO). null = só texto estático.
+     * @param {{ countdownText?: string }} options
+     */
+    setAppointmentTarget(iso, options = {}) {
+      const el = document.getElementById('countdown');
+      const label = document.getElementById('appointment-countdown-label');
+      if (!el) return;
+
+      if (auraAppointmentCountdownTimer != null) {
+        clearInterval(auraAppointmentCountdownTimer);
+        auraAppointmentCountdownTimer = null;
+      }
+
+      if (!iso) {
+        el.dataset.mode = 'static';
+        delete el.dataset.appointmentAt;
+        if (label) label.textContent = '';
+        el.textContent = options.countdownText || 'breve';
+        return;
+      }
+
+      delete el.dataset.mode;
+      el.dataset.appointmentAt = iso;
+      if (label) label.textContent = 'Em ';
+
+      const tick = () => {
+        const appt = new Date(iso);
+        if (Number.isNaN(appt.getTime())) return;
+        const diff = appt - Date.now();
+        if (diff < 0) {
+          if (label) label.textContent = '';
+          el.textContent = 'Compromisso encerrado';
+          if (auraAppointmentCountdownTimer != null) {
+            clearInterval(auraAppointmentCountdownTimer);
+            auraAppointmentCountdownTimer = null;
+          }
+          return;
+        }
+        if (label) label.textContent = 'Em ';
+        const h = Math.floor(diff / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        if (h > 0) el.textContent = `${h}h ${m}min`;
+        else if (m > 0) el.textContent = `${m} min`;
+        else el.textContent = 'agora!';
+      };
+
+      tick();
+      auraAppointmentCountdownTimer = setInterval(tick, 30000);
+    },
+
     /**
      * @param {number|null} avgScore média 1–5 ou null sem dados
      * @param {{ sampleCount?: number, localOnly?: boolean }} options
@@ -226,6 +229,7 @@ let auraAppointmentCountdownTimer = null;
   };
 
   window.AuraDashboard.setBatteryFromMoodAverage(null, { sampleCount: 0 });
+  window.AuraDashboard.setAppointmentTarget(null, { countdownText: 'breve' });
 })();
 
 /* ── Navigation ─────────────────────────────────────────── */
@@ -257,7 +261,8 @@ let auraAppointmentCountdownTimer = null;
   if (!btn) return;
 
   btn.addEventListener('click', () => {
-    showToast('🗺️ Abrindo rotas para Clínica Crescer…');
+    const place = btn.getAttribute('data-place') || 'o local da terapia';
+    showToast(`🗺️ Abrindo rotas para ${place}…`);
   });
 })();
 
