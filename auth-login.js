@@ -1,8 +1,9 @@
 /**
- * Login: e-mail/senha + Google OAuth (redirect volta a login.html).
+ * Login: apenas e-mail + senha; CAPTCHA Turnstile opcional (supabase-config.js).
  */
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm';
 import { humanizeAuthError } from './signup-flow.js';
+import { mountTurnstile, getTurnstileToken, isTurnstileConfigured, resetTurnstile } from './aura-captcha.js';
 
 function redirectAfterLogin(remember) {
   if (typeof AuraAuth !== 'undefined') AuraAuth.setLoggedIn(remember);
@@ -30,11 +31,15 @@ function redirectAfterLogin(remember) {
     return;
   }
 
+  const turnstileEl = document.getElementById('login-turnstile');
+  if (turnstileEl && isTurnstileConfigured()) {
+    await mountTurnstile(turnstileEl);
+  }
+
   const form = document.getElementById('form-login');
   const emailInput = document.getElementById('login-email');
   const passInput = document.getElementById('login-senha');
   const errEl = document.getElementById('login-error');
-  const googleBtn = document.getElementById('btn-login-google');
 
   function showError(msg) {
     if (!errEl) {
@@ -50,13 +55,28 @@ function redirectAfterLogin(remember) {
       e.preventDefault();
       if (!form.reportValidity()) return;
       showError('');
+
+      if (isTurnstileConfigured()) {
+        const tok = getTurnstileToken();
+        if (!tok) {
+          showError('Confirma que não és um robô (verificação acima).');
+          return;
+        }
+      }
+
       const email = emailInput.value.trim();
       const password = passInput.value;
       const lembrar = form.querySelector('input[name="lembrar"]');
       const remember = lembrar && lembrar.checked;
 
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const captchaToken = getTurnstileToken();
+      const payload = { email, password };
+      if (captchaToken) payload.options = { captchaToken: captchaToken };
+
+      const { error } = await supabase.auth.signInWithPassword(payload);
+
       if (error) {
+        resetTurnstile();
         showError(humanizeAuthError(error.message));
         return;
       }
@@ -71,18 +91,6 @@ function redirectAfterLogin(remember) {
         }
       }
       redirectAfterLogin(remember);
-    });
-  }
-
-  if (googleBtn) {
-    googleBtn.addEventListener('click', async () => {
-      showError('');
-      const redirectTo = new URL('login.html', window.location.href).href;
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo },
-      });
-      if (error) showError(humanizeAuthError(error.message));
     });
   }
 })();

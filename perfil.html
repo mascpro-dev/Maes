@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Aura — Perfil</title>
-  <meta name="description" content="O teu perfil Aura: dados da mãe e filhos registados." />
+  <title>Aura — Editar perfil</title>
+  <meta name="description" content="Edita o teu perfil Aura: dados da mãe, bio e filhos." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -20,39 +20,222 @@
   <script src="auth.js"></script>
   <script type="module" src="auth-session-guard.js"></script>
 
-  <div class="app-wrapper">
-    <header class="perfil-topbar" role="banner">
-      <a href="index.html" class="perfil-back" aria-label="Voltar ao início">← Início</a>
-    </header>
+  <div class="app-wrapper app-wrapper--perfil-dash">
+    <div class="perfil-layout">
+      <aside class="perfil-sidebar" aria-label="Menu do perfil">
+        <a href="index.html" class="perfil-sidebar__brand">
+          <span class="perfil-sidebar__logo" aria-hidden="true"></span>
+          <span class="perfil-sidebar__brand-text">Aura</span>
+        </a>
 
-    <main class="perfil-main" role="main">
-      <p class="perfil-loading" id="perfil-loading">A carregar o teu perfil…</p>
+        <nav class="perfil-sidebar__nav">
+          <p class="perfil-sidebar__group-label">Perfil</p>
+          <a href="perfil.html" class="perfil-sidebar__link perfil-sidebar__link--active" aria-current="page">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            Editar perfil
+          </a>
+          <a href="index.html#card-appointment" class="perfil-sidebar__link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+            </svg>
+            Notificações
+          </a>
 
-      <div id="perfil-content" hidden>
-        <div class="perfil-hero">
-          <div class="perfil-hero__avatar" aria-hidden="true">
-            <img id="perfil-avatar-img" alt="" width="96" height="96" hidden />
-            <span class="perfil-hero__initials" id="perfil-avatar-initials">AU</span>
-          </div>
-          <h1 class="perfil-hero__name" id="perfil-name">—</h1>
-          <p class="perfil-hero__email" id="perfil-email">—</p>
+          <p class="perfil-sidebar__group-label">Apoio</p>
+          <a href="community.html" class="perfil-sidebar__link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+            </svg>
+            Comunidade
+          </a>
+          <a href="diario-evolucao.html" class="perfil-sidebar__link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+            </svg>
+            Diário
+          </a>
+
+          <p class="perfil-sidebar__group-label">Conta</p>
+          <a href="esqueci-senha.html" class="perfil-sidebar__link">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Palavra-passe
+          </a>
+        </nav>
+
+        <div class="perfil-sidebar__footer">
+          <button type="button" class="perfil-sidebar__logout" id="btn-perfil-sair">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              aria-hidden="true">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+            Sair
+          </button>
         </div>
+      </aside>
 
-        <section class="perfil-bio" aria-labelledby="perfil-bio-heading">
-          <h2 class="perfil-bio__label" id="perfil-bio-heading">Bio</h2>
-          <p class="perfil-bio__text perfil-bio__empty" id="perfil-bio-text"></p>
-        </section>
+      <div class="perfil-dash">
+        <header class="perfil-dash__header">
+          <a href="index.html" class="perfil-dash__back">← Início</a>
+          <h1 class="perfil-dash__title">Editar perfil</h1>
+        </header>
 
-        <section class="perfil-children" aria-labelledby="perfil-children-heading">
-          <h2 class="perfil-section__title" id="perfil-children-heading">Filhos registados</h2>
-          <div id="perfil-children-list"></div>
-        </section>
+        <p class="perfil-loading" id="perfil-loading">A carregar o teu perfil…</p>
 
-        <div class="perfil-actions">
-          <button type="button" class="btn-perfil-sair" id="btn-perfil-sair">Sair</button>
+        <div id="perfil-content" class="perfil-dash__body" hidden>
+          <section class="perfil-card perfil-card--photo">
+            <div class="perfil-photo-row">
+              <div class="perfil-photo-row__avatar" aria-hidden="true">
+                <img id="perfil-avatar-img" alt="" width="120" height="120" hidden />
+                <span class="perfil-photo-row__initials" id="perfil-avatar-initials">AU</span>
+              </div>
+              <div class="perfil-photo-row__actions">
+                <input type="file" id="perfil-avatar-input" class="visually-hidden" accept="image/*" tabindex="-1"
+                  aria-hidden="true" />
+                <button type="button" class="btn-perfil-upload" id="btn-perfil-avatar-trigger">
+                  Carregar nova foto
+                </button>
+                <p class="perfil-photo-row__hint">Recomendamos pelo menos 400×400 px. Formatos JPG ou PNG.</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="perfil-card" aria-labelledby="perfil-personal-heading">
+            <div class="perfil-card__head">
+              <h2 class="perfil-card__title" id="perfil-personal-heading">Informação pessoal</h2>
+              <button type="button" class="btn-perfil-edit" id="btn-toggle-personal" aria-expanded="false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  aria-hidden="true">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                Editar
+              </button>
+            </div>
+            <div class="perfil-rows" id="perfil-personal-view">
+              <div class="perfil-row">
+                <span class="perfil-row__label">Nome completo</span>
+                <span class="perfil-row__value" id="perfil-display-name">—</span>
+              </div>
+              <div class="perfil-row">
+                <span class="perfil-row__label">E-mail</span>
+                <span class="perfil-row__value" id="perfil-display-email">—</span>
+              </div>
+              <div class="perfil-row">
+                <span class="perfil-row__label">Telefone</span>
+                <span class="perfil-row__value" id="perfil-display-phone">—</span>
+              </div>
+            </div>
+            <div class="perfil-edit-panel" id="perfil-personal-edit" hidden>
+              <label class="perfil-field">
+                <span class="perfil-field__label">Nome completo</span>
+                <input type="text" id="perfil-input-name" class="perfil-input" maxlength="120" autocomplete="name" />
+              </label>
+              <label class="perfil-field">
+                <span class="perfil-field__label">E-mail</span>
+                <input type="email" id="perfil-input-email" class="perfil-input perfil-input--readonly" readonly
+                  aria-readonly="true" />
+              </label>
+              <label class="perfil-field">
+                <span class="perfil-field__label">Telefone</span>
+                <input type="tel" id="perfil-input-phone" class="perfil-input" autocomplete="tel" />
+              </label>
+              <div class="perfil-edit-actions">
+                <button type="button" class="btn-perfil-ghost" id="btn-cancel-personal">Cancelar</button>
+                <button type="button" class="btn-perfil-primary" id="btn-save-personal">Guardar alterações</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="perfil-card" aria-labelledby="perfil-bio-heading">
+            <div class="perfil-card__head">
+              <h2 class="perfil-card__title" id="perfil-bio-heading">Bio</h2>
+              <button type="button" class="btn-perfil-edit" id="btn-toggle-bio" aria-expanded="false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  aria-hidden="true">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                </svg>
+                Editar
+              </button>
+            </div>
+            <p class="perfil-bio__text" id="perfil-bio-text"></p>
+            <div class="perfil-edit-panel" id="perfil-bio-edit" hidden>
+              <label class="perfil-field">
+                <span class="perfil-field__label">A tua bio</span>
+                <textarea id="perfil-input-bio" class="perfil-textarea" rows="4" maxlength="600"
+                  placeholder="Um pouco sobre ti…"></textarea>
+              </label>
+              <div class="perfil-edit-actions">
+                <button type="button" class="btn-perfil-ghost" id="btn-cancel-bio">Cancelar</button>
+                <button type="button" class="btn-perfil-primary" id="btn-save-bio">Guardar alterações</button>
+              </div>
+            </div>
+          </section>
+
+          <section class="perfil-card" aria-labelledby="perfil-comp-heading">
+            <div class="perfil-card__head">
+              <h2 class="perfil-card__title" id="perfil-comp-heading">Próximo compromisso</h2>
+            </div>
+            <p class="perfil-compromisso__hint">Estes dados alimentam o cartão na página inicial (horário, título e
+              rota).</p>
+            <label class="perfil-field">
+              <span class="perfil-field__label">Data e hora</span>
+              <input type="datetime-local" id="perfil-appt-datetime" class="perfil-input" autocomplete="off" />
+            </label>
+            <label class="perfil-field">
+              <span class="perfil-field__label">Título (ex.: Terapia ABA)</span>
+              <input type="text" id="perfil-appt-title" class="perfil-input" maxlength="120" placeholder="Opcional" />
+            </label>
+            <label class="perfil-field">
+              <span class="perfil-field__label">Local (morada ou clínica)</span>
+              <input type="text" id="perfil-appt-location" class="perfil-input" maxlength="200"
+                placeholder="Para abrir no mapa" />
+            </label>
+            <button type="button" class="btn-perfil-primary btn-perfil-primary--full" id="btn-perfil-save-appt">Guardar
+              compromisso</button>
+            <p class="perfil-compromisso__status" id="perfil-appt-status" role="status" aria-live="polite"></p>
+          </section>
+
+          <section class="perfil-card" aria-labelledby="perfil-children-heading">
+            <div class="perfil-card__head">
+              <h2 class="perfil-card__title" id="perfil-children-heading">Filhos registados</h2>
+            </div>
+            <div class="perfil-children-grid" id="perfil-children-list"></div>
+          </section>
+
+          <button type="button" class="btn-perfil-sair-mobile" id="btn-perfil-sair-mobile">Sair da conta</button>
         </div>
       </div>
-    </main>
+
+      <aside class="perfil-completion" aria-labelledby="perfil-completion-heading">
+        <h2 class="perfil-completion__title" id="perfil-completion-heading">Perfil completo</h2>
+        <div class="perfil-completion__chart" aria-hidden="true">
+          <svg class="perfil-donut" viewBox="0 0 120 120" width="120" height="120">
+            <circle class="perfil-donut__track" cx="60" cy="60" r="46" fill="none" stroke-width="12" />
+            <circle class="perfil-donut__progress" id="perfil-donut-progress" cx="60" cy="60" r="46" fill="none"
+              stroke-width="12" stroke-linecap="round" transform="rotate(-90 60 60)" />
+          </svg>
+          <span class="perfil-completion__pct" id="perfil-completion-pct">0%</span>
+        </div>
+        <ul class="perfil-completion__list" id="perfil-completion-list"></ul>
+      </aside>
+    </div>
 
     <nav class="bottom-nav" role="navigation" aria-label="Navegação principal">
       <a href="index.html" class="sidebar-brand" aria-label="Aura — início">
@@ -80,6 +263,16 @@
           <polyline points="9 22 9 12 15 12 15 22" />
         </svg>
         <span>Home</span>
+      </a>
+      <a href="index.html#card-appointment" class="nav-btn" id="nav-appointment" aria-label="Próximo compromisso">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+        <span>Compromisso</span>
       </a>
       <a href="community.html" class="nav-btn" id="nav-community" aria-label="Comunidade">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"

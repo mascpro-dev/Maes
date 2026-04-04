@@ -72,6 +72,8 @@
           </label>
         </div>
 
+        <div id="cadastro-turnstile" class="aura-turnstile-wrap" aria-live="polite"></div>
+
         <button type="submit" class="btn-proximo" id="btn-submit">Continuar</button>
       </form>
 
@@ -85,6 +87,7 @@
   <script src="auth.js"></script>
   <script type="module">
     import { getSignupClient, signupStep1Mother } from './signup-flow.js';
+    import { mountTurnstile, getTurnstileToken, isTurnstileConfigured, resetTurnstile } from './aura-captcha.js';
 
     const form = document.getElementById('form-cadastro');
     const errEl = document.getElementById('signup-error');
@@ -108,6 +111,11 @@
       showSignupMessage(cfgErr + ' Depois disso, recarrega a página.');
     }
 
+    const turnstileEl = document.getElementById('cadastro-turnstile');
+    if (turnstileEl && isTurnstileConfigured()) {
+      mountTurnstile(turnstileEl).catch(() => {});
+    }
+
     form.addEventListener('submit', async function (e) {
       e.preventDefault();
       clearError();
@@ -118,21 +126,29 @@
         return;
       }
 
+      if (isTurnstileConfigured() && !getTurnstileToken()) {
+        showSignupMessage('Confirma que não és um robô (verificação acima).');
+        return;
+      }
+
       const nome = document.getElementById('nome-completo').value.trim();
       const email = document.getElementById('email').value.trim();
       const phone = document.getElementById('telefone').value.trim();
       const senha = document.getElementById('senha').value;
 
       btn.disabled = true;
+      const captchaToken = getTurnstileToken() || undefined;
       const res = await signupStep1Mother({
         fullName: nome,
         email,
         phone,
         password: senha,
+        captchaToken,
       });
       btn.disabled = false;
 
       if (!res.ok) {
+        resetTurnstile();
         showSignupMessage(res.message, res.code === 'EMAIL_CONFIRM' ? 'warn' : 'error');
         return;
       }

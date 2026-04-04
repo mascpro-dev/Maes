@@ -124,6 +124,13 @@ CREATE POLICY "support_network_delete_own"
   ON public.support_network FOR DELETE
   USING (auth.uid() = user_id);
 
+-- -----------------------------------------------------------------------------
+-- Dashboard: cartão «Próximo compromisso» (perfil + countdown)
+-- -----------------------------------------------------------------------------
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS next_appointment_at timestamptz;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS next_appointment_title text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS next_appointment_location text;
+
 -- =============================================================================
 -- IMPORTANTE (testes): Authentication → Providers → Email → desativa
 -- "Confirm email" para o signUp devolver sessão logo e o passo 2 funcionar.

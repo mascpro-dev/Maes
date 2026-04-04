@@ -1,5 +1,5 @@
 /**
- * /perfil — dados de profiles + children (RLS).
+ * /perfil — layout dashboard: profiles, children, compromisso, conclusão.
  */
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm';
 
@@ -11,6 +11,9 @@ const DIAG_LABELS = {
   rara: 'Doença rara',
   investigacao: 'Em investigação',
 };
+
+const DONUT_R = 46;
+const DONUT_C = 2 * Math.PI * DONUT_R;
 
 function formatBirth(iso) {
   if (!iso) return null;
@@ -40,6 +43,19 @@ function initials(name) {
   return String(name).trim().slice(0, 2).toUpperCase();
 }
 
+function toDatetimeLocalValue(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function toast(msg) {
+  if (typeof showToast === 'function') showToast(msg);
+  else alert(msg);
+}
+
 async function getClient() {
   if (window.__auraAuthReady) {
     const ok = await window.__auraAuthReady;
@@ -54,6 +70,91 @@ async function getClient() {
   });
 }
 
+function setCompletionUI(profile, children) {
+  const pctEl = document.getElementById('perfil-completion-pct');
+  const circle = document.getElementById('perfil-donut-progress');
+  const listEl = document.getElementById('perfil-completion-list');
+  if (!listEl) return;
+
+  const hasName = !!(profile?.full_name && String(profile.full_name).trim());
+  const hasAvatar = !!(profile?.avatar_url && String(profile.avatar_url).trim());
+  const hasBio = !!(profile?.bio && String(profile.bio).trim());
+  const hasPhone = !!(profile?.phone && String(profile.phone).trim());
+  const hasKids = Array.isArray(children) && children.length > 0;
+
+  const checks = [
+    { done: hasName, label: 'Nome completo', w: 25 },
+    { done: hasAvatar, label: 'Foto de perfil', w: 20 },
+    { done: hasBio, label: 'Bio', w: 20 },
+    { done: hasPhone, label: 'Telefone', w: 15 },
+    { done: hasKids, label: 'Dados do filho', w: 20 },
+  ];
+
+  const pct = Math.min(
+    100,
+    checks.reduce((s, c) => s + (c.done ? c.w : 0), 0)
+  );
+
+  if (pctEl) pctEl.textContent = `${Math.round(pct)}%`;
+  if (circle) {
+    circle.style.strokeDasharray = String(DONUT_C);
+    circle.style.strokeDashoffset = String(DONUT_C * (1 - pct / 100));
+  }
+
+  listEl.innerHTML = '';
+  checks.forEach((c) => {
+    const li = document.createElement('li');
+    li.className = 'perfil-completion__item';
+    const icon = document.createElement('span');
+    icon.className = 'perfil-completion__icon ' + (c.done ? 'perfil-completion__icon--ok' : 'perfil-completion__icon--todo');
+    icon.textContent = c.done ? '✓' : '+';
+    const text = document.createElement('span');
+    text.className = 'perfil-completion__item-text';
+    text.innerHTML = c.done
+      ? `<strong>${c.label}</strong> completo`
+      : `<strong>${c.label}</strong> — adiciona para subir o perfil`;
+    const w = document.createElement('span');
+    w.className = 'perfil-completion__weight' + (c.done ? '' : ' perfil-completion__weight--todo');
+    w.textContent = c.done ? `${c.w}%` : `+${c.w}%`;
+    li.appendChild(icon);
+    li.appendChild(text);
+    li.appendChild(w);
+    listEl.appendChild(li);
+  });
+}
+
+function bindLogout(btn) {
+  if (!btn || typeof AuraAuth === 'undefined') return;
+  btn.addEventListener('click', () => {
+    if (navigator.vibrate) navigator.vibrate(25);
+    AuraAuth.logout();
+  });
+}
+
+function setPersonalEditMode(open) {
+  const view = document.getElementById('perfil-personal-view');
+  const edit = document.getElementById('perfil-personal-edit');
+  const btn = document.getElementById('btn-toggle-personal');
+  if (view) view.hidden = !!open;
+  if (edit) edit.hidden = !open;
+  if (btn) {
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btn.style.visibility = open ? 'hidden' : 'visible';
+  }
+}
+
+function setBioEditMode(open) {
+  const bioText = document.getElementById('perfil-bio-text');
+  const edit = document.getElementById('perfil-bio-edit');
+  const btn = document.getElementById('btn-toggle-bio');
+  if (bioText) bioText.hidden = !!open;
+  if (edit) edit.hidden = !open;
+  if (btn) {
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    btn.style.visibility = open ? 'hidden' : 'visible';
+  }
+}
+
 function renderProfile(profile, children) {
   const loading = document.getElementById('perfil-loading');
   const content = document.getElementById('perfil-content');
@@ -62,16 +163,38 @@ function renderProfile(profile, children) {
 
   const nome = (profile?.full_name || '').trim() || 'Mãe Aura';
   const email = (profile?.email || '').trim();
+  const phone = (profile?.phone || '').trim();
 
-  const nameEl = document.getElementById('perfil-name');
-  const emailEl = document.getElementById('perfil-email');
+  const displayName = document.getElementById('perfil-display-name');
+  const displayEmail = document.getElementById('perfil-display-email');
+  const displayPhone = document.getElementById('perfil-display-phone');
+  if (displayName) displayName.textContent = nome;
+  if (displayEmail) displayEmail.textContent = email || '—';
+  if (displayPhone) displayPhone.textContent = phone || '—';
+
+  const inName = document.getElementById('perfil-input-name');
+  const inEmail = document.getElementById('perfil-input-email');
+  const inPhone = document.getElementById('perfil-input-phone');
+  if (inName) inName.value = (profile?.full_name || '').trim();
+  if (inEmail) inEmail.value = email;
+  if (inPhone) inPhone.value = phone;
+
   const bioEl = document.getElementById('perfil-bio-text');
+  const inBio = document.getElementById('perfil-input-bio');
+  const bio = (profile?.bio || '').trim();
+  if (inBio) inBio.value = bio;
+  if (bioEl) {
+    if (bio) {
+      bioEl.textContent = bio;
+      bioEl.classList.remove('perfil-bio__empty');
+    } else {
+      bioEl.textContent = 'Ainda não escreveste uma bio. Usa “Editar” para contar um pouco sobre ti.';
+      bioEl.classList.add('perfil-bio__empty');
+    }
+  }
+
   const imgEl = document.getElementById('perfil-avatar-img');
   const initialsEl = document.getElementById('perfil-avatar-initials');
-
-  if (nameEl) nameEl.textContent = nome;
-  if (emailEl) emailEl.textContent = email || '—';
-
   const pic = (profile?.avatar_url || '').trim();
   if (imgEl && initialsEl) {
     if (pic) {
@@ -86,66 +209,57 @@ function renderProfile(profile, children) {
     }
   }
 
-  if (bioEl) {
-    const bio = (profile?.bio || '').trim();
-    if (bio) {
-      bioEl.textContent = bio;
-      bioEl.classList.remove('perfil-bio__empty');
-    } else {
-      bioEl.textContent = 'Ainda não há bio — em breve poderás editar aqui.';
-      bioEl.classList.add('perfil-bio__empty');
-    }
-  }
-
   const listEl = document.getElementById('perfil-children-list');
-  if (!listEl) return;
+  if (listEl) {
+    listEl.innerHTML = '';
+    const kids = Array.isArray(children) ? children : [];
 
-  listEl.innerHTML = '';
-  const kids = Array.isArray(children) ? children : [];
+    if (!kids.length) {
+      const p = document.createElement('p');
+      p.className = 'perfil-empty-kids';
+      p.textContent =
+        'Nenhum filho registado ainda. Completa o cadastro (passo 2) para aparecer aqui.';
+      listEl.appendChild(p);
+    } else {
+      kids.forEach((c) => {
+        const card = document.createElement('article');
+        card.className = 'perfil-child-card';
+        const n = (c.nome || '').trim() || 'Criança';
+        const birth = formatBirth(c.data_nascimento);
+        const age = ageFromBirth(c.data_nascimento);
 
-  if (!kids.length) {
-    const p = document.createElement('p');
-    p.className = 'perfil-empty-kids';
-    p.textContent = 'Nenhum filho registado ainda. Completa o cadastro (passo 2) para aparecer aqui.';
-    listEl.appendChild(p);
-    return;
+        const h = document.createElement('div');
+        h.className = 'perfil-child-card__name';
+        h.textContent = n;
+        card.appendChild(h);
+
+        const meta = document.createElement('div');
+        meta.className = 'perfil-child-card__meta';
+        const parts = [];
+        if (birth) parts.push('Nasc.: ' + birth);
+        if (age != null) parts.push(age + ' anos');
+        meta.textContent = parts.length ? parts.join(' · ') : 'Data de nascimento não informada';
+        card.appendChild(meta);
+
+        const dx = Array.isArray(c.diagnosticos) ? c.diagnosticos : [];
+        if (dx.length) {
+          const tags = document.createElement('div');
+          tags.className = 'perfil-tags';
+          dx.forEach((slug) => {
+            const t = document.createElement('span');
+            t.className = 'perfil-tag';
+            t.textContent = DIAG_LABELS[slug] || slug;
+            tags.appendChild(t);
+          });
+          card.appendChild(tags);
+        }
+
+        listEl.appendChild(card);
+      });
+    }
   }
 
-  kids.forEach((c) => {
-    const card = document.createElement('article');
-    card.className = 'perfil-child-card';
-    const n = (c.nome || '').trim() || 'Criança';
-    const birth = formatBirth(c.data_nascimento);
-    const age = ageFromBirth(c.data_nascimento);
-
-    const h = document.createElement('div');
-    h.className = 'perfil-child-card__name';
-    h.textContent = n;
-    card.appendChild(h);
-
-    const meta = document.createElement('div');
-    meta.className = 'perfil-child-card__meta';
-    const parts = [];
-    if (birth) parts.push('Nasc.: ' + birth);
-    if (age != null) parts.push(age + ' anos');
-    meta.textContent = parts.length ? parts.join(' · ') : 'Data de nascimento não informada';
-    card.appendChild(meta);
-
-    const dx = Array.isArray(c.diagnosticos) ? c.diagnosticos : [];
-    if (dx.length) {
-      const tags = document.createElement('div');
-      tags.className = 'perfil-tags';
-      dx.forEach((slug) => {
-        const t = document.createElement('span');
-        t.className = 'perfil-tag';
-        t.textContent = DIAG_LABELS[slug] || slug;
-        tags.appendChild(t);
-      });
-      card.appendChild(tags);
-    }
-
-    listEl.appendChild(card);
-  });
+  setCompletionUI(profile, children);
 }
 
 (async function initPerfil() {
@@ -169,7 +283,9 @@ function renderProfile(profile, children) {
   const [{ data: profile, error: pErr }, { data: children, error: cErr }] = await Promise.all([
     supabase
       .from('profiles')
-      .select('full_name, email, avatar_url, bio')
+      .select(
+        'full_name, email, phone, avatar_url, bio, next_appointment_at, next_appointment_title, next_appointment_location'
+      )
       .eq('id', uid)
       .maybeSingle(),
     supabase
@@ -182,18 +298,121 @@ function renderProfile(profile, children) {
   if (pErr) console.warn('[Aura] perfil profiles:', pErr.message);
   if (cErr) console.warn('[Aura] perfil children:', cErr.message);
 
-  const merged = {
+  let merged = {
     ...(profile || {}),
     email: profile?.email || session.user.email || '',
   };
 
   renderProfile(merged, children || []);
 
-  const btn = document.getElementById('btn-perfil-sair');
-  if (btn && typeof AuraAuth !== 'undefined') {
-    btn.addEventListener('click', () => {
-      if (navigator.vibrate) navigator.vibrate(25);
-      AuraAuth.logout();
+  const dtEl = document.getElementById('perfil-appt-datetime');
+  const titleEl = document.getElementById('perfil-appt-title');
+  const locElForm = document.getElementById('perfil-appt-location');
+  const statusEl = document.getElementById('perfil-appt-status');
+
+  if (dtEl) dtEl.value = merged.next_appointment_at ? toDatetimeLocalValue(merged.next_appointment_at) : '';
+  if (titleEl) titleEl.value = (merged.next_appointment_title || '').trim();
+  if (locElForm) locElForm.value = (merged.next_appointment_location || '').trim();
+
+  const saveAppt = document.getElementById('btn-perfil-save-appt');
+  if (saveAppt && statusEl) {
+    saveAppt.addEventListener('click', async () => {
+      statusEl.textContent = '';
+      const atVal = dtEl?.value?.trim();
+      const title = (titleEl?.value || '').trim();
+      const location = (locElForm?.value || '').trim();
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          next_appointment_title: title || null,
+          next_appointment_location: location || null,
+          next_appointment_at: atVal ? new Date(atVal).toISOString() : null,
+        })
+        .eq('id', uid);
+      if (error) {
+        const msg = error.message || '';
+        statusEl.textContent =
+          msg.includes('column') || error.code === '42703'
+            ? 'Corre no Supabase o SQL das colunas do compromisso (pasta supabase / COLE_AQUI).'
+            : 'Não foi possível guardar: ' + msg;
+        return;
+      }
+      merged = {
+        ...merged,
+        next_appointment_at: atVal ? new Date(atVal).toISOString() : null,
+        next_appointment_title: title || null,
+        next_appointment_location: location || null,
+      };
+      statusEl.textContent = 'Guardado. O início mostra o cartão atualizado.';
     });
   }
+
+  document.getElementById('btn-toggle-personal')?.addEventListener('click', () => setPersonalEditMode(true));
+  document.getElementById('btn-cancel-personal')?.addEventListener('click', () => {
+    const inName = document.getElementById('perfil-input-name');
+    const inPhone = document.getElementById('perfil-input-phone');
+    if (inName) inName.value = (merged.full_name || '').trim();
+    if (inPhone) inPhone.value = (merged.phone || '').trim();
+    setPersonalEditMode(false);
+  });
+
+  document.getElementById('btn-save-personal')?.addEventListener('click', async () => {
+    const inName = document.getElementById('perfil-input-name');
+    const inPhone = document.getElementById('perfil-input-phone');
+    const full_name = (inName?.value || '').trim() || null;
+    const phone = (inPhone?.value || '').trim() || null;
+
+    const { error } = await supabase.from('profiles').update({ full_name, phone }).eq('id', uid);
+    if (error) {
+      toast('Não foi possível guardar: ' + (error.message || ''));
+      return;
+    }
+    merged = { ...merged, full_name: full_name || '', phone: phone || '' };
+    renderProfile(merged, children || []);
+    if (typeof AuraAuth !== 'undefined') {
+      AuraAuth.saveProfile({
+        nomeCompleto: full_name || '',
+        phone: phone || '',
+      });
+    }
+    setPersonalEditMode(false);
+    toast('Dados guardados ✨');
+  });
+
+  document.getElementById('btn-toggle-bio')?.addEventListener('click', () => setBioEditMode(true));
+  document.getElementById('btn-cancel-bio')?.addEventListener('click', () => {
+    const inBio = document.getElementById('perfil-input-bio');
+    if (inBio) inBio.value = (merged.bio || '').trim();
+    setBioEditMode(false);
+  });
+
+  document.getElementById('btn-save-bio')?.addEventListener('click', async () => {
+    const inBio = document.getElementById('perfil-input-bio');
+    const bio = (inBio?.value || '').trim() || null;
+    const { error } = await supabase.from('profiles').update({ bio }).eq('id', uid);
+    if (error) {
+      const msg = error.message || '';
+      toast(
+        msg.includes('column') || error.code === '42703'
+          ? 'Falta a coluna bio no Supabase — corre o SQL em supabase/COLE_CADASTRO_3_PASSOS.sql'
+          : 'Não foi possível guardar: ' + msg
+      );
+      return;
+    }
+    merged = { ...merged, bio: bio || '' };
+    renderProfile(merged, children || []);
+    setBioEditMode(false);
+    toast('Bio guardada ✨');
+  });
+
+  const avatarInput = document.getElementById('perfil-avatar-input');
+  document.getElementById('btn-perfil-avatar-trigger')?.addEventListener('click', () => avatarInput?.click());
+  avatarInput?.addEventListener('change', () => {
+    avatarInput.value = '';
+    toast('Upload de foto em breve — por agora podes colar avatar_url diretamente no Supabase (tabela profiles).');
+  });
+
+  bindLogout(document.getElementById('btn-perfil-sair'));
+  bindLogout(document.getElementById('btn-perfil-sair-mobile'));
 })();

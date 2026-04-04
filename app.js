@@ -260,6 +260,27 @@ let auraAppointmentCountdownTimer = null;
   });
 })();
 
+/* ── Ícone Compromisso: destacar quando a âncora #card-appointment está ativa ── */
+(function initAppointmentHashNav() {
+  const apptNav = document.getElementById('nav-appointment');
+  if (!apptNav || !document.getElementById('card-appointment')) return;
+
+  function syncFromHash() {
+    const h = (window.location.hash || '').replace(/^#/, '');
+    if (h !== 'card-appointment') return;
+    const navBtns = document.querySelectorAll('.bottom-nav .nav-btn');
+    navBtns.forEach((b) => {
+      b.classList.remove('nav-btn--active');
+      b.removeAttribute('aria-current');
+    });
+    apptNav.classList.add('nav-btn--active');
+    apptNav.setAttribute('aria-current', 'page');
+  }
+
+  window.addEventListener('hashchange', syncFromHash);
+  syncFromHash();
+})();
+
 /* ── Texto de reembolsos pendentes (localStorage; atualizado após upload) ── */
 (function initRefundPendingLabel() {
   if (typeof window.AuraDashboard?.refreshRefundPendingLabel === 'function') {
@@ -273,8 +294,15 @@ let auraAppointmentCountdownTimer = null;
   if (!btn) return;
 
   btn.addEventListener('click', () => {
-    const place = btn.getAttribute('data-place') || 'o local da terapia';
-    showToast(`🗺️ Abrindo rotas para ${place}…`);
+    const q = btn.getAttribute('data-maps-query');
+    if (q && String(q).trim()) {
+      const url =
+        'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(String(q).trim());
+      window.open(url, '_blank', 'noopener,noreferrer');
+      showToast('A abrir o mapa…');
+      return;
+    }
+    showToast('Indica o local do compromisso no perfil para abrir rotas no mapa.');
   });
 })();
 

@@ -969,6 +969,17 @@ a.btn-scan {
 .topbar        { animation: fade-up .45s var(--ease) both; }
 .mood-strip    { animation: fade-up .5s .06s var(--ease) both; }
 .card--appointment { animation: fade-up .55s .12s var(--ease) both; }
+
+/* Âncora do ícone Compromisso: não ficar atrás da barra fixa no telemóvel */
+#card-appointment {
+  scroll-margin-top: calc(var(--nav-h) + 14px);
+}
+
+@media (min-width: 960px) {
+  #card-appointment {
+    scroll-margin-top: 20px;
+  }
+}
 .card--battery     { animation: fade-up .55s .18s var(--ease) both; }
 .card--tip         { animation: fade-up .55s .24s var(--ease) both; }
 .card--refund      { animation: fade-up .55s .30s var(--ease) both; }
@@ -988,6 +999,14 @@ a.btn-scan {
 }
 
 /* ── Responsive tweaks ───────────────────────────────────── */
+@media (max-width: 420px) {
+  .bottom-nav .nav-btn {
+    padding-left: 6px;
+    padding-right: 6px;
+    font-size: 0.58rem;
+  }
+}
+
 @media (max-width: 380px) {
   .appointment__title { font-size: 1.2rem; }
   .refund__title { font-size: 1.1rem; }

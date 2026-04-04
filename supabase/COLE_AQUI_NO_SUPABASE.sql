@@ -193,6 +193,13 @@ CREATE POLICY "mood_logs_insert_own"
   ON public.mood_logs FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
+-- -----------------------------------------------------------------------------
+-- Opcional: compromisso no dashboard (countdown + “Como chegar”)
+-- -----------------------------------------------------------------------------
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS next_appointment_at timestamptz;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS next_appointment_title text;
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS next_appointment_location text;
+
 -- =============================================================================
 -- FIM — Se correu bem, já tens as tabelas e políticas prontas.
 -- =============================================================================
