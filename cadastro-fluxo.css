@@ -1,0 +1,75 @@
+/* Progresso 3 passos + mensagens de erro do cadastro Supabase */
+
+.fluxo-progress {
+  margin-bottom: 22px;
+}
+
+.fluxo-progress__track {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(45, 42, 38, 0.08);
+  overflow: hidden;
+}
+
+.fluxo-progress__fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(122, 158, 126, 0.55), #7a9e7e);
+  transition: width 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.fluxo-progress[data-step='1'] .fluxo-progress__fill {
+  width: 33.333%;
+}
+
+.fluxo-progress[data-step='2'] .fluxo-progress__fill {
+  width: 66.666%;
+}
+
+.fluxo-progress[data-step='3'] .fluxo-progress__fill {
+  width: 100%;
+}
+
+.fluxo-hint {
+  font-size: 0.8125rem;
+  color: #6b655c;
+  margin-top: -12px;
+  margin-bottom: 8px;
+  line-height: 1.45;
+}
+
+.signup-msg {
+  display: none;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  margin-bottom: 18px;
+}
+
+.signup-msg--error {
+  display: block;
+  background: #fdecea;
+  color: #7a2e25;
+  border: 1px solid rgba(181, 74, 60, 0.25);
+}
+
+.signup-msg--warn {
+  display: block;
+  background: #fff8e6;
+  color: #6b5a2a;
+  border: 1px solid rgba(200, 160, 60, 0.35);
+}
+
+.btn-proximo:disabled,
+.btn-concluir:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.chip-hint {
+  font-size: 0.8125rem;
+  color: #6b655c;
+  margin-bottom: 10px;
+}

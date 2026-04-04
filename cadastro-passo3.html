@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Aura — Cadastro (3/3)</title>
+  <meta name="description" content="Personalização — maiores desafios hoje, Aura." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="cadastro-personalizacao.css" />
+  <link rel="stylesheet" href="cadastro-fluxo.css" />
+</head>
+
+<body>
+
+  <div class="personalizacao-page" aria-hidden="true">
+    <svg class="personalizacao-art" viewBox="0 0 360 300" xmlns="http://www.w3.org/2000/svg" fill="none"
+      aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="art-stroke2" x1="0%" y1="20%" x2="100%" y2="80%">
+          <stop offset="0%" stop-color="#87A96B" stop-opacity="0.32" />
+          <stop offset="45%" stop-color="#7a9e7e" stop-opacity="0.26" />
+          <stop offset="100%" stop-color="#c47a5b" stop-opacity="0.18" />
+        </linearGradient>
+      </defs>
+      <g stroke="url(#art-stroke2)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <path
+          d="M118 78c0-16 13-29 29-29s29 13 29 29c0 9-4 17-10 22M96 188c-8-28 4-58 28-74 12-8 26-12 41-12M88 210c-6 32 8 64 34 82" />
+        <path
+          d="M176 124c-22 10-38 32-42 58-2 12 0 24 6 34M200 118c28 4 52 24 60 50 6 18 5 38-4 56M152 200c18 36 52 58 88 54" />
+        <ellipse cx="238" cy="108" rx="20" ry="24" transform="rotate(-6 238 108)" />
+        <path d="M218 130c-8 20-6 44 6 62 10 14 26 22 42 22M248 138c16 10 26 28 28 48 2 18-4 36-16 50" />
+        <path d="M196 162c14-10 32-12 48-4" />
+      </g>
+    </svg>
+  </div>
+
+  <div class="personalizacao-shell">
+
+    <header class="personalizacao-header" role="banner">
+      <a href="cadastro-passo2.html" class="personalizacao-back" aria-label="Voltar ao passo anterior">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </a>
+      <div class="fluxo-progress" data-step="3" aria-label="Cadastro: passo 3 de 3">
+        <div class="fluxo-progress__track" role="presentation">
+          <div class="fluxo-progress__fill"></div>
+        </div>
+      </div>
+      <p class="fluxo-hint">Passo 3 de 3 — Personalização</p>
+      <h1 class="personalizacao-title" id="titulo-desafios">Quais os maiores desafios hoje?</h1>
+    </header>
+
+    <main class="personalizacao-main" role="main">
+      <div class="signup-msg signup-msg--error" id="signup-error" role="alert" hidden></div>
+
+      <form class="personalizacao-form" id="form-passo3" novalidate>
+
+        <fieldset class="chip-fieldset">
+          <legend class="visually-hidden">Desafios atuais</legend>
+          <p class="chip-hint" id="hint-desafios">Marque o que mais pesa neste momento — pode escolher vários.</p>
+          <div class="chip-group" role="group" aria-labelledby="hint-desafios">
+            <label class="chip">
+              <input type="checkbox" name="desafio" value="sono" />
+              <span class="chip__face">Sono</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" name="desafio" value="alimentacao" />
+              <span class="chip__face">Alimentação</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" name="desafio" value="escola" />
+              <span class="chip__face">Escola</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" name="desafio" value="comportamento" />
+              <span class="chip__face">Comportamento</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" name="desafio" value="rotina" />
+              <span class="chip__face">Rotina &amp; tempo</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" name="desafio" value="saude_mental" />
+              <span class="chip__face">Saúde mental (sua ou da família)</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" name="desafio" value="inclusao_social" />
+              <span class="chip__face">Inclusão social / lazer</span>
+            </label>
+            <label class="chip">
+              <input type="checkbox" name="desafio" value="rede_apoio" />
+              <span class="chip__face">Rede de apoio / serviços</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <button type="submit" class="btn-concluir" id="btn-submit">Concluir e Entrar na Aura</button>
+      </form>
+    </main>
+  </div>
+
+  <script src="supabase-config.js"></script>
+  <script src="auth.js"></script>
+  <script type="module">
+    import { getSignupClient, getSessionUserId, signupStep3Challenges } from './signup-flow.js';
+
+    const errEl = document.getElementById('signup-error');
+    const form = document.getElementById('form-passo3');
+    const btn = document.getElementById('btn-submit');
+
+    function showError(msg) {
+      errEl.textContent = msg;
+      errEl.hidden = false;
+    }
+
+    const { client } = getSignupClient();
+    if (!client) {
+      showError('Configura o Supabase em supabase-config.js.');
+    } else {
+      const uid = await getSessionUserId(client);
+      if (!uid) {
+        window.location.href = 'login.html';
+      }
+    }
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      errEl.hidden = true;
+
+      const fd = new FormData(form);
+      const desafios = fd.getAll('desafio');
+      if (!desafios.length) {
+        showError('Escolhe pelo menos um desafio para personalizarmos a experiência.');
+        return;
+      }
+
+      btn.disabled = true;
+      const res = await signupStep3Challenges(desafios);
+      btn.disabled = false;
+
+      if (!res.ok) {
+        showError(res.message);
+        return;
+      }
+
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+
+</html>

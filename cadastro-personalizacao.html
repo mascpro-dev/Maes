@@ -3,130 +3,15 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Aura — Personalize sua experiência</title>
-  <meta name="description"
-    content="Conte um pouco sobre sua família para que a Aura acolha você com empatia e informações relevantes." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap"
-    rel="stylesheet" />
-  <link rel="stylesheet" href="cadastro-personalizacao.css" />
+  <meta http-equiv="refresh" content="0; url=cadastro-passo2.html" />
+  <title>Aura — Redirecionando…</title>
+  <script>
+    window.location.replace('cadastro-passo2.html');
+  </script>
 </head>
 
 <body>
-
-  <div class="personalizacao-page" aria-hidden="true">
-    <svg class="personalizacao-art" viewBox="0 0 360 300" xmlns="http://www.w3.org/2000/svg" fill="none"
-      aria-hidden="true" focusable="false">
-      <defs>
-        <linearGradient id="art-stroke" x1="0%" y1="20%" x2="100%" y2="80%">
-          <stop offset="0%" stop-color="#87A96B" stop-opacity="0.32" />
-          <stop offset="45%" stop-color="#7a9e7e" stop-opacity="0.26" />
-          <stop offset="100%" stop-color="#c47a5b" stop-opacity="0.18" />
-        </linearGradient>
-      </defs>
-      <g stroke="url(#art-stroke)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-        <!-- Mãe: perfil suave e braço que envolve -->
-        <path
-          d="M118 78c0-16 13-29 29-29s29 13 29 29c0 9-4 17-10 22M96 188c-8-28 4-58 28-74 12-8 26-12 41-12M88 210c-6 32 8 64 34 82" />
-        <path
-          d="M176 124c-22 10-38 32-42 58-2 12 0 24 6 34M200 118c28 4 52 24 60 50 6 18 5 38-4 56M152 200c18 36 52 58 88 54" />
-        <!-- Criança: corpo menor no abraço -->
-        <ellipse cx="238" cy="108" rx="20" ry="24" transform="rotate(-6 238 108)" />
-        <path d="M218 130c-8 20-6 44 6 62 10 14 26 22 42 22M248 138c16 10 26 28 28 48 2 18-4 36-16 50" />
-        <path d="M196 162c14-10 32-12 48-4" />
-      </g>
-    </svg>
-  </div>
-
-  <div class="personalizacao-shell">
-
-    <header class="personalizacao-header" role="banner">
-      <a href="cadastro.html" class="personalizacao-back" aria-label="Voltar à etapa anterior">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-      </a>
-      <div class="personalizacao-progress" aria-label="Progresso do cadastro: etapa 2 de 4">
-        <div class="personalizacao-progress__track" role="presentation">
-          <div class="personalizacao-progress__fill" style="width: 50%"></div>
-        </div>
-      </div>
-      <h1 class="personalizacao-title" id="titulo-diagnostico">Qual o diagnóstico do seu filho(a)?</h1>
-    </header>
-
-    <main class="personalizacao-main" role="main">
-      <form class="personalizacao-form" id="form-personalizacao" action="index.html" method="get">
-
-        <fieldset class="chip-fieldset">
-          <legend class="visually-hidden">Diagnóstico da criança</legend>
-          <div class="chip-group" role="radiogroup" aria-labelledby="titulo-diagnostico" aria-required="true">
-
-            <label class="chip">
-              <input type="radio" name="diagnostico" value="tea" required />
-              <span class="chip__face">Autismo (TEA)</span>
-            </label>
-
-            <label class="chip">
-              <input type="radio" name="diagnostico" value="tdah" />
-              <span class="chip__face">TDAH</span>
-            </label>
-
-            <label class="chip">
-              <input type="radio" name="diagnostico" value="down" />
-              <span class="chip__face">Síndrome de Down</span>
-            </label>
-
-            <label class="chip">
-              <input type="radio" name="diagnostico" value="pc" />
-              <span class="chip__face">Paralisia Cerebral</span>
-            </label>
-
-            <label class="chip">
-              <input type="radio" name="diagnostico" value="rara" />
-              <span class="chip__face">Doença Rara</span>
-            </label>
-
-            <label class="chip">
-              <input type="radio" name="diagnostico" value="investigacao" />
-              <span class="chip__face">Em Investigação</span>
-            </label>
-          </div>
-        </fieldset>
-
-        <div class="field field--optional">
-          <label class="field__label" for="nome-crianca">Nome da criança <span class="field__optional">(opcional)</span></label>
-          <input class="field__input" type="text" id="nome-crianca" name="nome_crianca" autocomplete="given-name"
-            placeholder="Como podemos chamar seu filho ou filha" />
-        </div>
-
-        <button type="submit" class="btn-concluir">Concluir e Entrar na Aura</button>
-      </form>
-    </main>
-  </div>
-
-  <script src="auth.js"></script>
-  <script>
-    (function () {
-      var form = document.getElementById('form-personalizacao');
-      if (!form) return;
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        if (!form.reportValidity()) return;
-        var fd = new FormData(form);
-        var diag = fd.get('diagnostico');
-        var nc = (fd.get('nome_crianca') || '').trim();
-        var patch = { diagnostico: diag };
-        if (nc) patch.nomeCrianca = nc;
-        window.AuraAuth.saveProfile(patch);
-        window.AuraAuth.setLoggedIn(true);
-        window.location.href = 'index.html';
-      });
-    })();
-  </script>
+  <p style="font-family: system-ui, sans-serif; padding: 1.5rem;">A redirecionar para o <a href="cadastro-passo2.html">passo 2 do cadastro</a>…</p>
 </body>
 
 </html>

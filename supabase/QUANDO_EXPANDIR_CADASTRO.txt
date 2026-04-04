@@ -1,0 +1,61 @@
+================================================================================
+AURA — Quando criar “cadastros maiores” e novas tabelas no Supabase
+================================================================================
+(Linha do tempo sugerida; podes pedir SQL pronto para cada fase quando chegares lá.)
+
+--------------------------------------------------------------------------------
+FASE 1 — AGORA (já tens)
+--------------------------------------------------------------------------------
+• auth.users           → conta (e-mail + senha), quando ligares signUp/login real
+• public.profiles      → nome, e-mail, diagnóstico, nome da criança, termos, humor liga aqui
+• public.mood_logs     → registos de humor no dashboard
+
+Serve para: primeiro acesso, personalização básica, humor, bateria da mãe.
+
+--------------------------------------------------------------------------------
+FASE 2 — Quando precisares de contas “de verdade” e histórico fiável
+--------------------------------------------------------------------------------
+Momento: assim que quiseres que o login use Supabase Auth (signIn) em vez de só localStorage.
+
+Ações típicas:
+• Garantir signUp no cadastro + signInWithPassword no login
+• Manter profiles.id = auth.users.id (já está no teu SQL)
+• Opcional: coluna onboarding_completed_at em profiles
+
+Não precisas de tabela nova obrigatória — só integrar o front com Auth.
+
+--------------------------------------------------------------------------------
+FASE 3 — Várias crianças ou mais dados clínicos por filho
+--------------------------------------------------------------------------------
+Momento: quando uma mãe tiver 2+ filhos OU quiseres histórico de diagnóstico / terapias por criança.
+
+Criar tabela nova, por exemplo public.children:
+• id, user_id (FK profiles), nome, data_nascimento (opcional), diagnostico, notas (opcional), created_at
+
+Aí retiras diagnostico/nome_crianca só do perfil ou manténs como “principal” e children como lista.
+
+--------------------------------------------------------------------------------
+FASE 4 — LGPD / auditoria de consentimentos
+--------------------------------------------------------------------------------
+Momento: antes de produção com dados sensíveis ou se um advogado/DPO pedir rastreio.
+
+Tabela public.user_consents:
+• user_id, tipo (termos, privacidade, marketing), versao_documento, accepted_at
+
+--------------------------------------------------------------------------------
+FASE 5 — Módulos pesados (reembolsos, diário clínico, ficheiros)
+--------------------------------------------------------------------------------
+Momento: quando cada módulo existir no produto (não antecipar).
+
+Exemplos de tabelas por funcionalidade:
+• receipts / reimbursement_claims — recibos e pedidos de reembolso
+• diary_entries — entradas do diário de evolução
+• storage (Supabase Storage) + tabela document_metadata — PDFs/fotos com RLS
+
+--------------------------------------------------------------------------------
+Resumo
+--------------------------------------------------------------------------------
+• “Cadastro maior” = mais colunas em profiles só até um limite; depois normaliza em children / consents / módulos.
+• Pede sempre um ficheiro SQL “COLE_AQUI” novo quando mudares de fase — assim corres só o que precisas.
+
+================================================================================

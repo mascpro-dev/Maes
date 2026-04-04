@@ -4,15 +4,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Aura — Cadastro</title>
+  <title>Aura — Cadastro (1/3)</title>
   <meta name="description"
-    content="Primeiro passo do cadastro no app de suporte materno Aura: seus dados com segurança e acolhimento." />
+    content="Primeiro passo: dados da mãe — Aura, suporte materno com segurança e acolhimento." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap"
     rel="stylesheet" />
   <link rel="stylesheet" href="cadastro.css" />
+  <link rel="stylesheet" href="cadastro-fluxo.css" />
 </head>
 
 <body>
@@ -20,28 +21,36 @@
   <div class="cadastro-shell">
 
     <header class="cadastro-header" role="banner">
-      <div class="cadastro-progress" aria-label="Progresso do cadastro: etapa 1 de 4">
-        <div class="cadastro-progress__track" role="presentation">
-          <div class="cadastro-progress__fill" style="width: 25%"></div>
+      <div class="fluxo-progress" data-step="1" aria-label="Cadastro: passo 1 de 3">
+        <div class="fluxo-progress__track" role="presentation">
+          <div class="fluxo-progress__fill"></div>
         </div>
       </div>
+      <p class="fluxo-hint">Passo 1 de 3 — Dados da mãe</p>
       <h1 class="cadastro-title">Vamos começar sua jornada</h1>
     </header>
 
     <main class="cadastro-main" role="main">
-      <form class="cadastro-form" id="form-cadastro" action="cadastro-personalizacao.html" method="get"
-        data-next-step="cadastro-personalizacao.html">
+      <div class="signup-msg signup-msg--error" id="signup-error" role="alert" hidden></div>
+
+      <form class="cadastro-form" id="form-cadastro" novalidate>
 
         <div class="field">
           <label class="field__label" for="nome-completo">Nome completo</label>
-          <input class="field__input" type="text" id="nome-completo" name="nome_completo" autocomplete="name"
-            required placeholder="Como você gostaria de ser chamada" />
+          <input class="field__input" type="text" id="nome-completo" name="nome_completo" autocomplete="name" required
+            placeholder="Como você gostaria de ser chamada" />
         </div>
 
         <div class="field">
           <label class="field__label" for="email">E-mail</label>
           <input class="field__input" type="email" id="email" name="email" autocomplete="email" required
             inputmode="email" placeholder="seu@email.com" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="telefone">Telefone</label>
+          <input class="field__input" type="tel" id="telefone" name="telefone" autocomplete="tel"
+            inputmode="tel" placeholder="(00) 00000-0000" />
         </div>
 
         <div class="field">
@@ -63,30 +72,72 @@
           </label>
         </div>
 
-        <button type="submit" class="btn-proximo">Próximo</button>
+        <button type="submit" class="btn-proximo" id="btn-submit">Continuar</button>
       </form>
+
+      <p class="login-footer-text" style="margin-top:24px;text-align:center;font-size:0.9rem;color:#5a5550;">
+        Já tem conta? <a href="login.html" class="inline-link" style="font-weight:600">Entrar</a>
+      </p>
     </main>
   </div>
 
+  <script src="supabase-config.js"></script>
   <script src="auth.js"></script>
-  <script>
-    (function () {
-      var form = document.getElementById('form-cadastro');
-      if (!form) return;
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        if (!form.reportValidity()) return;
-        var nome = document.getElementById('nome-completo').value.trim();
-        var email = document.getElementById('email').value.trim();
-        window.AuraAuth.saveProfile({
-          nomeCompleto: nome,
-          email: email,
-          termsAcceptedAt: new Date().toISOString(),
-        });
-        var next = form.getAttribute('data-next-step') || 'cadastro-personalizacao.html';
-        window.location.href = next;
+  <script type="module">
+    import { getSignupClient, signupStep1Mother } from './signup-flow.js';
+
+    const form = document.getElementById('form-cadastro');
+    const errEl = document.getElementById('signup-error');
+    const btn = document.getElementById('btn-submit');
+
+    function showError(msg) {
+      errEl.textContent = msg;
+      errEl.hidden = false;
+      errEl.classList.add('signup-msg--error');
+      errEl.classList.remove('signup-msg--warn');
+    }
+
+    function clearError() {
+      errEl.hidden = true;
+      errEl.textContent = '';
+    }
+
+    const { client, error: cfgErr } = getSignupClient();
+    if (cfgErr) {
+      showError(cfgErr + ' Depois disso, recarrega a página.');
+    }
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      clearError();
+      if (!form.reportValidity()) return;
+
+      if (!client) {
+        showError('Supabase não configurado. Define AURA_SUPABASE_URL e AURA_SUPABASE_ANON_KEY em supabase-config.js.');
+        return;
+      }
+
+      const nome = document.getElementById('nome-completo').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('telefone').value.trim();
+      const senha = document.getElementById('senha').value;
+
+      btn.disabled = true;
+      const res = await signupStep1Mother({
+        fullName: nome,
+        email,
+        phone,
+        password: senha,
       });
-    })();
+      btn.disabled = false;
+
+      if (!res.ok) {
+        showError(res.message);
+        return;
+      }
+
+      window.location.href = 'cadastro-passo2.html';
+    });
   </script>
 </body>
 
