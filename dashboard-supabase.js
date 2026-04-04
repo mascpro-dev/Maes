@@ -72,6 +72,30 @@ async function ensureProfileRow(supabase, userId) {
   }
 }
 
+/** Lê profiles no Supabase e sincroniza localStorage + topbar (nome, e-mail, telefone, desafios). */
+async function hydrateProfileFromSupabase(supabase, userId) {
+  if (typeof AuraAuth === 'undefined') return;
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('full_name, email, phone, onboarding_challenges')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (error || !data) return;
+
+  const patch = {};
+  if (data.full_name) patch.nomeCompleto = data.full_name;
+  if (data.email) patch.email = data.email;
+  if (data.phone != null && data.phone !== '') patch.phone = data.phone;
+  if (data.onboarding_challenges && data.onboarding_challenges.length)
+    patch.onboardingChallenges = data.onboarding_challenges;
+
+  if (Object.keys(patch).length) {
+    AuraAuth.saveProfile(patch);
+    AuraAuth.applyProfileToUI?.();
+  }
+}
+
 /** Média de mood_score nos últimos 7 dias (inclui hoje). */
 async function fetchSevenDayMoodAverage(supabase, userId) {
   const since = new Date();
@@ -287,6 +311,7 @@ async function main() {
         { onConflict: 'id' }
       );
     }
+    await hydrateProfileFromSupabase(supabase, userId);
   }
 
   const { avg, count, lastSlug } = await fetchSevenDayMoodAverage(supabase, userId);

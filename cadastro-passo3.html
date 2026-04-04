@@ -101,7 +101,7 @@
           </div>
         </fieldset>
 
-        <button type="submit" class="btn-concluir" id="btn-submit">Concluir e Entrar na Aura</button>
+        <button type="submit" class="btn-concluir" id="btn-submit">Concluir cadastro</button>
       </form>
     </main>
   </div>
@@ -110,6 +110,7 @@
   <script src="auth.js"></script>
   <script type="module">
     import { getSignupClient, getSessionUserId, signupStep3Challenges } from './signup-flow.js';
+    import { persistWelcomeExperience } from './onboarding-inteligente.js';
 
     const errEl = document.getElementById('signup-error');
     const form = document.getElementById('form-passo3');
@@ -150,7 +151,11 @@
         return;
       }
 
-      window.location.href = 'index.html';
+      var perf =
+        typeof window.AuraAuth !== 'undefined' ? window.AuraAuth.getProfile() : {};
+      var nomeMae = (perf.nomeCompleto && String(perf.nomeCompleto).trim()) || '';
+      persistWelcomeExperience({ fullName: nomeMae, challengeSlugs: desafios });
+      window.location.href = 'onboarding-boasvindas.html';
     });
   </script>
 </body>

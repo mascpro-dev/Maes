@@ -86,6 +86,19 @@
     return String(nome).trim().slice(0, 2).toUpperCase();
   }
 
+  /** Atualiza saudação e avatar na dashboard (após hidratar perfil do Supabase). */
+  function applyProfileToUI() {
+    var profile = getProfile();
+    var nome = profile.nomeCompleto && String(profile.nomeCompleto).trim();
+    var display = nome || 'Bem-vinda';
+    var h1 = document.getElementById('greeting-name');
+    var initialsEl = document.getElementById('avatar-initials');
+    var avatar = document.getElementById('topbar-avatar');
+    if (h1) h1.textContent = display;
+    if (initialsEl) initialsEl.textContent = initialsFromNome(nome);
+    if (avatar) avatar.setAttribute('aria-label', 'Foto de perfil de ' + display);
+  }
+
   window.AuraAuth = {
     isLoggedIn: isLoggedIn,
     setLoggedIn: setLoggedIn,
@@ -100,6 +113,7 @@
     },
     requireAuth: function () {
       if (!isLoggedIn()) window.location.replace('login.html');
-    }
+    },
+    applyProfileToUI: applyProfileToUI
   };
 })();

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Aura — Bem-vinda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Serif+Display&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="onboarding-boasvindas.css" />
+</head>
+
+<body>
+  <script src="auth.js"></script>
+  <script>
+    if (typeof AuraAuth !== 'undefined' && !AuraAuth.isLoggedIn()) {
+      window.location.replace('login.html');
+    }
+  </script>
+
+  <div class="onboarding-bv" id="root">
+    <div class="onboarding-bv__card" id="card" hidden>
+      <div class="onboarding-bv__mark" aria-hidden="true">✨</div>
+      <h1 class="onboarding-bv__title" id="bv-title">Tudo pronto</h1>
+      <p class="onboarding-bv__message" id="bv-message"></p>
+      <p class="onboarding-bv__hint">Na Comunidade, encontra salas alinhadas com o que marcou — comece quando quiser.</p>
+      <button type="button" class="onboarding-bv__btn" id="bv-go">Ir para o Aura</button>
+    </div>
+    <div class="onboarding-bv__fallback" id="fallback" hidden>
+      <p>Não encontrámos os dados deste passo.</p>
+      <p style="margin-top: 12px;"><a href="index.html">Abrir o Aura</a></p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { WELCOME_STORAGE_KEY } from './onboarding-inteligente.js';
+
+    const card = document.getElementById('card');
+    const fallback = document.getElementById('fallback');
+    const msgEl = document.getElementById('bv-message');
+    const titleEl = document.getElementById('bv-title');
+    const btn = document.getElementById('bv-go');
+
+    let raw;
+    try {
+      raw = sessionStorage.getItem(WELCOME_STORAGE_KEY);
+    } catch (e) {
+      raw = null;
+    }
+
+    if (!raw) {
+      fallback.hidden = false;
+    } else {
+      try {
+        const data = JSON.parse(raw);
+        msgEl.textContent = data.message || 'Bem-vinda à Aura!';
+        titleEl.textContent = data.firstName ? `Olá, ${data.firstName}` : 'Bem-vinda';
+        card.hidden = false;
+      } catch (e) {
+        fallback.hidden = false;
+      }
+    }
+
+    btn.addEventListener('click', function () {
+      try {
+        sessionStorage.removeItem(WELCOME_STORAGE_KEY);
+      } catch (e) { /* ignore */ }
+      window.location.href = 'index.html?onboarded=1';
+    });
+  </script>
+</body>
+
+</html>

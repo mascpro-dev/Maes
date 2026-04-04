@@ -1,0 +1,146 @@
+/* Tela pós-cadastro — mensagem personalizada */
+
+:root {
+  --cream: #f4f0e8;
+  --card: rgba(255, 252, 247, 0.94);
+  --sage: #7a9e7e;
+  --sage-deep: #5c7d60;
+  --terracotta: #e2725b;
+  --ink: #2d2a26;
+  --ink-mid: #5a5550;
+  --font-sans: 'DM Sans', system-ui, sans-serif;
+  --font-serif: 'DM Serif Display', Georgia, serif;
+  --app-max-w: 440px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: var(--ink);
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: max(20px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+  background: var(--cream);
+  background-image:
+    radial-gradient(ellipse 90% 70% at 50% -30%, rgba(122, 158, 126, 0.2) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 100% 80%, rgba(226, 114, 91, 0.1) 0%, transparent 45%);
+  line-height: 1.55;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.onboarding-bv {
+  width: 100%;
+  max-width: var(--app-max-w);
+}
+
+.onboarding-bv__card {
+  background: var(--card);
+  border-radius: 24px;
+  padding: 32px 26px 30px;
+  box-shadow:
+    0 4px 24px rgba(45, 42, 38, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.7) inset;
+  border: 1px solid rgba(45, 42, 38, 0.06);
+  text-align: center;
+}
+
+.onboarding-bv__mark {
+  font-size: 2.5rem;
+  line-height: 1;
+  margin-bottom: 12px;
+  animation: bv-pop 0.55s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+@keyframes bv-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.onboarding-bv__title {
+  font-family: var(--font-serif);
+  font-size: clamp(1.35rem, 4vw, 1.65rem);
+  font-weight: 400;
+  color: var(--sage-deep);
+  margin-bottom: 18px;
+  letter-spacing: -0.02em;
+}
+
+.onboarding-bv__message {
+  font-size: 1.05rem;
+  color: var(--ink-mid);
+  text-align: left;
+  line-height: 1.65;
+  margin-bottom: 26px;
+  padding: 18px 18px;
+  background: rgba(122, 158, 126, 0.08);
+  border-radius: 16px;
+  border-left: 4px solid var(--sage);
+}
+
+.onboarding-bv__hint {
+  font-size: 0.8125rem;
+  color: var(--ink-mid);
+  opacity: 0.9;
+  margin-bottom: 22px;
+}
+
+.onboarding-bv__btn {
+  width: 100%;
+  padding: 16px 22px;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #fff;
+  background: linear-gradient(135deg, #6d9072 0%, var(--sage) 50%, var(--sage-deep) 100%);
+  border-radius: 999px;
+  box-shadow: 0 6px 22px rgba(122, 158, 126, 0.35);
+  transition: transform 0.15s ease, filter 0.2s ease;
+}
+
+.onboarding-bv__btn:hover {
+  filter: brightness(1.05);
+}
+
+.onboarding-bv__btn:active {
+  transform: scale(0.985);
+}
+
+.onboarding-bv__btn:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 3px;
+}
+
+.onboarding-bv__fallback {
+  text-align: center;
+  color: var(--ink-mid);
+}
+
+.onboarding-bv__fallback a {
+  color: var(--terracotta);
+  font-weight: 600;
+}

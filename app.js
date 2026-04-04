@@ -22,6 +22,51 @@
   if (avatar) avatar.setAttribute('aria-label', 'Foto de perfil de ' + display);
 })();
 
+/* ── Faixa após cadastro (sessionStorage definido em onboarding-inteligente.js) ── */
+(function initOnboardingDashboardBanner() {
+  var KEY = 'aura_dashboard_onboarding_banner';
+  var el = document.getElementById('onboarding-banner');
+  var textEl = document.getElementById('onboarding-banner-text');
+  var dismiss = document.getElementById('onboarding-banner-dismiss');
+  if (!el || !textEl || !dismiss) return;
+
+  var raw;
+  try {
+    raw = sessionStorage.getItem(KEY);
+  } catch (e) {
+    return;
+  }
+
+  var params = new URLSearchParams(window.location.search);
+  var fromOnboard = params.get('onboarded') === '1';
+
+  if (!raw && !fromOnboard) return;
+
+  try {
+    if (raw) {
+      var data = JSON.parse(raw);
+      textEl.textContent = data.line || data.message || '';
+    } else {
+      textEl.textContent = 'Explore a Comunidade para encontrar salas de apoio alinhadas ao seu perfil.';
+    }
+    if (textEl.textContent) {
+      el.hidden = false;
+    }
+  } catch (e) {
+    return;
+  }
+
+  dismiss.addEventListener('click', function () {
+    el.hidden = true;
+    try {
+      sessionStorage.removeItem(KEY);
+    } catch (err) { /* ignore */ }
+    if (fromOnboard) {
+      history.replaceState({}, '', window.location.pathname || 'index.html');
+    }
+  });
+})();
+
 /* ── Humor + bateria: UI principal em dashboard-supabase.js (Supabase) ── */
 
 /* ── Countdown Timer ────────────────────────────────────── */
