@@ -23,6 +23,30 @@
   .app-wrapper--perfil-dash .bottom-nav {
     display: none;
   }
+
+  /*
+   * style.css (≥960px) transforma .app-wrapper:has(> .bottom-nav) numa grelha com
+   * coluna fixa (~220px) para o nav. Ao esconder o bottom-nav no desktop, só sobra
+   * .perfil-layout como item da grelha e o browser coloca-o na 1.ª célula — largura
+   * de sidebar, título “Editar perfil” em coluna de uma letra e cartões sobrepostos.
+   */
+  .app-wrapper.app-wrapper--perfil-dash:has(> .bottom-nav) {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: unset;
+    grid-template-rows: unset;
+    grid-template-areas: unset;
+    column-gap: unset;
+    row-gap: unset;
+    width: 100%;
+    max-width: var(--layout-shell, min(1240px, calc(100vw - 48px)));
+    margin-left: auto;
+    margin-right: auto;
+    min-height: 100dvh;
+    padding: 20px var(--layout-gap, 24px) 32px;
+    padding-bottom: 32px;
+    overflow-x: clip;
+  }
 }
 
 .perfil-layout {
