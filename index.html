@@ -49,15 +49,20 @@
       </div>
     </header>
 
-    <!-- ========== MOOD STRIP ========== -->
-    <section class="mood-strip" aria-label="Como você está se sentindo hoje?">
+    <!-- ========== SELETOR DE HUMOR (5 emojis → mood_score 1–5) ========== -->
+    <section class="mood-strip mood-selector" aria-label="Como você está se sentindo hoje?">
       <p class="mood-question">Como você está se sentindo hoje?</p>
-      <div class="mood-options" role="group" aria-label="Opções de humor">
-        <button class="mood-btn" id="mood-exausta" aria-label="Exausta" title="Exausta">😴</button>
-        <button class="mood-btn" id="mood-cansada" aria-label="Cansada" title="Cansada">😔</button>
-        <button class="mood-btn mood-btn--active" id="mood-ok" aria-label="Ok" title="Ok">😐</button>
-        <button class="mood-btn" id="mood-bem" aria-label="Bem" title="Bem">🙂</button>
-        <button class="mood-btn" id="mood-radiante" aria-label="Radiante" title="Radiante">🌟</button>
+      <div class="mood-options" role="group" aria-label="Seletor de humor (1 a 5)">
+        <button type="button" class="mood-btn" id="mood-exausta" data-mood-score="1" aria-label="Exausta, nível 1"
+          title="Exausta">😴</button>
+        <button type="button" class="mood-btn" id="mood-cansada" data-mood-score="2" aria-label="Cansada, nível 2"
+          title="Cansada">😔</button>
+        <button type="button" class="mood-btn mood-btn--active" id="mood-ok" data-mood-score="3" aria-label="Ok, nível 3"
+          title="Ok">😐</button>
+        <button type="button" class="mood-btn" id="mood-bem" data-mood-score="4" aria-label="Bem, nível 4"
+          title="Bem">🙂</button>
+        <button type="button" class="mood-btn" id="mood-radiante" data-mood-score="5" aria-label="Radiante, nível 5"
+          title="Radiante">🌟</button>
       </div>
     </section>
 
@@ -133,8 +138,8 @@
           <svg class="battery__circle" viewBox="0 0 120 120" aria-hidden="true">
             <defs>
               <linearGradient id="batteryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#8fad8a" />
-                <stop offset="100%" style="stop-color:#c47a5b" />
+                <stop offset="0%" style="stop-color:#87A96B" />
+                <stop offset="100%" style="stop-color:#E2725B" />
               </linearGradient>
             </defs>
             <!-- Track -->
@@ -144,9 +149,16 @@
               stroke-dasharray="301.59" stroke-dashoffset="90.48" id="battery-progress-circle" />
           </svg>
           <div class="battery__label">
-            <span class="battery__pct" id="battery-pct">70%</span>
-            <span class="battery__sub">energia</span>
+            <span class="battery__pct" id="battery-pct">—</span>
+            <span class="battery__sub">média 7d</span>
           </div>
+        </div>
+        <div class="battery-mood-bar" role="presentation">
+          <div class="battery-mood-bar__track">
+            <div class="battery-mood-bar__fill battery-mood-bar__fill--neutral" id="battery-mood-bar-fill"
+              style="width: 0%"></div>
+          </div>
+          <p class="battery-mood-bar__caption" id="battery-mood-caption">Calculando humor dos últimos 7 dias…</p>
         </div>
         <p class="battery__insight">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -154,7 +166,7 @@
             <line x1="12" y1="8" x2="12" y2="12" />
             <line x1="12" y1="16" x2="12.01" y2="16" />
           </svg>
-          Boa energia! Lembre-se de pausas curtas 💛
+          <span id="battery-insight-text">Carregando energia…</span>
         </p>
       </article>
 
@@ -171,32 +183,32 @@
         <p class="tip__text">"Respirar fundo 3 vezes antes de responder seu filho pode mudar tudo."</p>
       </article>
 
-      <!-- CARD 4 — Reembolso (no desktop: linha do meio, à direita do compromisso) -->
+      <!-- CARD 4 — Assistente de Reembolso (Storage + refunds) -->
       <article class="bento-card card--refund card--terracotta" id="card-refund">
+        <input type="file" id="input-refund-receipt" class="visually-hidden" accept="image/*" capture="environment"
+          aria-hidden="true" tabindex="-1" />
         <div class="refund__content">
-          <a href="scanner.html" class="refund__scan-link"
-            aria-label="Escanear novo recibo: abrir câmera e IA">
-            <div class="refund__text">
-              <div class="card__tag card__tag--light">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <line x1="12" y1="1" x2="12" y2="23" />
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
-                Atalho de Reembolso
-              </div>
-              <h2 class="refund__title">Escanear novo recibo</h2>
-              <p class="refund__sub">Tire uma foto e a IA preenche os dados automaticamente</p>
+          <div class="refund__text">
+            <div class="card__tag card__tag--light">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23" />
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+              </svg>
+              Assistente de Reembolso
             </div>
-          </a>
-          <a href="scanner.html" class="btn-scan" id="btn-scan" aria-label="Fotografar recibo para reembolso">
+            <h2 class="refund__title">Enviar recibo</h2>
+            <p class="refund__sub">A câmera envia a imagem para a nuvem e abre um pedido com status pendente.</p>
+            <a href="scanner.html" class="refund__scan-link refund__scan-link--muted">Modo scanner com IA</a>
+          </div>
+          <button type="button" class="btn-scan" id="btn-refund-camera" aria-label="Abrir câmera e enviar recibo">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
               stroke-linecap="round" stroke-linejoin="round">
               <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
               <circle cx="12" cy="13" r="4" />
             </svg>
             <span>Fotografar</span>
-          </a>
+          </button>
         </div>
         <a href="reembolsos.html" class="refund__pending refund__pending--link"
           aria-label="Ver lista de reembolsos pendentes">
@@ -269,7 +281,9 @@
 
   </div><!-- /app-wrapper -->
 
+  <script src="supabase-config.js"></script>
   <script src="app.js"></script>
+  <script type="module" src="dashboard-supabase.js"></script>
 </body>
 
 </html>

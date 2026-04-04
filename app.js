@@ -22,40 +22,7 @@
   if (avatar) avatar.setAttribute('aria-label', 'Foto de perfil de ' + display);
 })();
 
-/* ── Mood Selector ──────────────────────────────────────── */
-(function initMood() {
-  const moods = document.querySelectorAll('.mood-btn');
-
-  moods.forEach(btn => {
-    btn.addEventListener('click', () => {
-      moods.forEach(b => b.classList.remove('mood-btn--active'));
-      btn.classList.add('mood-btn--active');
-
-      // Mini haptic feedback via vibration API (mobile)
-      if (navigator.vibrate) navigator.vibrate(30);
-
-      // Ripple effect
-      const ripple = document.createElement('span');
-      ripple.style.cssText = `
-        position:absolute; border-radius:50%;
-        width:60px; height:60px;
-        background:rgba(122,158,126,.25);
-        transform:scale(0); animation:ripple .4s ease forwards;
-        top:50%; left:50%; margin:-30px 0 0 -30px;
-        pointer-events:none;
-      `;
-      btn.style.position = 'relative';
-      btn.style.overflow = 'hidden';
-      btn.appendChild(ripple);
-      setTimeout(() => ripple.remove(), 400);
-    });
-  });
-
-  // Inject ripple keyframe
-  const style = document.createElement('style');
-  style.textContent = `@keyframes ripple { to { transform:scale(2.5); opacity:0; } }`;
-  document.head.appendChild(style);
-})();
+/* ── Humor + bateria: UI principal em dashboard-supabase.js (Supabase) ── */
 
 /* ── Countdown Timer ────────────────────────────────────── */
 (function initCountdown() {
@@ -91,49 +58,112 @@
   setInterval(update, 30000); // update every 30s
 })();
 
-/* ── Battery Gauge Animation ────────────────────────────── */
-(function initBattery() {
-  const circle = document.getElementById('battery-progress-circle');
-  const pctEl  = document.getElementById('battery-pct');
-  if (!circle || !pctEl) return;
+/* ── Bateria da Mãe: média mood_score 7d + barra (dashboard-supabase.js) ── */
+(function initBatteryDashboardApi() {
+  const R = 48;
+  const CIRCUM = 2 * Math.PI * R;
 
-  const ENERGY = 70; // % (would come from AI in production)
-  const R      = 48;
-  const CIRCUM = 2 * Math.PI * R; // ≈ 301.59
-
-  // Start from empty (full dashoffset = circumference)
-  circle.style.strokeDashoffset = CIRCUM;
-
-  // Animate to target
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      const offset = CIRCUM * (1 - ENERGY / 100);
-      circle.style.strokeDashoffset = offset;
-    }, 300);
-  });
-
-  // Count-up for percentage label
-  let current = 0;
-  const step  = ENERGY / 40;
-  const timer = setInterval(() => {
-    current = Math.min(current + step, ENERGY);
-    pctEl.textContent = Math.round(current) + '%';
-    if (current >= ENERGY) clearInterval(timer);
-  }, 25);
-
-  // Color based on level
-  function getBatteryColor(pct) {
-    if (pct >= 70) return '#7a9e7e';   // sage
-    if (pct >= 40) return '#c47a5b';   // terracotta
-    return '#e05050';                   // low
+  /** Faixas: verde se média > 4; amarelo se entre 2 e 4 (inclusive); vermelho se < 2 */
+  function tierFromAverage(avg) {
+    if (avg > 4) return 'green';
+    if (avg < 2) return 'red';
+    return 'yellow';
   }
 
-  // Apply dynamic color to gradient stops
-  const stops = document.querySelectorAll('#batteryGrad stop');
-  const color  = getBatteryColor(ENERGY);
-  if (stops.length) {
-    stops[0].style.stopColor = color;
+  function strokeColorForTier(tier) {
+    if (tier === 'green') return '#87A96B';
+    if (tier === 'red') return '#c94c4c';
+    return '#e6c35c';
   }
+
+  function insightForTier(tier, avgFormatted) {
+    if (tier === 'green') return `Humor elevado (${avgFormatted}/5). Continue cuidando de você 💛`;
+    if (tier === 'red') return `Humor muito baixo (${avgFormatted}/5). Permita-se descanso real 🤍`;
+    return `Humor no meio do caminho (${avgFormatted}/5). Pequenos cuidados contam 🌿`;
+  }
+
+  window.AuraDashboard = {
+    /**
+     * @param {number|null} avgScore média 1–5 ou null sem dados
+     * @param {{ sampleCount?: number, localOnly?: boolean }} options
+     */
+    setBatteryFromMoodAverage(avgScore, options = {}) {
+      const sampleCount = options.sampleCount ?? 0;
+      const localOnly = options.localOnly === true;
+      const hasData = sampleCount > 0 && avgScore != null && Number.isFinite(Number(avgScore));
+
+      const avg = hasData ? Math.min(5, Math.max(1, Number(avgScore))) : null;
+      const barPct = hasData ? ((avg - 1) / 4) * 100 : 12;
+
+      const tier = hasData ? tierFromAverage(avg) : 'neutral';
+      const avgFormatted = hasData ? avg.toFixed(1).replace('.', ',') : '—';
+
+      const fillEl = document.getElementById('battery-mood-bar-fill');
+      const captionEl = document.getElementById('battery-mood-caption');
+      const circle = document.getElementById('battery-progress-circle');
+      const pctEl = document.getElementById('battery-pct');
+      const insightEl = document.getElementById('battery-insight-text');
+
+      if (fillEl) {
+        fillEl.className =
+          'battery-mood-bar__fill battery-mood-bar__fill--' +
+          (tier === 'neutral' ? 'neutral' : tier);
+        fillEl.style.width = `${Math.round(barPct)}%`;
+      }
+
+      if (captionEl) {
+        if (localOnly) {
+          captionEl.textContent = 'Modo local — configure o Supabase para média de 7 dias';
+        } else if (hasData) {
+          captionEl.textContent = `Últimos 7 dias · média ${avgFormatted}/5 · ${sampleCount} registro(s)`;
+        } else {
+          captionEl.textContent = 'Sem registros nos últimos 7 dias — toque num humor acima';
+        }
+      }
+
+      const strokeTier = hasData ? tier : 'green';
+      const strokeColor = hasData ? strokeColorForTier(strokeTier) : '#a8a89a';
+      const stops = document.querySelectorAll('#batteryGrad stop');
+      if (stops.length >= 1) stops[0].style.stopColor = strokeColor;
+      if (stops.length >= 2) stops[1].style.stopColor = '#E2725B';
+
+      if (circle) {
+        circle.style.strokeDashoffset = String(CIRCUM * (1 - barPct / 100));
+      }
+
+      if (pctEl) {
+        pctEl.textContent = hasData ? avgFormatted : '—';
+      }
+
+      if (insightEl) {
+        if (!hasData) {
+          insightEl.textContent = localOnly
+            ? 'Preview pelo humor de hoje (dados não foram salvos na nuvem).'
+            : 'Sua bateria reflete a média do humor registrado na última semana.';
+        } else {
+          insightEl.textContent = insightForTier(tier, avgFormatted);
+        }
+      }
+    },
+
+    refreshRefundPendingLabel() {
+      const el = document.getElementById('refund-pending-label');
+      if (!el) return;
+      const raw = localStorage.getItem('aura_refund_pending');
+      const c =
+        raw === null
+          ? 0
+          : (() => {
+              const n = parseInt(raw, 10);
+              return Number.isFinite(n) && n >= 0 ? n : 0;
+            })();
+      if (c === 0) el.textContent = 'Nenhum reembolso pendente';
+      else if (c === 1) el.textContent = '1 reembolso pendente';
+      else el.textContent = `${c} reembolsos pendentes`;
+    },
+  };
+
+  window.AuraDashboard.setBatteryFromMoodAverage(null, { sampleCount: 0 });
 })();
 
 /* ── Navigation ─────────────────────────────────────────── */
@@ -152,23 +182,11 @@
   });
 })();
 
-/* ── Texto de reembolsos pendentes (sincroniza com localStorage, mesma chave que reembolsos.html) ── */
+/* ── Texto de reembolsos pendentes (localStorage; atualizado após upload) ── */
 (function initRefundPendingLabel() {
-  const el = document.getElementById('refund-pending-label');
-  if (!el) return;
-
-  const raw = localStorage.getItem('aura_refund_pending');
-  const c =
-    raw === null
-      ? 2
-      : (() => {
-          const n = parseInt(raw, 10);
-          return Number.isFinite(n) && n >= 0 ? n : 2;
-        })();
-
-  if (c === 0) el.textContent = 'Nenhum reembolso pendente';
-  else if (c === 1) el.textContent = '1 reembolso pendente';
-  else el.textContent = `${c} reembolsos pendentes`;
+  if (typeof window.AuraDashboard?.refreshRefundPendingLabel === 'function') {
+    window.AuraDashboard.refreshRefundPendingLabel();
+  }
 })();
 
 /* ── Directions Button ──────────────────────────────────── */

@@ -3,22 +3,27 @@
    Paleta: Verde Sálvia · Terracota Suave · Creme
    ============================================================ */
 
-/* ── Tokens ─────────────────────────────────────────────── */
+/* ── Tokens (Bento: Verde Sálvia · Terracota · Creme) ───── */
 :root {
-  /* Cores principais */
-  --sage:          #7a9e7e;
-  --sage-mid:      #8fad8a;
-  --sage-light:    #c8dfc9;
-  --sage-pale:     #e8f2e9;
+  /* Cores principais — especificação Aura */
+  --sage:          #87A96B;
+  --sage-mid:      #9ab87e;
+  --sage-light:    #c5d4b8;
+  --sage-pale:     #e8efe2;
 
-  --terracotta:    #c47a5b;
-  --terracotta-mid:#d4906e;
-  --terracotta-light: #f0c4aa;
-  --terracotta-pale:  #fdf0e8;
+  --terracotta:    #E2725B;
+  --terracotta-mid:#e88874;
+  --terracotta-light: #f5c4b8;
+  --terracotta-pale:  #fdf0ec;
 
-  --cream:         #f5efe4;
-  --cream-deep:    #ede4d4;
-  --cream-card:    #faf6ef;
+  --cream:         #F5F5DC;
+  --cream-deep:    #e8e8c8;
+  --cream-card:    #faf8eb;
+
+  /* Bateria da Mãe — faixas de humor (média 1–5) */
+  --battery-green:  #87A96B;
+  --battery-yellow: #e6c35c;
+  --battery-red:    #c94c4c;
 
   --ink:           #2d2a26;
   --ink-mid:       #5a5550;
@@ -74,8 +79,8 @@ body {
 
   /* Subtle organic background texture */
   background-image:
-    radial-gradient(ellipse 800px 600px at 80% -10%, rgba(122,158,126,.12) 0%, transparent 70%),
-    radial-gradient(ellipse 600px 500px at -10% 90%, rgba(196,122,91,.08) 0%, transparent 70%);
+    radial-gradient(ellipse 800px 600px at 80% -10%, rgba(135, 169, 107, 0.14) 0%, transparent 70%),
+    radial-gradient(ellipse 600px 500px at -10% 90%, rgba(226, 114, 91, 0.09) 0%, transparent 70%);
 }
 
 button {
@@ -545,6 +550,74 @@ button {
   color: var(--sage);
 }
 
+/* Barra de progresso — média de humor (7 dias), cor por faixa */
+.battery-mood-bar {
+  margin-top: 14px;
+  width: 100%;
+}
+
+.battery-mood-bar__track {
+  height: 11px;
+  border-radius: 999px;
+  background: rgba(45, 42, 38, 0.08);
+  overflow: hidden;
+  border: 1px solid rgba(45, 42, 38, 0.07);
+}
+
+.battery-mood-bar__fill {
+  height: 100%;
+  width: 0%;
+  max-width: 100%;
+  border-radius: inherit;
+  transition: width 0.85s var(--ease), background-color 0.4s var(--ease);
+}
+
+.battery-mood-bar__fill--green {
+  background: linear-gradient(90deg, var(--battery-green), #a8c98c);
+  box-shadow: 0 0 12px rgba(135, 169, 107, 0.35);
+}
+
+.battery-mood-bar__fill--yellow {
+  background: linear-gradient(90deg, #c9a227, var(--battery-yellow));
+  box-shadow: 0 0 10px rgba(230, 195, 92, 0.35);
+}
+
+.battery-mood-bar__fill--red {
+  background: linear-gradient(90deg, #a83838, var(--battery-red));
+  box-shadow: 0 0 12px rgba(201, 76, 76, 0.35);
+}
+
+.battery-mood-bar__fill--neutral {
+  background: linear-gradient(90deg, var(--ink-light), var(--ink-mid));
+  opacity: 0.35;
+}
+
+.battery-mood-bar__caption {
+  font-size: 0.68rem;
+  color: var(--ink-light);
+  margin-top: 8px;
+  text-align: center;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+}
+
+/* Seletor de humor (Bento) */
+.mood-selector.mood-strip {
+  margin-bottom: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* ── Refund Card ─────────────────────────────────────────── */
 .card--refund {
   padding: 22px 22px 16px;
@@ -636,6 +709,15 @@ button {
   border-radius: var(--radius-sm);
   transition: background var(--dur) var(--ease);
   z-index: 1;
+}
+
+.refund__scan-link--muted {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.72);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  margin-top: 8px;
+  display: inline-block;
 }
 
 .refund__scan-link:hover,

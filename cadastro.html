@@ -78,7 +78,11 @@
         if (!form.reportValidity()) return;
         var nome = document.getElementById('nome-completo').value.trim();
         var email = document.getElementById('email').value.trim();
-        window.AuraAuth.saveProfile({ nomeCompleto: nome, email: email });
+        window.AuraAuth.saveProfile({
+          nomeCompleto: nome,
+          email: email,
+          termsAcceptedAt: new Date().toISOString(),
+        });
         var next = form.getAttribute('data-next-step') || 'cadastro-personalizacao.html';
         window.location.href = next;
       });
