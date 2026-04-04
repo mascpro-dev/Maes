@@ -1,3 +1,3 @@
-/* Preencha com URL e anon key (Settings → API no Supabase). Pode espelhar o .env.local. */
-window.AURA_SUPABASE_URL = window.AURA_SUPABASE_URL || '';
-window.AURA_SUPABASE_ANON_KEY = window.AURA_SUPABASE_ANON_KEY || '';
+/* URL e anon key do Supabase (Settings → API) */
+window.AURA_SUPABASE_URL = 'https://ahjhjzdmkkrcgbuxmhww.supabase.co';
+window.AURA_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFoamhqemRta2tyY2didXhtaHd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNDgzMzAsImV4cCI6MjA5MDgyNDMzMH0.6m4i6-imaAMm4OYrPteI8890b5dD9o3JOuwhYUf_TbY';
