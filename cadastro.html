@@ -90,21 +90,22 @@
     const errEl = document.getElementById('signup-error');
     const btn = document.getElementById('btn-submit');
 
-    function showError(msg) {
+    function showSignupMessage(msg, kind = 'error') {
       errEl.textContent = msg;
       errEl.hidden = false;
-      errEl.classList.add('signup-msg--error');
-      errEl.classList.remove('signup-msg--warn');
+      errEl.classList.toggle('signup-msg--error', kind === 'error');
+      errEl.classList.toggle('signup-msg--warn', kind === 'warn');
     }
 
     function clearError() {
       errEl.hidden = true;
       errEl.textContent = '';
+      errEl.classList.remove('signup-msg--error', 'signup-msg--warn');
     }
 
     const { client, error: cfgErr } = getSignupClient();
     if (cfgErr) {
-      showError(cfgErr + ' Depois disso, recarrega a página.');
+      showSignupMessage(cfgErr + ' Depois disso, recarrega a página.');
     }
 
     form.addEventListener('submit', async function (e) {
@@ -113,7 +114,7 @@
       if (!form.reportValidity()) return;
 
       if (!client) {
-        showError('Supabase não configurado. Define AURA_SUPABASE_URL e AURA_SUPABASE_ANON_KEY em supabase-config.js.');
+        showSignupMessage('Supabase não configurado. Define AURA_SUPABASE_URL e AURA_SUPABASE_ANON_KEY em supabase-config.js.');
         return;
       }
 
@@ -132,7 +133,7 @@
       btn.disabled = false;
 
       if (!res.ok) {
-        showError(res.message);
+        showSignupMessage(res.message, res.code === 'EMAIL_CONFIRM' ? 'warn' : 'error');
         return;
       }
 

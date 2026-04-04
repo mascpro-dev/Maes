@@ -45,6 +45,7 @@
   font-size: 0.875rem;
   line-height: 1.45;
   margin-bottom: 18px;
+  white-space: pre-line;
 }
 
 .signup-msg--error {

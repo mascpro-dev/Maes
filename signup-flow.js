@@ -36,6 +36,45 @@ export function getSignupClient() {
   return { client: createClient(url, key), error: null };
 }
 
+/**
+ * Mensagens do Supabase Auth em inglês → português + limite de pedidos (PC vs telemóvel).
+ */
+export function humanizeAuthError(message) {
+  const msg = String(message || '').trim();
+  if (!msg) return 'Não foi possível concluir o registo. Tenta de novo.';
+
+  const afterSec = msg.match(/after\s+(\d+)\s*seconds?/i);
+  if (afterSec) {
+    const s = afterSec[1];
+    return (
+      `Por segurança, o Supabase só aceita um novo registo ou envio de e-mail daqui a ${s} segundos.\n\n` +
+      `Aguarda o tempo indicado (não cliques várias vezes em "Continuar") e tenta outra vez. ` +
+      `No telemóvel o bloqueio é o mesmo se repetires o passo.`
+    );
+  }
+
+  if (/rate limit|too many requests|security purposes/i.test(msg)) {
+    return (
+      'Muitas tentativas seguidas. Aguarda cerca de um minuto antes de registar de novo.\n\n' +
+      'Evita carregar várias vezes no botão em sequência.'
+    );
+  }
+
+  if (/already registered|already been registered|User already exists/i.test(msg)) {
+    return 'Este e-mail já tem conta. Usa "Entrar" ou "Esqueci minha senha".';
+  }
+
+  if (/invalid email|Unable to validate email/i.test(msg)) {
+    return 'O e-mail não parece válido. Verifica se está correto.';
+  }
+
+  if (/password/i.test(msg) && /short|least|characters/i.test(msg)) {
+    return 'A senha não cumpre os requisitos do Supabase (comprimento ou complexidade). Tenta uma senha mais forte.';
+  }
+
+  return msg;
+}
+
 export async function getSessionUserId(client) {
   const {
     data: { session },
@@ -62,22 +101,28 @@ export async function signupStep1Mother({ fullName, email, phone, password }) {
     },
   });
 
-  if (signErr) return { ok: false, message: signErr.message };
+  if (signErr) return { ok: false, message: humanizeAuthError(signErr.message) };
 
   const user = data.user;
   if (!user?.id) {
     return {
       ok: false,
       message:
-        'Não foi possível obter o utilizador. Se o projeto exige confirmação de e-mail, desativa temporariamente em Authentication → Providers → Email, ou confirma o e-mail e inicia sessão antes do passo 2.',
+        'Não foi possível criar a conta neste momento. Se usas confirmação de e-mail, verifica a caixa de entrada ou as definições do Supabase (Email → Confirm email).',
     };
   }
 
   if (!data.session) {
     return {
       ok: false,
+      code: 'EMAIL_CONFIRM',
       message:
-        'Sessão não iniciada após o registo. No Supabase: Authentication → Providers → Email → desativa "Confirm email" (ambiente de testes) ou confirma o e-mail e volta a entrar.',
+        'A conta foi criada, mas não há sessão automática — isto é normal quando a confirmação de e-mail está ligada no Supabase (comum no telemóvel).\n\n' +
+        'Para testar o cadastro em 3 passos sem interrupção:\n' +
+        '• Painel Supabase → Authentication → Providers → Email → desliga "Confirm email" (só em desenvolvimento).\n\n' +
+        'Em produção com confirmação ligada:\n' +
+        '• Abre o e-mail, confirma o link, depois entra em login.html com o mesmo e-mail e senha. ' +
+        'Os passos 2 e 3 do cadastro precisam de sessão iniciada.',
     };
   }
 
