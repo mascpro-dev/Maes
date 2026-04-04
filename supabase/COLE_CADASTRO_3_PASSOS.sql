@@ -20,7 +20,7 @@ COMMENT ON COLUMN public.profiles.onboarding_challenges IS 'Slugs dos maiores de
 CREATE TABLE IF NOT EXISTS public.children (
   id uuid NOT NULL DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
-  nome text NOT NULL,
+  name text NOT NULL,
   data_nascimento date,
   diagnosticos text[] NOT NULL DEFAULT '{}'::text[],
   created_at timestamptz NOT NULL DEFAULT timezone('utc'::text, now()),
@@ -28,12 +28,26 @@ CREATE TABLE IF NOT EXISTS public.children (
 );
 
 ALTER TABLE public.children ADD COLUMN IF NOT EXISTS user_id uuid;
+ALTER TABLE public.children ADD COLUMN IF NOT EXISTS name text;
 ALTER TABLE public.children ADD COLUMN IF NOT EXISTS nome text;
 ALTER TABLE public.children ADD COLUMN IF NOT EXISTS data_nascimento date;
 ALTER TABLE public.children ADD COLUMN IF NOT EXISTS diagnosticos text[];
 ALTER TABLE public.children ADD COLUMN IF NOT EXISTS created_at timestamptz DEFAULT timezone('utc'::text, now());
 
 CREATE INDEX IF NOT EXISTS children_user_id_idx ON public.children (user_id);
+
+-- Script antigo usava coluna "nome"; produção PostgREST costuma esperar "name". Copia dados se ambas existirem.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'children' AND column_name = 'nome'
+  ) THEN
+    UPDATE public.children SET name = nome
+    WHERE (name IS NULL OR TRIM(COALESCE(name, '')) = '') AND nome IS NOT NULL;
+  END IF;
+END
+$$;
 
 DO $$
 BEGIN

@@ -56,50 +56,6 @@
   gap: 18px;
 }
 
-.agenda-hero {
-  min-height: 0;
-  margin-bottom: 0;
-}
-
-.agenda-hero .appointment__body {
-  flex-direction: row;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.agenda-hero .appointment__icon-wrap {
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-}
-
-.agenda-maps-btn {
-  width: 100%;
-  margin-top: 4px;
-  padding: 12px;
-  border-radius: var(--radius-md);
-  background: var(--white);
-  color: var(--sage);
-  font-weight: 700;
-  font-size: 0.84rem;
-  font-family: inherit;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  letter-spacing: 0.01em;
-  cursor: pointer;
-  border: none;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  transition: all var(--dur) var(--ease);
-}
-
-.agenda-maps-btn:hover,
-.agenda-maps-btn:focus-visible {
-  background: var(--sage-pale);
-  transform: scale(1.02);
-}
-
 .agenda-form-card {
   background: var(--cream-card);
   border-radius: var(--radius-lg);
@@ -121,6 +77,51 @@
   color: var(--ink-mid);
   line-height: 1.45;
   margin-bottom: 16px;
+}
+
+.agenda-form-card--compact .agenda-field {
+  margin-bottom: 10px;
+}
+
+.agenda-field--check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.agenda-check {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--sage);
+}
+
+.agenda-field__check-label {
+  font-size: 0.82rem;
+  color: var(--ink-mid);
+  line-height: 1.4;
+}
+
+.agenda-notif-btn {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--terracotta-mid);
+  background: rgba(226, 114, 91, 0.1);
+  border: 1.5px solid rgba(226, 114, 91, 0.35);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease);
+}
+
+.agenda-notif-btn:hover,
+.agenda-notif-btn:focus-visible {
+  background: rgba(226, 114, 91, 0.16);
 }
 
 .agenda-field {
@@ -272,6 +273,23 @@
   line-height: 1.3;
 }
 
+.agenda-nav-label--banner {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+}
+
+.agenda-list-heading {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  margin: 4px 0 8px;
+}
+
 .agenda-month-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -319,8 +337,24 @@
 }
 
 .agenda-month-day--selected {
-  border-color: var(--ink);
-  background: var(--sage-pale);
+  border-color: var(--terracotta-mid);
+  background: linear-gradient(145deg, var(--terracotta) 0%, var(--terracotta-mid) 100%);
+  color: var(--white);
+}
+
+.agenda-month-day--selected:hover,
+.agenda-month-day--selected:focus-visible {
+  color: var(--white);
+  border-color: var(--terracotta);
+}
+
+.agenda-month-dots {
+  display: flex;
+  gap: 3px;
+  justify-content: center;
+  margin-top: 3px;
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 
 .agenda-month-dot {
@@ -328,7 +362,11 @@
   height: 5px;
   border-radius: 50%;
   background: var(--terracotta);
-  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.agenda-month-day--selected .agenda-month-dot {
+  background: rgba(255, 255, 255, 0.92);
 }
 
 .agenda-event-list {
@@ -349,39 +387,129 @@
 
 .agenda-list-item {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 12px 12px;
-  background: var(--white);
-  border-radius: var(--radius-md);
-  border: 1px solid rgba(45, 42, 38, 0.08);
+  align-items: stretch;
+  gap: 12px;
+  padding: 0;
+  background: transparent;
+  border: none;
 }
 
-.agenda-list-item__main {
+.agenda-list-item--slot {
+  align-items: flex-start;
+}
+
+.agenda-slot-timecol {
+  flex-shrink: 0;
+  width: 52px;
+  padding-top: 14px;
+  text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  min-width: 0;
+  gap: 2px;
 }
 
-.agenda-list-item__main strong {
-  font-size: 0.88rem;
+.agenda-slot-time {
+  font-size: 0.78rem;
+  font-weight: 700;
   color: var(--ink);
 }
 
-.agenda-list-item__time {
-  font-size: 0.74rem;
-  color: var(--ink-mid);
-  text-transform: capitalize;
+.agenda-slot-day {
+  font-size: 0.58rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-light);
 }
 
-.agenda-list-item__loc {
+.agenda-slot-card {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px 12px 14px;
+  background: rgba(255, 252, 247, 0.95);
+  border-radius: 16px;
+  border: 1px solid rgba(45, 42, 38, 0.07);
+  box-shadow: 0 2px 12px rgba(45, 42, 38, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.agenda-slot-card__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.agenda-slot-kind {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(135, 169, 107, 0.18);
+  color: var(--sage);
+}
+
+.agenda-slot-kind--doctor {
+  background: rgba(226, 114, 91, 0.15);
+  color: var(--terracotta-mid);
+}
+
+.agenda-slot-kind--medicine {
+  background: rgba(122, 158, 126, 0.22);
+  color: #4d6b4f;
+}
+
+.agenda-slot-kind--other {
+  background: rgba(45, 42, 38, 0.08);
+  color: var(--ink-mid);
+}
+
+.agenda-slot-bell {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.agenda-slot-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+.agenda-slot-loc {
+  font-size: 0.74rem;
+  color: var(--ink-mid);
+  line-height: 1.3;
+}
+
+.agenda-slot-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.agenda-slot-maps {
+  padding: 6px 12px;
   font-size: 0.72rem;
-  color: var(--ink-light);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--sage);
+  background: var(--white);
+  border: 1px solid rgba(135, 169, 107, 0.45);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease);
+}
+
+.agenda-slot-maps:hover,
+.agenda-slot-maps:focus-visible {
+  background: var(--sage-pale);
 }
 
 .agenda-list-item__del {

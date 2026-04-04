@@ -16,7 +16,8 @@ export const SIGNUP_SCHEMA = {
   children: {
     table: 'children',
     userId: 'user_id',
-    nome: 'nome',
+    /** Coluna na BD: muitos projetos Supabase usam `name`; enviar `nome` deixava `name` NULL. */
+    nome: 'name',
     birth: 'data_nascimento',
     diagnosticos: 'diagnosticos',
   },

@@ -281,7 +281,9 @@ function renderProfile(profile, children) {
       kids.forEach((c) => {
         const card = document.createElement('article');
         card.className = 'perfil-child-card';
-        const n = (c.nome || '').trim() || 'Criança';
+        const n = String(c.name ?? c.nome ?? '')
+          .trim()
+          .replace(/\s+/g, ' ') || 'Criança';
         const birth = formatBirth(c.data_nascimento);
         const age = ageFromBirth(c.data_nascimento);
 
@@ -345,7 +347,7 @@ function renderProfile(profile, children) {
       .maybeSingle(),
     supabase
       .from('children')
-      .select('nome, data_nascimento, diagnosticos, created_at')
+      .select('*')
       .eq('user_id', uid)
       .order('created_at', { ascending: true }),
   ]);

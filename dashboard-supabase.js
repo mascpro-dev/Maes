@@ -102,7 +102,7 @@ async function hydrateDashboardContext(supabase, userId) {
   let children = [];
   const { data: kids, error: cErr } = await supabase
     .from('children')
-    .select('nome, data_nascimento, diagnosticos, created_at')
+    .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: true });
 
@@ -131,7 +131,12 @@ async function hydrateDashboardContext(supabase, userId) {
   }
 
   const primaryChild = children[0];
-  const childName = primaryChild?.nome?.trim() || profile?.nome_crianca?.trim() || '';
+  const childName =
+    String(primaryChild?.name ?? primaryChild?.nome ?? '')
+      .trim()
+      .replace(/\s+/g, ' ') ||
+    profile?.nome_crianca?.trim() ||
+    '';
 
   const localNext =
     typeof window.AuraAppointments?.getNextOccurrence === 'function'

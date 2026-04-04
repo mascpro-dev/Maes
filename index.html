@@ -19,6 +19,7 @@
   <script src="supabase-config.js"></script>
   <script src="auth.js"></script>
   <script src="appointments.js"></script>
+  <script src="appointment-reminders.js"></script>
   <script type="module" src="auth-session-guard.js"></script>
 
   <!-- ========== MAIN WRAPPER ========== -->
@@ -88,7 +89,7 @@
             <line x1="8" y1="2" x2="8" y2="6" />
             <line x1="3" y1="10" x2="21" y2="10" />
           </svg>
-          Agenda
+          Compromissos
         </div>
         <div class="agenda-reminder__body">
           <div class="appointment__icon-wrap agenda-reminder__icon-wrap">
@@ -121,6 +122,8 @@
           </svg>
           <span id="appointment-countdown-label">Em </span><strong id="countdown">breve</strong>
         </div>
+        <p class="agenda-reminder__remind-hint">Marca consultas ou remédios na agenda e ativa as notificações na página
+          Compromissos para receber um aviso cerca de 15 minutos antes.</p>
         <a href="agenda.html" class="agenda-reminder__cta">
           <span>Abrir agenda</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"

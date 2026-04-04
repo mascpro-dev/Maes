@@ -1,6 +1,7 @@
 /**
- * Compromissos locais (localStorage) — alimenta a agenda e o cartão «Próximo compromisso» no home.
- * Formato: { id, title, location, startISO, recurrence: 'none'|'daily'|'weekly'|'monthly' }
+ * Compromissos locais (localStorage) — alimenta a agenda e o cartão no home.
+ * Formato: { id, title, location, startISO, recurrence, kind, remind15 }
+ * kind: 'other' | 'doctor' | 'medicine' — remind15: lembrete ~15 min antes (notificação do browser)
  */
 (function (global) {
   'use strict';
@@ -23,6 +24,10 @@
     } catch (e) { /* ignore */ }
   }
 
+  function normalizeKind(k) {
+    return k === 'doctor' || k === 'medicine' ? k : 'other';
+  }
+
   function add(item) {
     var list = all();
     var row = {
@@ -33,6 +38,8 @@
       recurrence: item.recurrence === 'daily' || item.recurrence === 'weekly' || item.recurrence === 'monthly'
         ? item.recurrence
         : 'none',
+      kind: normalizeKind(item.kind),
+      remind15: !!item.remind15,
     };
     list.push(row);
     save(list);
@@ -96,6 +103,8 @@
             location: items[i].location,
             startISO: items[i].startISO,
             recurrence: items[i].recurrence,
+            kind: normalizeKind(items[i].kind),
+            remind15: !!items[i].remind15,
             startAt: d,
           };
         }
@@ -119,6 +128,8 @@
           location: ev.location,
           startAt: dates[j],
           recurrence: ev.recurrence,
+          kind: normalizeKind(ev.kind),
+          remind15: !!ev.remind15,
         });
       }
     }

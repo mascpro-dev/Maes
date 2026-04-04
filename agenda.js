@@ -1,5 +1,5 @@
 /**
- * agenda.html — calendário (dia / semana / mês), lista, localStorage + sync opcional do próximo para profiles.
+ * agenda.html — calendário (dia / semana / mês), lista estilo “slots”, localStorage + sync opcional do próximo para profiles.
  */
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm';
 
@@ -29,6 +29,16 @@ function toDatetimeLocalValue(iso) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+function syncDatetimeInputToSelectedDay(dtEl, selectedDay) {
+  if (!dtEl || !selectedDay) return;
+  const cur = dtEl.value ? new Date(dtEl.value) : null;
+  const ok = cur && !Number.isNaN(cur.getTime());
+  const h = ok ? cur.getHours() : 9;
+  const m = ok ? cur.getMinutes() : 0;
+  const d = selectedDay;
+  dtEl.value = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(h)}:${pad(m)}`;
+}
+
 async function getClient() {
   if (window.__auraAuthReady) {
     const ok = await window.__auraAuthReady;
@@ -41,69 +51,6 @@ async function getClient() {
   return createClient(url, key, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
   });
-}
-
-function syncMapsButton(locText) {
-  const btn = document.getElementById('btn-agenda-maps');
-  if (!btn) return;
-  const q = (locText || '').trim();
-  if (q) btn.setAttribute('data-maps-query', q);
-  else btn.removeAttribute('data-maps-query');
-}
-
-function applyHeroFromNext(next, childName) {
-  const titleEl = document.getElementById('agenda-hero-title');
-  const timeEl = document.getElementById('agenda-hero-time');
-  const locEl = document.getElementById('agenda-hero-location');
-
-  if (!next?.startAt) {
-    if (titleEl) titleEl.textContent = childName ? `Próxima terapia de ${childName}` : 'Sem compromissos marcados';
-    if (timeEl) timeEl.textContent = 'Adiciona um compromisso abaixo';
-    if (locEl) locEl.textContent = '—';
-    window.AuraDashboard?.setAppointmentTarget?.(null, {
-      countdownText: '—',
-      countdownId: 'agenda-countdown',
-      countdownLabelId: 'agenda-countdown-label',
-    });
-    syncMapsButton('');
-    return;
-  }
-
-  const d = next.startAt;
-  if (titleEl) titleEl.textContent = next.title || 'Próximo compromisso';
-  if (timeEl) {
-    timeEl.textContent = d.toLocaleString('pt-BR', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  }
-  if (locEl) locEl.textContent = (next.location || '').trim() || 'Local a definir';
-  window.AuraDashboard?.setAppointmentTarget?.(d.toISOString(), {
-    countdownId: 'agenda-countdown',
-    countdownLabelId: 'agenda-countdown-label',
-  });
-  syncMapsButton(next.location);
-}
-
-function startOfDay(d) {
-  const x = new Date(d);
-  x.setHours(0, 0, 0, 0);
-  return x;
-}
-
-function endOfDay(d) {
-  const x = new Date(d);
-  x.setHours(23, 59, 59, 999);
-  return x;
-}
-
-function addDays(d, n) {
-  const x = new Date(d);
-  x.setDate(x.getDate() + n);
-  return x;
 }
 
 async function pushNextToProfile(supabase, uid) {
@@ -166,12 +113,19 @@ function renderCalendarMonth(mount, year, month, selectedDay, onPickDay) {
       dt.getMonth() === selectedDay.getMonth() &&
       dt.getDate() === selectedDay.getDate();
     if (isSel) cell.classList.add('agenda-month-day--selected');
-    cell.textContent = String(day);
+    cell.appendChild(document.createTextNode(String(day)));
     const k = `${year}-${month}-${day}`;
-    if (countsByDay[k]) {
-      const dot = document.createElement('span');
-      dot.className = 'agenda-month-dot';
-      cell.appendChild(dot);
+    const cnt = countsByDay[k] || 0;
+    if (cnt > 0) {
+      const wrap = document.createElement('span');
+      wrap.className = 'agenda-month-dots';
+      const n = Math.min(cnt, 3);
+      for (let di = 0; di < n; di++) {
+        const dot = document.createElement('span');
+        dot.className = 'agenda-month-dot';
+        wrap.appendChild(dot);
+      }
+      cell.appendChild(wrap);
     }
     cell.addEventListener('click', () => onPickDay(new Date(year, month, day)));
     grid.appendChild(cell);
@@ -180,41 +134,77 @@ function renderCalendarMonth(mount, year, month, selectedDay, onPickDay) {
   mount.appendChild(grid);
 }
 
+function kindLabel(kind) {
+  if (kind === 'medicine') return 'Remédio';
+  if (kind === 'doctor') return 'Médico';
+  return 'Outro';
+}
+
 function renderEventList(listEl, rows, onDelete) {
   listEl.innerHTML = '';
   if (!rows.length) {
     const li = document.createElement('li');
     li.className = 'agenda-list-empty';
-    li.textContent = 'Nenhum compromisso neste período.';
+    li.textContent = 'Nada marcado neste período.';
     listEl.appendChild(li);
     return;
   }
   rows.forEach((row) => {
     const li = document.createElement('li');
-    li.className = 'agenda-list-item';
-    const main = document.createElement('div');
-    main.className = 'agenda-list-item__main';
-    const t = document.createElement('strong');
-    t.textContent = row.title;
-    const sub = document.createElement('span');
-    sub.className = 'agenda-list-item__time';
-    sub.textContent = row.startAt.toLocaleString('pt-BR', {
-      weekday: 'short',
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
+    li.className = 'agenda-list-item agenda-list-item--slot';
+
+    const timeCol = document.createElement('div');
+    timeCol.className = 'agenda-slot-timecol';
+    const timeTop = document.createElement('span');
+    timeTop.className = 'agenda-slot-time';
+    timeTop.textContent = row.startAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    const timeSub = document.createElement('span');
+    timeSub.className = 'agenda-slot-day';
+    timeSub.textContent = row.startAt.toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric' });
+    timeCol.appendChild(timeTop);
+    timeCol.appendChild(timeSub);
+
+    const card = document.createElement('div');
+    card.className = 'agenda-slot-card';
+
+    const head = document.createElement('div');
+    head.className = 'agenda-slot-card__head';
+    const badge = document.createElement('span');
+    badge.className = `agenda-slot-kind agenda-slot-kind--${row.kind || 'other'}`;
+    badge.textContent = kindLabel(row.kind);
+    head.appendChild(badge);
+    if (row.remind15) {
+      const bell = document.createElement('span');
+      bell.className = 'agenda-slot-bell';
+      bell.setAttribute('title', 'Lembrete 15 min antes');
+      bell.textContent = '🔔';
+      head.appendChild(bell);
+    }
+    card.appendChild(head);
+
+    const title = document.createElement('strong');
+    title.className = 'agenda-slot-title';
+    title.textContent = row.title || 'Compromisso';
+    card.appendChild(title);
+
     if (row.location) {
       const loc = document.createElement('span');
-      loc.className = 'agenda-list-item__loc';
+      loc.className = 'agenda-slot-loc';
       loc.textContent = row.location;
-      main.appendChild(t);
-      main.appendChild(sub);
-      main.appendChild(loc);
-    } else {
-      main.appendChild(t);
-      main.appendChild(sub);
+      card.appendChild(loc);
+    }
+
+    const actions = document.createElement('div');
+    actions.className = 'agenda-slot-actions';
+    if (row.location && String(row.location).trim()) {
+      const mapBtn = document.createElement('button');
+      mapBtn.type = 'button';
+      mapBtn.className = 'agenda-slot-maps';
+      mapBtn.setAttribute('data-aura-maps', '');
+      mapBtn.setAttribute('data-maps-query', String(row.location).trim());
+      mapBtn.setAttribute('aria-label', 'Abrir local no mapa');
+      mapBtn.textContent = 'Mapa';
+      actions.appendChild(mapBtn);
     }
     const del = document.createElement('button');
     del.type = 'button';
@@ -222,10 +212,42 @@ function renderEventList(listEl, rows, onDelete) {
     del.setAttribute('aria-label', 'Remover compromisso');
     del.textContent = '✕';
     del.addEventListener('click', () => onDelete(row.eventId));
-    li.appendChild(main);
-    li.appendChild(del);
+    actions.appendChild(del);
+
+    card.appendChild(actions);
+    li.appendChild(timeCol);
+    li.appendChild(card);
     listEl.appendChild(li);
   });
+}
+
+function startOfDay(d) {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+}
+
+function endOfDay(d) {
+  const x = new Date(d);
+  x.setHours(23, 59, 59, 999);
+  return x;
+}
+
+function addDays(d, n) {
+  const x = new Date(d);
+  x.setDate(x.getDate() + n);
+  return x;
+}
+
+function openMapsFromBtn(btn) {
+  const q = btn.getAttribute('data-maps-query');
+  if (q && String(q).trim()) {
+    const url = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(String(q).trim());
+    window.open(url, '_blank', 'noopener,noreferrer');
+    if (typeof showToast === 'function') showToast('A abrir o mapa…');
+  } else if (typeof showToast === 'function') {
+    showToast('Sem local para abrir no mapa.');
+  }
 }
 
 async function main() {
@@ -245,22 +267,10 @@ async function main() {
       return;
     }
     uid = session.user.id;
-
-    const [{ data: profile }, { data: children }] = await Promise.all([
-      supabase.from('profiles').select('nome_crianca').eq('id', uid).maybeSingle(),
-      supabase.from('children').select('nome, created_at').eq('user_id', uid).order('created_at', { ascending: true }),
-    ]);
-
-    const childName =
-      (children?.[0]?.nome && String(children[0].nome).trim()) ||
-      (profile?.nome_crianca && String(profile.nome_crianca).trim()) ||
-      '';
-
-    window.__agendaChildName = childName;
   }
 
   const state = {
-    view: 'day',
+    view: 'month',
     cursor: new Date(),
     selectedDay: startOfDay(new Date()),
   };
@@ -269,6 +279,15 @@ async function main() {
   const listEl = document.getElementById('agenda-event-list');
   const navRow = document.getElementById('agenda-nav-row');
   const navLabel = document.getElementById('agenda-nav-label');
+  const listHeading = document.getElementById('agenda-list-heading');
+
+  listEl.addEventListener('click', (e) => {
+    const mapBtn = e.target.closest('[data-aura-maps]');
+    if (mapBtn) {
+      e.preventDefault();
+      openMapsFromBtn(mapBtn);
+    }
+  });
 
   function rangeForView() {
     if (state.view === 'day') {
@@ -287,9 +306,6 @@ async function main() {
   }
 
   function refresh() {
-    const next = window.AuraAppointments.getNextOccurrence();
-    applyHeroFromNext(next, window.__agendaChildName || '');
-
     document.querySelectorAll('.agenda-tab').forEach((tab) => {
       const on = tab.dataset.view === state.view;
       tab.classList.toggle('agenda-tab--active', on);
@@ -300,7 +316,10 @@ async function main() {
       navRow.hidden = false;
       const y = state.cursor.getFullYear();
       const m = state.cursor.getMonth();
-      if (navLabel) navLabel.textContent = `${MONTH_NAMES[m]} ${y}`;
+      if (navLabel) {
+        navLabel.textContent = `${MONTH_NAMES[m]} ${y}`;
+        navLabel.classList.add('agenda-nav-label--banner');
+      }
       mount.innerHTML = '';
       renderCalendarMonth(mount, y, m, state.selectedDay, (picked) => {
         state.selectedDay = startOfDay(picked);
@@ -312,6 +331,7 @@ async function main() {
       mount.innerHTML = '';
       navRow.hidden = false;
       const { start, end } = rangeForView();
+      if (navLabel) navLabel.classList.remove('agenda-nav-label--banner');
       if (state.view === 'day' && navLabel) {
         navLabel.textContent = start.toLocaleDateString('pt-BR', {
           weekday: 'long',
@@ -324,13 +344,23 @@ async function main() {
       }
     }
 
+    if (listHeading) {
+      if (state.view === 'day') listHeading.textContent = 'Horários deste dia';
+      else if (state.view === 'week') listHeading.textContent = 'Horários desta semana';
+      else listHeading.textContent = 'Horários deste mês';
+    }
+
     const { start, end } = rangeForView();
     const rows = window.AuraAppointments.occurrencesInRange(start, end);
     renderEventList(listEl, rows, (eventId) => {
       window.AuraAppointments.remove(eventId);
+      window.AuraAppointmentReminders?.refresh?.();
       refresh();
       pushNextToProfile(supabase, uid).then(() => {});
     });
+
+    const dtEl = document.getElementById('agenda-appt-datetime');
+    syncDatetimeInputToSelectedDay(dtEl, state.selectedDay);
   }
 
   document.querySelectorAll('.agenda-tab').forEach((tab) => {
@@ -357,12 +387,32 @@ async function main() {
     refresh();
   });
 
+  document.getElementById('agenda-appt-kind')?.addEventListener('change', (e) => {
+    const v = e.target?.value;
+    const cb = document.getElementById('agenda-remind15');
+    if (cb && (v === 'doctor' || v === 'medicine')) cb.checked = true;
+  });
+
+  document.getElementById('btn-agenda-notifications')?.addEventListener('click', () => {
+    const statusEl = document.getElementById('agenda-save-status');
+    window.AuraAppointmentReminders?.requestPermission?.((ok) => {
+      if (statusEl) {
+        statusEl.textContent = ok
+          ? 'Notificações ativas. Avisamos cerca de 15 min antes dos itens com lembrete.'
+          : 'Sem permissão — ativa as notificações nas definições do browser se quiseres lembretes.';
+      }
+      if (ok && typeof showToast === 'function') showToast('Notificações ativas ✓');
+    });
+  });
+
   document.getElementById('btn-agenda-add')?.addEventListener('click', async () => {
     const statusEl = document.getElementById('agenda-save-status');
     const dtEl = document.getElementById('agenda-appt-datetime');
     const titleEl = document.getElementById('agenda-appt-title');
     const locEl = document.getElementById('agenda-appt-location');
     const recEl = document.getElementById('agenda-recurrence');
+    const kindEl = document.getElementById('agenda-appt-kind');
+    const remindEl = document.getElementById('agenda-remind15');
     const atVal = dtEl?.value?.trim();
     if (!atVal) {
       if (statusEl) statusEl.textContent = 'Indica data e hora.';
@@ -374,12 +424,15 @@ async function main() {
       location: (locEl?.value || '').trim(),
       startISO,
       recurrence: recEl?.value || 'none',
+      kind: kindEl?.value || 'other',
+      remind15: !!remindEl?.checked,
     });
-    if (statusEl) statusEl.textContent = 'Compromisso adicionado.';
+    if (statusEl) statusEl.textContent = 'Guardado.';
     const sync = await pushNextToProfile(supabase, uid);
     if (!sync.ok && supabase && statusEl) {
-      statusEl.textContent += ' (nuvem: não atualizado — verifica colunas no perfil.)';
+      statusEl.textContent += ' (nuvem: não atualizado.)';
     }
+    window.AuraAppointmentReminders?.refresh?.();
     refresh();
     if (typeof showToast === 'function') showToast('Compromisso guardado ✓');
   });
