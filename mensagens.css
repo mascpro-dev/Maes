@@ -18,6 +18,11 @@ body {
   gap: 10px 12px;
 }
 
+.dm-header .dm-header__title {
+  justify-self: center;
+  text-align: center;
+}
+
 .dm-header__side {
   display: flex;
   align-items: center;
@@ -32,20 +37,6 @@ body {
 
 .dm-header__side--right {
   justify-content: flex-end;
-}
-
-.dm-header__brand {
-  justify-self: center;
-  line-height: 0;
-  text-decoration: none;
-}
-
-.dm-header__brand img {
-  display: block;
-  max-width: min(200px, 48vw);
-  width: 100%;
-  height: auto;
-  object-fit: contain;
 }
 
 .dm-header__title {

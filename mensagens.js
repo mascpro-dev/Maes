@@ -122,15 +122,35 @@ async function openConversation(targetUserId) {
   subscribeRealtime();
 }
 
+function rpcFunctionMissing(err) {
+  return (
+    !!err &&
+    ((err.message && err.message.includes("Could not find the function")) || err.code === "PGRST202")
+  );
+}
+
 async function loadMessages() {
   if (!activeConversation) return;
-  const { data, error } = await supabase
-    .from("dm_messages")
-    .select("id, sender_id, content, created_at")
-    .eq("conversation_id", activeConversation)
-    .order("created_at", { ascending: true });
+  const { data: rpcRows, error: rpcErr } = await supabase.rpc("list_dm_messages", {
+    p_conversation_id: activeConversation,
+  });
+  let data = rpcRows;
+  let error = rpcErr;
+  if (rpcErr && rpcFunctionMissing(rpcErr)) {
+    const r = await supabase
+      .from("dm_messages")
+      .select("id, sender_id, content, created_at")
+      .eq("conversation_id", activeConversation)
+      .order("created_at", { ascending: true });
+    data = r.data;
+    error = r.error;
+  } else if (rpcErr) {
+    error = rpcErr;
+    data = null;
+  }
   if (error) {
-    setStatus("Falha ao carregar mensagens.");
+    setStatus(error.message || "Falha ao carregar mensagens.");
+    console.error("loadMessages", error);
     return;
   }
   const rows = data || [];
@@ -188,11 +208,7 @@ async function sendMessage() {
     return;
   }
 
-  const fnMissing =
-    (rpcErr.message && rpcErr.message.includes("Could not find the function")) ||
-    rpcErr.code === "PGRST202";
-
-  if (fnMissing) {
+  if (rpcFunctionMissing(rpcErr)) {
     const { error: insErr } = await supabase.from("dm_messages").insert({
       conversation_id: activeConversation,
       sender_id: userId,

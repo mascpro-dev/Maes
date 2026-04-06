@@ -153,22 +153,6 @@ a {
   box-shadow: 0 6px 28px rgba(42, 38, 32, 0.12);
 }
 
-.explore-header__brand {
-  flex-shrink: 0;
-  line-height: 0;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-}
-
-.explore-header__brand img {
-  display: block;
-  max-width: min(168px, 40vw);
-  width: 100%;
-  height: auto;
-  object-fit: contain;
-}
-
 .explore-header__text {
   flex: 1;
   min-width: 0;
