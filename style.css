@@ -1214,12 +1214,14 @@ a.btn-scan {
   display: block;
 }
 
-.sidebar-brand__mark-img {
+/* Logo horizontal na sidebar (substitui o ícone circular) */
+.sidebar-brand__logo {
   display: block;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  object-fit: cover;
+  width: 100%;
+  max-width: 196px;
+  height: auto;
+  object-fit: contain;
+  transition: opacity var(--dur) var(--ease);
 }
 
 .sidebar-brand__text {
@@ -1431,11 +1433,15 @@ a.btn-scan {
   .sidebar-brand {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 8px 20px;
+    align-items: stretch;
+    gap: 0;
+    padding: 12px 10px 18px;
     margin: -4px 0 4px;
     border-bottom: 1px solid rgba(196,122,91,.18);
+  }
+
+  .sidebar-brand:hover .sidebar-brand__logo {
+    opacity: 0.92;
   }
 
   .sidebar-brand:hover .sidebar-brand__text {

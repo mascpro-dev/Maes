@@ -78,12 +78,18 @@ function greetingForHour() {
 }
 
 async function fetchRefundPendingCount(supabase, userId) {
+  if (!userId) return null;
+  /** GET com limit(0) evita HEAD /rest/v1/refunds?select=count que em alguns projetos devolve 400 (PostgREST/RLS). */
   const { count, error } = await supabase
     .from('refunds')
-    .select('*', { count: 'exact', head: true })
+    .select('user_id', { count: 'exact' })
     .eq('user_id', userId)
-    .eq('status', REFUND_STATUS);
-  if (error) return null;
+    .eq('status', REFUND_STATUS)
+    .limit(0);
+  if (error) {
+    console.warn('[Aura] refunds count:', error.message);
+    return null;
+  }
   return typeof count === 'number' ? count : 0;
 }
 
