@@ -27,9 +27,27 @@ body {
 
 .pu-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 10px 12px;
   margin-bottom: 20px;
+}
+
+.pu-header__brand {
+  line-height: 0;
+  text-decoration: none;
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.pu-header__brand img {
+  display: block;
+  max-width: min(180px, 55vw);
+  width: 100%;
+  height: auto;
+  object-fit: contain;
 }
 
 .pu-back {

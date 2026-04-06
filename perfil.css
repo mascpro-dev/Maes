@@ -141,27 +141,20 @@
 
 .perfil-sidebar__brand {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
   text-decoration: none;
   color: var(--ink, #2d2a26);
-  font-weight: 700;
-  font-size: 1.05rem;
   width: 100%;
 }
 
-.perfil-sidebar__logo-img {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  object-fit: cover;
-  flex-shrink: 0;
+.perfil-sidebar__logo-horizontal {
   display: block;
-}
-
-.perfil-sidebar__brand-text {
-  font-family: 'DM Serif Display', Georgia, serif;
-  letter-spacing: 0.02em;
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+  object-fit: contain;
 }
 
 .perfil-sidebar__nav {

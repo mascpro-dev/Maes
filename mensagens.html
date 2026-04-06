@@ -11,6 +11,7 @@
   <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" />
   <meta name="theme-color" content="#7a9e7e" />
   <link rel="apple-touch-icon" href="assets/branding/icon-192.svg" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Aura" />
@@ -23,9 +24,16 @@
 
   <main class="dm-shell">
     <header class="dm-header">
-      <a href="feed.html" class="dm-link">← Feed</a>
-      <h1>Mensagens</h1>
-      <a href="explorar.html" class="dm-link">Seguir</a>
+      <div class="dm-header__side dm-header__side--left">
+        <a href="feed.html" class="dm-link">← Feed</a>
+      </div>
+      <a href="index.html" class="dm-header__brand" aria-label="CONTA MÃE — início">
+        <img src="assets/branding/logohorizontal.svg" alt="" width="160" height="28" decoding="async" />
+      </a>
+      <div class="dm-header__side dm-header__side--right">
+        <h1 class="dm-header__title">Mensagens</h1>
+        <a href="explorar.html" class="dm-link">Seguir</a>
+      </div>
     </header>
 
     <section class="dm-layout">

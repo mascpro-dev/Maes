@@ -1082,6 +1082,34 @@ a.btn-header-icon {
   line-height: 1.35;
 }
 
+/* Logo na sidebar desktop (igual style.css / index) */
+.sidebar-brand {
+  display: none;
+  text-decoration: none;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sidebar-brand:focus-visible {
+  outline: 2px solid var(--sage);
+  outline-offset: 4px;
+  border-radius: var(--radius-sm);
+}
+
+.sidebar-brand__mark {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.sidebar-brand__logo {
+  display: block;
+  width: 100%;
+  max-width: 196px;
+  height: auto;
+  object-fit: contain;
+  transition: opacity var(--dur) var(--ease);
+}
+
 /* Bottom nav */
 .bottom-nav {
   position: fixed;
@@ -1231,6 +1259,20 @@ button.nav-btn {
     border-right: 1.5px solid var(--cream-deep);
     border-radius: 0 var(--radius-md) var(--radius-md) 0;
     box-shadow: 4px 0 20px rgba(45, 42, 38, 0.06);
+  }
+
+  .app-shell:has(> .bottom-nav) .sidebar-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 12px 10px 18px;
+    margin: -4px 0 4px;
+    border-bottom: 1px solid rgba(196, 122, 91, 0.18);
+  }
+
+  .app-shell:has(> .bottom-nav) .sidebar-brand:hover .sidebar-brand__logo {
+    opacity: 0.92;
   }
 
   .app-shell:has(> .bottom-nav) .nav-btn {

@@ -154,24 +154,18 @@ a {
   margin-bottom: 18px;
 }
 
-.login-brand__logo-img {
-  width: clamp(72px, 22vw, 96px);
-  height: auto;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  object-fit: cover;
-  display: block;
+.login-brand__logo-link {
+  display: inline-flex;
+  line-height: 0;
+  text-decoration: none;
 }
 
-.login-brand__logo {
-  font-family: var(--font-serif);
-  font-size: clamp(1.65rem, 7.5vw, 2.15rem);
-  font-weight: 400;
-  line-height: 1.12;
-  letter-spacing: 0.04em;
-  color: var(--ink);
-  margin: 0;
-  max-width: 18ch;
+.login-brand__logo-horizontal {
+  display: block;
+  width: 100%;
+  max-width: min(320px, 88vw);
+  height: auto;
+  object-fit: contain;
 }
 
 .login-brand__rule {

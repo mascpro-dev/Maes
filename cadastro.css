@@ -87,6 +87,22 @@ a {
   margin-bottom: 28px;
 }
 
+.cadastro-header__brand {
+  display: block;
+  line-height: 0;
+  text-align: center;
+  margin-bottom: 20px;
+  text-decoration: none;
+}
+
+.cadastro-header__brand img {
+  display: inline-block;
+  max-width: min(260px, 88vw);
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
 .cadastro-progress {
   margin-bottom: 22px;
 }

@@ -1,5 +1,21 @@
 /* Progresso 3 passos + mensagens de erro do cadastro Supabase */
 
+.cadastro-fluxo-brand {
+  display: block;
+  line-height: 0;
+  text-align: center;
+  margin-bottom: 16px;
+  text-decoration: none;
+}
+
+.cadastro-fluxo-brand img {
+  display: inline-block;
+  max-width: min(240px, 85vw);
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
 .fluxo-progress {
   margin-bottom: 22px;
 }

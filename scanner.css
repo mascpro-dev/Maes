@@ -145,6 +145,21 @@ a { text-decoration: none; }
   gap: 3px;
 }
 
+.scan-header__brand {
+  line-height: 0;
+  text-decoration: none;
+  margin-bottom: 2px;
+}
+
+.scan-header__brand img {
+  display: block;
+  max-width: min(130px, 36vw);
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  opacity: 0.95;
+}
+
 .header-tag {
   display: inline-flex;
   align-items: center;

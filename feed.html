@@ -11,6 +11,7 @@
   <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" />
   <meta name="theme-color" content="#7a9e7e" />
   <link rel="apple-touch-icon" href="assets/branding/icon-192.svg" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Aura" />
@@ -23,9 +24,16 @@
 
   <main class="feed-shell">
     <header class="feed-header">
-      <a href="index.html" class="feed-back">← Início</a>
-      <h1>Feed</h1>
-      <a href="mensagens.html" class="feed-link">Mensagens</a>
+      <div class="feed-header__side feed-header__side--left">
+        <a href="index.html" class="feed-back">← Início</a>
+      </div>
+      <a href="index.html" class="feed-header__brand" aria-label="CONTA MÃE — início">
+        <img src="assets/branding/logohorizontal.svg" alt="" width="160" height="28" decoding="async" />
+      </a>
+      <div class="feed-header__side feed-header__side--right">
+        <h1 class="feed-header__title">Feed</h1>
+        <a href="mensagens.html" class="feed-link">Mensagens</a>
+      </div>
     </header>
 
     <section class="composer">
