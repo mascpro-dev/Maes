@@ -34,6 +34,8 @@
   let filterMode = "all";
   let searchQ = "";
   let presenceInterval = null;
+  let emptyCopy = null;
+  let cardNavBound = false;
 
   function showToast(msg) {
     if (!el.toast) return;
@@ -181,6 +183,7 @@
   }
 
   function matchesFilter(m) {
+    if (filterMode === "following") return m._following;
     if (filterMode === "dx") return m._sameDx;
     if (filterMode === "city") return m._sameCity;
     return true;
@@ -251,7 +254,7 @@
       ? `<p class="mother-card__bio">${escapeHtml(m.bio)}</p>`
       : "";
 
-    return `<article class="mother-card" style="--delay:${delay}s" data-mother-id="${m.id}">
+    return `<article class="mother-card mother-card--clickable" style="--delay:${delay}s" data-mother-id="${m.id}" role="link" tabindex="0" aria-label="Ver perfil de ${escapeAttr(m.full_name || "Mãe Aura")}">
       <div class="mother-card__avatar-wrap">
         <div class="mother-card__avatar-ring">${img}</div>
         <span class="${statusClass(st)}" title="${statusTitle(st)}" aria-label="${statusTitle(st)}"></span>
@@ -288,6 +291,32 @@
     if (el.loading) el.loading.hidden = true;
 
     if (!list.length) {
+      if (el.empty && emptyCopy) {
+        const titleEl = el.empty.querySelector(".explore-empty__title");
+        const textEl = el.empty.querySelector(".explore-empty__text");
+        const ctaEl = el.empty.querySelector(".explore-empty__cta");
+        if (filterMode === "following") {
+          if (titleEl)
+            titleEl.textContent =
+              followingIds.size === 0 ? "Ainda não segues ninguém" : "Nenhum resultado";
+          if (textEl)
+            textEl.textContent =
+              followingIds.size === 0
+                ? "Explora outras mães e toca em Seguir para as ver aqui."
+                : "Tenta outra pesquisa ou muda o filtro.";
+          if (ctaEl) {
+            ctaEl.textContent = "Ver todas as mães";
+            ctaEl.href = "explorar.html";
+          }
+        } else {
+          if (titleEl) titleEl.textContent = emptyCopy.title;
+          if (textEl) textEl.textContent = emptyCopy.text;
+          if (ctaEl) {
+            ctaEl.textContent = emptyCopy.cta;
+            ctaEl.href = "perfil.html";
+          }
+        }
+      }
       if (el.empty) el.empty.hidden = false;
       if (el.sections) el.sections.innerHTML = "";
       updateHint();
@@ -313,7 +342,9 @@
       html += block;
     }
 
-    if (filterMode === "all" && !searchQ) {
+    if (filterMode === "following") {
+      addSection("Quem você segue", "explore-section__label-dot--terra", list);
+    } else if (filterMode === "all" && !searchQ) {
       addSection("Diagnóstico parecido ao teu", "", parts.sameDx);
       addSection("Perto de ti", "explore-section__label-dot--terra", parts.sameCity);
       addSection("Outras mães na Aura", "explore-section__label-dot--lav", parts.rest);
@@ -323,6 +354,7 @@
 
     if (el.sections) el.sections.innerHTML = html;
     bindConnectButtons();
+    ensureCardNav();
     updateHint();
   }
 
@@ -336,6 +368,10 @@
       : "completa o teu perfil";
     if (!allMothers.length) {
       el.hint.textContent = "";
+      return;
+    }
+    if (filterMode === "following") {
+      el.hint.textContent = `${n} pessoa${n === 1 ? "" : "s"} que segues`;
       return;
     }
     el.hint.textContent =
@@ -386,11 +422,33 @@
   function bindConnectButtons() {
     if (!el.sections) return;
     el.sections.querySelectorAll("[data-follow-id]").forEach(function (btn) {
-      btn.addEventListener("click", function () {
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
         const id = btn.getAttribute("data-follow-id");
         const isFollowing = btn.getAttribute("data-following") === "1";
         if (id) onFollowToggle(id, isFollowing);
       });
+    });
+  }
+
+  function ensureCardNav() {
+    if (cardNavBound || !el.sections) return;
+    cardNavBound = true;
+    el.sections.addEventListener("click", function (e) {
+      if (e.target.closest(".mother-card__connect")) return;
+      const card = e.target.closest(".mother-card");
+      if (!card) return;
+      const id = card.getAttribute("data-mother-id");
+      if (id) window.location.href = "perfil-usuario.html?id=" + encodeURIComponent(id);
+    });
+    el.sections.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter" && e.key !== " ") return;
+      if (e.target.closest(".mother-card__connect")) return;
+      const card = e.target.closest(".mother-card");
+      if (!card) return;
+      e.preventDefault();
+      const id = card.getAttribute("data-mother-id");
+      if (id) window.location.href = "perfil-usuario.html?id=" + encodeURIComponent(id);
     });
   }
 
@@ -413,6 +471,16 @@
 
     try {
       await loadData();
+      if (el.empty && !emptyCopy) {
+        const t = el.empty.querySelector(".explore-empty__title");
+        const tx = el.empty.querySelector(".explore-empty__text");
+        const c = el.empty.querySelector(".explore-empty__cta");
+        emptyCopy = {
+          title: t ? t.textContent : "",
+          text: tx ? tx.textContent : "",
+          cta: c ? c.textContent : "",
+        };
+      }
     } catch (e) {
       if (el.loading) el.loading.hidden = true;
       if (el.empty) {
@@ -444,8 +512,22 @@
     document.querySelectorAll("[data-explore-filter]").forEach(function (btn) {
       btn.addEventListener("click", function () {
         const mode = btn.getAttribute("data-explore-filter");
-        if (mode === "all" || mode === "dx" || mode === "city") {
-          onFilterClick(mode === "dx" ? "dx" : mode === "city" ? "city" : "all", btn);
+        if (
+          mode === "all" ||
+          mode === "following" ||
+          mode === "dx" ||
+          mode === "city"
+        ) {
+          onFilterClick(
+            mode === "dx"
+              ? "dx"
+              : mode === "city"
+                ? "city"
+                : mode === "following"
+                  ? "following"
+                  : "all",
+            btn
+          );
         }
       });
     });

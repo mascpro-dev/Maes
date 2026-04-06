@@ -329,7 +329,9 @@ $$;
 revoke all on function public.list_feed_posts() from public;
 grant execute on function public.list_feed_posts() to authenticated;
 
-create or replace function public.list_profiles_for_discovery()
+drop function if exists public.list_profiles_for_discovery();
+
+create function public.list_profiles_for_discovery()
 returns table (
   id uuid,
   full_name text,
@@ -378,4 +380,48 @@ begin
     alter publication supabase_realtime add table public.feed_posts;
   end if;
 end $$;
+
+-- ---------------------------------------------------------------------------
+-- 7) Ver perfil (nome) de quem você segue — lista de DMs
+-- ---------------------------------------------------------------------------
+drop policy if exists "profiles_select_if_followed" on public.profiles;
+create policy "profiles_select_if_followed"
+  on public.profiles for select
+  to authenticated
+  using (
+    exists (
+      select 1
+      from public.follows f
+      where f.follower_id = auth.uid()
+        and f.following_id = profiles.id
+    )
+  );
+
+-- ---------------------------------------------------------------------------
+-- 8) Perfil público (página perfil-usuario.html)
+-- ---------------------------------------------------------------------------
+create or replace function public.get_public_profile(p_target_id uuid)
+returns table (
+  id uuid,
+  full_name text,
+  diagnostico text,
+  cidade text,
+  estado text,
+  avatar_url text,
+  bio text
+)
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select p.id, p.full_name, p.diagnostico, p.cidade, p.estado, p.avatar_url, p.bio
+  from public.profiles p
+  where p.id = p_target_id
+    and p.id is distinct from auth.uid()
+    and auth.uid() is not null;
+$$;
+
+revoke all on function public.get_public_profile(uuid) from public;
+grant execute on function public.get_public_profile(uuid) to authenticated;
 

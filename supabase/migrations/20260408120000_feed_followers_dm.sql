@@ -331,7 +331,9 @@ $$;
 revoke all on function public.list_feed_posts() from public;
 grant execute on function public.list_feed_posts() to authenticated;
 
-create or replace function public.list_profiles_for_discovery()
+drop function if exists public.list_profiles_for_discovery();
+
+create function public.list_profiles_for_discovery()
 returns table (
   id uuid,
   full_name text,
@@ -380,4 +382,20 @@ begin
     alter publication supabase_realtime add table public.feed_posts;
   end if;
 end $$;
+
+-- ---------------------------------------------------------------------------
+-- Perfis seguidos: permitir ler linha do perfil para mostrar nome nas DMs
+-- ---------------------------------------------------------------------------
+drop policy if exists "profiles_select_if_followed" on public.profiles;
+create policy "profiles_select_if_followed"
+  on public.profiles for select
+  to authenticated
+  using (
+    exists (
+      select 1
+      from public.follows f
+      where f.follower_id = auth.uid()
+        and f.following_id = profiles.id
+    )
+  );
 

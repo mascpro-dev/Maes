@@ -28,18 +28,39 @@ function esc(s) {
 }
 
 async function loadFollowingUsers() {
-  const { data, error } = await supabase
+  const { data: followRows, error: followErr } = await supabase
     .from("follows")
-    .select("following_id, profiles:following_id(full_name)")
+    .select("following_id")
     .eq("follower_id", userId);
 
-  if (error) {
+  if (followErr) {
     setStatus("Ative a migration de seguidores para usar DMs.");
     return [];
   }
-  return (data || []).map((r) => ({
-    id: r.following_id,
-    name: r.profiles?.full_name || "Usuária Aura",
+  const ids = (followRows || []).map((r) => r.following_id).filter(Boolean);
+  if (!ids.length) return [];
+
+  const { data: profileRows, error: profErr } = await supabase
+    .from("profiles")
+    .select("id, full_name")
+    .in("id", ids);
+
+  if (profErr) {
+    setStatus(
+      "Não foi possível carregar os nomes. Execute no Supabase o ficheiro supabase/COLE_PROFILES_NOMES_SEGUIDOS.sql"
+    );
+    return ids.map((id) => ({ id, name: "Perfil sem nome" }));
+  }
+
+  const nameById = {};
+  (profileRows || []).forEach((p) => {
+    const n = (p.full_name || "").trim();
+    nameById[p.id] = n || "Sem nome no perfil";
+  });
+
+  return ids.map((id) => ({
+    id,
+    name: nameById[id] || "Sem nome no perfil",
   }));
 }
 
@@ -160,6 +181,20 @@ async function init() {
 
   const following = await loadFollowingUsers();
   renderUsers(following);
+
+  const openUserId = new URLSearchParams(window.location.search).get("user");
+  if (openUserId && following.some((x) => x.id === openUserId)) {
+    const u = following.find((x) => x.id === openUserId);
+    if (u) {
+      activeUser = u;
+      const btn = el.users?.querySelector(`[data-user="${openUserId}"]`);
+      if (btn) {
+        el.users.querySelectorAll(".dm-user").forEach((b) => b.classList.remove("dm-user--active"));
+        btn.classList.add("dm-user--active");
+      }
+      await openConversation(openUserId);
+    }
+  }
 
   el.send?.addEventListener("click", sendMessage);
   el.input?.addEventListener("keydown", (e) => {

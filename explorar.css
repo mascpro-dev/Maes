@@ -413,6 +413,7 @@ a {
   margin-bottom: 12px;
   padding: 16px 16px 16px 14px;
   border-radius: 28px;
+  cursor: pointer;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.88) 0%, rgba(255, 252, 247, 0.72) 100%);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -570,6 +571,7 @@ a {
 }
 
 .mother-card__connect {
+  cursor: pointer;
   padding: 10px 16px;
   border-radius: 999px;
   font-size: 0.76rem;

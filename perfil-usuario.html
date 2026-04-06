@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="aura-auth-checking">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Aura — Perfil</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" />
+  <meta name="theme-color" content="#7a9e7e" />
+  <link rel="stylesheet" href="perfil-usuario.css" />
+</head>
+<body>
+  <script src="supabase-config.js"></script>
+  <script src="auth.js"></script>
+  <script type="module" src="auth-session-guard.js"></script>
+
+  <div class="pu-shell">
+    <header class="pu-header">
+      <a href="explorar.html" class="pu-back">← Explorar</a>
+      <h1 class="pu-title">Perfil</h1>
+    </header>
+
+    <p id="pu-loading" class="pu-loading">A carregar…</p>
+    <div id="pu-error" class="pu-msg" hidden></div>
+    <div id="pu-content" class="pu-card" hidden></div>
+  </div>
+
+  <script type="module" src="perfil-usuario.js"></script>
+  <script src="pwa.js"></script>
+</body>
+</html>
