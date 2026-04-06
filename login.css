@@ -130,10 +130,14 @@ a {
 
 /* Marca premium *dentro* do cartão (substitui o antigo cabeçalho “Entrar”) */
 .login-card__brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
   margin-bottom: 18px;
   padding-bottom: 16px;
   border-bottom: 1px solid rgba(45, 42, 38, 0.055);
+  gap: 0;
 }
 
 .login-brand__eyebrow {
@@ -143,7 +147,7 @@ a {
   text-transform: uppercase;
   color: var(--sage);
   margin: 0 0 5px;
-  line-height: 1.05;
+  line-height: 1;
   opacity: 0.95;
 }
 
@@ -153,10 +157,11 @@ a {
   align-items: center;
   gap: 0;
   margin: 0 0 7px;
+  line-height: 0;
 }
 
 .login-brand__logo-link {
-  display: inline-flex;
+  display: block;
   line-height: 0;
   text-decoration: none;
 }
