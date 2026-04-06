@@ -159,6 +159,10 @@
                 <span class="perfil-row__label">Telefone</span>
                 <span class="perfil-row__value" id="perfil-display-phone">—</span>
               </div>
+              <div class="perfil-row">
+                <span class="perfil-row__label">Cidade</span>
+                <span class="perfil-row__value" id="perfil-display-city">—</span>
+              </div>
             </div>
             <div class="perfil-edit-panel" id="perfil-personal-edit" hidden>
               <label class="perfil-field">
@@ -173,6 +177,11 @@
               <label class="perfil-field">
                 <span class="perfil-field__label">Telefone</span>
                 <input type="tel" id="perfil-input-phone" class="perfil-input" autocomplete="tel" />
+              </label>
+              <label class="perfil-field">
+                <span class="perfil-field__label">Cidade</span>
+                <input type="text" id="perfil-input-city" class="perfil-input" maxlength="120"
+                  autocomplete="address-level2" placeholder="Ex.: Sao Paulo" />
               </label>
               <div class="perfil-edit-actions">
                 <button type="button" class="btn-perfil-ghost" id="btn-cancel-personal">Cancelar</button>

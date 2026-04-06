@@ -137,6 +137,7 @@ function setCompletionUI(profile, children) {
   const hasAvatar = !!(profile?.avatar_url && String(profile.avatar_url).trim());
   const hasBio = !!(profile?.bio && String(profile.bio).trim());
   const hasPhone = !!(profile?.phone && String(profile.phone).trim());
+  const hasCity = !!(profile?.cidade && String(profile.cidade).trim());
   const hasKids = Array.isArray(children) && children.length > 0;
 
   const checks = [
@@ -144,7 +145,8 @@ function setCompletionUI(profile, children) {
     { done: hasAvatar, label: 'Foto de perfil', w: 20 },
     { done: hasBio, label: 'Bio', w: 20 },
     { done: hasPhone, label: 'Telefone', w: 15 },
-    { done: hasKids, label: 'Dados do filho', w: 20 },
+    { done: hasCity, label: 'Cidade', w: 10 },
+    { done: hasKids, label: 'Dados do filho', w: 10 },
   ];
 
   const pct = Math.min(
@@ -221,20 +223,25 @@ function renderProfile(profile, children) {
   const nome = (profile?.full_name || '').trim() || 'Mãe Aura';
   const email = (profile?.email || '').trim();
   const phone = (profile?.phone || '').trim();
+  const city = (profile?.cidade || '').trim();
 
   const displayName = document.getElementById('perfil-display-name');
   const displayEmail = document.getElementById('perfil-display-email');
   const displayPhone = document.getElementById('perfil-display-phone');
+  const displayCity = document.getElementById('perfil-display-city');
   if (displayName) displayName.textContent = nome;
   if (displayEmail) displayEmail.textContent = email || '—';
   if (displayPhone) displayPhone.textContent = phone || '—';
+  if (displayCity) displayCity.textContent = city || '—';
 
   const inName = document.getElementById('perfil-input-name');
   const inEmail = document.getElementById('perfil-input-email');
   const inPhone = document.getElementById('perfil-input-phone');
+  const inCity = document.getElementById('perfil-input-city');
   if (inName) inName.value = (profile?.full_name || '').trim();
   if (inEmail) inEmail.value = email;
   if (inPhone) inPhone.value = phone;
+  if (inCity) inCity.value = city;
 
   const bioEl = document.getElementById('perfil-bio-text');
   const inBio = document.getElementById('perfil-input-bio');
@@ -342,7 +349,7 @@ function renderProfile(profile, children) {
   const [{ data: profile, error: pErr }, { data: children, error: cErr }] = await Promise.all([
     supabase
       .from('profiles')
-      .select('full_name, email, phone, avatar_url, bio')
+      .select('full_name, email, phone, cidade, avatar_url, bio')
       .eq('id', uid)
       .maybeSingle(),
     supabase
@@ -366,28 +373,33 @@ function renderProfile(profile, children) {
   document.getElementById('btn-cancel-personal')?.addEventListener('click', () => {
     const inName = document.getElementById('perfil-input-name');
     const inPhone = document.getElementById('perfil-input-phone');
+    const inCity = document.getElementById('perfil-input-city');
     if (inName) inName.value = (merged.full_name || '').trim();
     if (inPhone) inPhone.value = (merged.phone || '').trim();
+    if (inCity) inCity.value = (merged.cidade || '').trim();
     setPersonalEditMode(false);
   });
 
   document.getElementById('btn-save-personal')?.addEventListener('click', async () => {
     const inName = document.getElementById('perfil-input-name');
     const inPhone = document.getElementById('perfil-input-phone');
+    const inCity = document.getElementById('perfil-input-city');
     const full_name = (inName?.value || '').trim() || null;
     const phone = (inPhone?.value || '').trim() || null;
+    const cidade = (inCity?.value || '').trim() || null;
 
-    const { error } = await supabase.from('profiles').update({ full_name, phone }).eq('id', uid);
+    const { error } = await supabase.from('profiles').update({ full_name, phone, cidade }).eq('id', uid);
     if (error) {
       toast('Não foi possível guardar: ' + (error.message || ''));
       return;
     }
-    merged = { ...merged, full_name: full_name || '', phone: phone || '' };
+    merged = { ...merged, full_name: full_name || '', phone: phone || '', cidade: cidade || '' };
     renderProfile(merged, children || []);
     if (typeof AuraAuth !== 'undefined') {
       AuraAuth.saveProfile({
         nomeCompleto: full_name || '',
         phone: phone || '',
+        cidade: cidade || '',
       });
     }
     setPersonalEditMode(false);
