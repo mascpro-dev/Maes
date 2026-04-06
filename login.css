@@ -142,7 +142,7 @@ a {
   letter-spacing: 0.26em;
   text-transform: uppercase;
   color: var(--sage);
-  margin: 0;
+  margin: 0 0 5px;
   line-height: 1.05;
   opacity: 0.95;
 }
@@ -151,9 +151,8 @@ a {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
-  margin-top: -6px;
-  margin-bottom: 3px;
+  gap: 0;
+  margin: 0 0 7px;
 }
 
 .login-brand__logo-link {
@@ -173,7 +172,7 @@ a {
 .login-brand__rule {
   width: 56px;
   height: 3px;
-  margin: -4px auto 5px;
+  margin: 0 auto 5px;
   border-radius: var(--radius-pill);
   background: linear-gradient(90deg, transparent, var(--terracotta) 30%, var(--sage) 70%, transparent);
   opacity: 0.7;
