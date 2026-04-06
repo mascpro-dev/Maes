@@ -231,6 +231,7 @@ let auraAppointmentCountdownTimer = null;
       if (c === 0) el.textContent = 'Nenhum reembolso pendente';
       else if (c === 1) el.textContent = '1 reembolso pendente';
       else el.textContent = `${c} reembolsos pendentes`;
+      this.refreshHomeNotifications();
     },
 
     setRefundPendingCount(n) {
@@ -243,6 +244,14 @@ let auraAppointmentCountdownTimer = null;
       if (c === 0) el.textContent = 'Nenhum reembolso pendente';
       else if (c === 1) el.textContent = '1 reembolso pendente';
       else el.textContent = `${c} reembolsos pendentes`;
+      this.refreshHomeNotifications();
+    },
+
+    /** Atualiza o badge e o painel do sino (se estiver aberto). */
+    refreshHomeNotifications() {
+      if (typeof window._auraHomeNotifRefresh === 'function') {
+        window._auraHomeNotifRefresh();
+      }
     },
   };
 
@@ -250,9 +259,15 @@ let auraAppointmentCountdownTimer = null;
   window.AuraDashboard.setAppointmentTarget(null, { countdownText: 'breve' });
 
   (function applyLocalNextAppointmentHome() {
-    if (typeof window.AuraAppointments?.getNextOccurrence !== 'function') return;
+    if (typeof window.AuraAppointments?.getNextOccurrence !== 'function') {
+      window.AuraDashboard?.refreshHomeNotifications?.();
+      return;
+    }
     const next = window.AuraAppointments.getNextOccurrence();
-    if (!next?.startAt) return;
+    if (!next?.startAt) {
+      window.AuraDashboard?.refreshHomeNotifications?.();
+      return;
+    }
     const d = next.startAt;
     const apptTitle = document.getElementById('appointment-title');
     const timeEl = document.getElementById('appointment-time');
@@ -271,6 +286,7 @@ let auraAppointmentCountdownTimer = null;
     if (locEl) locEl.textContent = (next.location || '').trim() || 'Local a definir na agenda';
     window.AuraDashboard.setAppointmentTarget(d.toISOString(), {});
     if (cdLabel) cdLabel.textContent = 'Em ';
+    window.AuraDashboard?.refreshHomeNotifications?.();
   })();
 })();
 
@@ -298,14 +314,215 @@ let auraAppointmentCountdownTimer = null;
   });
 })();
 
-/* ── Bell Notifications ─────────────────────────────────── */
-(function initBell() {
+/* ── Sino: painel de notificações (home) ─────────────────── */
+(function initHomeNotificationPanel() {
+  const panel = document.getElementById('notif-panel');
+  const listEl = document.getElementById('notif-panel-list');
+  const emptyEl = document.getElementById('notif-panel-empty');
   const btn = document.getElementById('btn-notifications');
-  if (!btn) return;
+  const badge = document.getElementById('notif-badge');
+  const backdrop = document.getElementById('notif-panel-backdrop');
+  const closeBtn = document.getElementById('notif-panel-close');
 
-  btn.addEventListener('click', () => {
-    showToast('🔔 3 notificações pendentes');
+  if (!panel || !btn || !listEl || !emptyEl) return;
+
+  let open = false;
+
+  function refundPendingCount() {
+    const raw = localStorage.getItem('aura_refund_pending');
+    if (raw === null) return 0;
+    const n = parseInt(raw, 10);
+    return Number.isFinite(n) && n >= 0 ? n : 0;
+  }
+
+  function buildItems() {
+    const items = [];
+
+    if (typeof window.Notification !== 'undefined' && Notification.permission !== 'granted') {
+      let hasRemind = false;
+      if (typeof window.AuraAppointments?.occurrencesInRange === 'function') {
+        const now = new Date();
+        const to = new Date(now.getTime() + 14 * 86400000);
+        const rows = window.AuraAppointments.occurrencesInRange(now, to);
+        hasRemind = rows.some((r) => r.remind15);
+      }
+      if (hasRemind) {
+        items.push({
+          id: 'browser',
+          title: 'Lembretes no dispositivo',
+          body:
+            'Ativa as notificações do browser para receberes avisos cerca de 15 minutos antes dos compromissos com lembrete.',
+          actions: [
+            {
+              label: 'Permitir avisos',
+              primary: true,
+              onClick: (ev) => {
+                ev.preventDefault();
+                window.AuraAppointmentReminders?.requestPermission?.((ok) => {
+                  if (ok && typeof showToast === 'function') showToast('Notificações ativas ✓');
+                  else if (!ok && typeof showToast === 'function') {
+                    showToast('Não foi possível ativar — verifica as definições do browser.');
+                  }
+                  syncUI();
+                });
+              },
+            },
+            { label: 'Ir a compromissos', href: 'agenda.html', ghost: true },
+          ],
+        });
+      }
+    }
+
+    const refunds = refundPendingCount();
+    if (refunds > 0) {
+      items.push({
+        id: 'refund',
+        title: 'Reembolsos',
+        body:
+          refunds === 1
+            ? 'Tens 1 pedido de reembolso em análise.'
+            : `Tens ${refunds} pedidos de reembolso em análise.`,
+        actions: [{ label: 'Ver reembolsos', href: 'reembolsos.html', primary: true }],
+      });
+    }
+
+    if (typeof window.AuraAppointments?.getNextOccurrence === 'function') {
+      const next = window.AuraAppointments.getNextOccurrence();
+      if (next?.startAt) {
+        const when = next.startAt.toLocaleString('pt-BR', {
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+        const loc = (next.location || '').trim();
+        items.push({
+          id: 'agenda',
+          title: 'Próximo compromisso',
+          body: `${next.title || 'Compromisso'} · ${when}${loc ? '\n' + loc : ''}`,
+          actions: [{ label: 'Abrir compromissos', href: 'agenda.html', primary: true }],
+        });
+      }
+    }
+
+    return items;
+  }
+
+  function renderList() {
+    const items = buildItems();
+    listEl.innerHTML = '';
+    if (items.length === 0) {
+      emptyEl.hidden = false;
+      listEl.hidden = true;
+      return;
+    }
+    emptyEl.hidden = true;
+    listEl.hidden = false;
+
+    items.forEach((item) => {
+      const li = document.createElement('li');
+      li.className = 'notif-panel__item';
+      const title = document.createElement('div');
+      title.className = 'notif-panel__item-title';
+      title.textContent = item.title;
+      const body = document.createElement('div');
+      body.className = 'notif-panel__item-body';
+      body.textContent = item.body;
+      li.appendChild(title);
+      li.appendChild(body);
+
+      if (item.actions && item.actions.length) {
+        const act = document.createElement('div');
+        act.className = 'notif-panel__item-actions';
+        item.actions.forEach((a) => {
+          if (a.href) {
+            const link = document.createElement('a');
+            link.href = a.href;
+            link.className = 'notif-panel__btn' + (a.ghost ? ' notif-panel__btn--ghost' : '');
+            link.textContent = a.label;
+            act.appendChild(link);
+          } else {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'notif-panel__btn' + (a.ghost ? ' notif-panel__btn--ghost' : '');
+            b.textContent = a.label;
+            if (a.onClick) b.addEventListener('click', a.onClick);
+            act.appendChild(b);
+          }
+        });
+        li.appendChild(act);
+      }
+      listEl.appendChild(li);
+    });
+  }
+
+  function updateBadge() {
+    const n = buildItems().length;
+    if (!badge) return;
+    if (n === 0) {
+      badge.hidden = true;
+      badge.setAttribute('aria-hidden', 'true');
+      btn.setAttribute('aria-label', 'Notificações');
+      return;
+    }
+    badge.hidden = false;
+    badge.removeAttribute('aria-hidden');
+    badge.textContent = n > 9 ? '9+' : String(n);
+    btn.setAttribute('aria-label', `Notificações, ${n} ${n === 1 ? 'item' : 'itens'}`);
+  }
+
+  function syncUI() {
+    updateBadge();
+    if (open) renderList();
+  }
+
+  window._auraHomeNotifRefresh = syncUI;
+
+  function openPanel() {
+    open = true;
+    panel.hidden = false;
+    panel.setAttribute('aria-hidden', 'false');
+    btn.setAttribute('aria-expanded', 'true');
+    renderList();
+    document.body.style.overflow = 'hidden';
+    if (closeBtn) closeBtn.focus();
+  }
+
+  function closePanel() {
+    open = false;
+    panel.hidden = true;
+    panel.setAttribute('aria-hidden', 'true');
+    btn.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+    btn.focus();
+  }
+
+  function togglePanel() {
+    if (open) closePanel();
+    else openPanel();
+  }
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    togglePanel();
   });
+
+  if (backdrop) {
+    backdrop.addEventListener('click', closePanel);
+  }
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closePanel);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && open) {
+      e.preventDefault();
+      closePanel();
+    }
+  });
+
+  syncUI();
 })();
 
 /* ── Sair (logout) ─────────────────────────────────────── */

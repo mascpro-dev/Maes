@@ -290,8 +290,9 @@ button {
   position: absolute;
   top: 6px;
   right: 7px;
-  width: 16px;
+  min-width: 16px;
   height: 16px;
+  padding: 0 4px;
   border-radius: 50%;
   background: var(--terracotta);
   color: var(--white);
@@ -301,6 +302,205 @@ button {
   align-items: center;
   justify-content: center;
   border: 2px solid var(--cream);
+  box-sizing: border-box;
+}
+
+.badge[hidden] {
+  display: none !important;
+}
+
+.topbar__bell[aria-expanded="true"] {
+  background: var(--white);
+  box-shadow: var(--shadow-md);
+  color: var(--ink);
+}
+
+/* Painel do sino (home) */
+.notif-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  pointer-events: none;
+  visibility: hidden;
+  transition: visibility 0s linear 0.22s;
+}
+
+.notif-panel:not([hidden]) {
+  pointer-events: auto;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.notif-panel__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: rgba(45, 42, 38, 0.28);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.22s var(--ease);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.notif-panel:not([hidden]) .notif-panel__backdrop {
+  opacity: 1;
+}
+
+.notif-panel__sheet {
+  position: absolute;
+  top: 56px;
+  right: max(12px, env(safe-area-inset-right, 0px));
+  left: auto;
+  width: min(100vw - 24px, 360px);
+  max-height: min(72vh, 420px);
+  display: flex;
+  flex-direction: column;
+  background: var(--cream-card);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 48px rgba(45, 42, 38, 0.18);
+  border: 1px solid rgba(196, 122, 91, 0.2);
+  overflow: hidden;
+  transform: translateY(-10px) scale(0.98);
+  opacity: 0;
+  transition: transform 0.24s var(--ease), opacity 0.24s var(--ease);
+}
+
+.notif-panel:not([hidden]) .notif-panel__sheet {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.notif-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid rgba(45, 42, 38, 0.08);
+  flex-shrink: 0;
+}
+
+.notif-panel__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.notif-panel__close {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(45, 42, 38, 0.06);
+  color: var(--ink-mid);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--dur) var(--ease);
+}
+
+.notif-panel__close:hover,
+.notif-panel__close:focus-visible {
+  background: rgba(45, 42, 38, 0.11);
+}
+
+.notif-panel__list {
+  list-style: none;
+  margin: 0;
+  padding: 10px 12px 14px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notif-panel__empty {
+  margin: 0;
+  padding: 20px 18px 24px;
+  text-align: center;
+  font-size: 0.84rem;
+  color: var(--ink-mid);
+  line-height: 1.45;
+}
+
+.notif-panel__item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--white);
+  border: 1px solid rgba(45, 42, 38, 0.08);
+  text-align: left;
+}
+
+.notif-panel__item-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--sage);
+}
+
+.notif-panel__item-body {
+  font-size: 0.84rem;
+  color: var(--ink-mid);
+  line-height: 1.4;
+}
+
+.notif-panel__item-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.notif-panel__btn {
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--sage), var(--terracotta-mid));
+  color: #fffcf7;
+  transition: filter 0.15s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.notif-panel__btn:hover,
+.notif-panel__btn:focus-visible {
+  filter: brightness(1.05);
+}
+
+.notif-panel__btn--ghost {
+  background: transparent;
+  color: var(--sage);
+  border: 1.5px solid rgba(135, 169, 107, 0.45);
+}
+
+.notif-panel__btn--ghost:hover,
+.notif-panel__btn--ghost:focus-visible {
+  background: var(--sage-pale);
+  filter: none;
+}
+
+@media (min-width: 960px) {
+  .notif-panel__sheet {
+    top: 72px;
+    right: max(24px, calc((100vw - var(--layout-shell, 1240px)) / 2 + 12px));
+  }
 }
 
 /* ── Mood Strip ──────────────────────────────────────────── */

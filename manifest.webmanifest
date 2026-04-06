@@ -1,12 +1,18 @@
 {
-  "name": "Aura - Maes Atipicas",
+  "id": "./",
+  "name": "Aura — Mães Atípicas",
   "short_name": "Aura",
-  "start_url": "/index.html",
-  "scope": "/",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "browser"],
+  "orientation": "portrait-primary",
   "background_color": "#f7f3ee",
   "theme_color": "#7a9e7e",
-  "description": "Rede de apoio para maes atipicas com comunidade, diario, feed e mensagens.",
+  "description": "Rede de apoio para mães atípicas: comunidade, diário, feed e mensagens.",
+  "categories": ["health", "lifestyle", "social"],
   "icons": [
     {
       "src": "assets/branding/icon-192.svg",
@@ -19,7 +25,12 @@
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any"
+    },
+    {
+      "src": "assets/branding/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ]
 }
-
