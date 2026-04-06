@@ -150,12 +150,13 @@
   width: 100%;
 }
 
-.perfil-sidebar__logo {
+.perfil-sidebar__logo-img {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--sage, #87a96b), var(--terracotta, #e2725b));
+  object-fit: cover;
   flex-shrink: 0;
+  display: block;
 }
 
 .perfil-sidebar__brand-text {
