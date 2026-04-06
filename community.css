@@ -117,6 +117,17 @@ button {
   color: var(--ink);
 }
 
+.comm-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+a.btn-header-icon {
+  text-decoration: none;
+}
+
 .btn-header-icon {
   width: 44px;
   height: 44px;

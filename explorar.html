@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="aura-auth-checking">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Aura — Explorar</title>
+  <meta name="description" content="Descobre outras mães com diagnósticos semelhantes ou na mesma cidade. Conecta com carinho." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="explorar.css" />
+</head>
+
+<body>
+  <script src="supabase-config.js"></script>
+  <script src="auth.js"></script>
+  <script type="module" src="auth-session-guard.js"></script>
+
+  <div class="explore-shell" id="explore-shell">
+    <div class="explore-aurora" aria-hidden="true">
+      <div class="explore-aurora__blob explore-aurora__blob--1"></div>
+      <div class="explore-aurora__blob explore-aurora__blob--2"></div>
+      <div class="explore-aurora__blob explore-aurora__blob--3"></div>
+    </div>
+
+    <header class="explore-header">
+      <a href="index.html" class="explore-back" aria-label="Voltar ao início">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+      </a>
+      <div class="explore-header__text">
+        <p class="explore-header__eyebrow">Rede de apoio</p>
+        <h1 class="explore-header__title">Explorar</h1>
+      </div>
+      <span class="explore-header__spark" aria-hidden="true">✦</span>
+    </header>
+
+    <div class="explore-setup-banner" id="explore-setup-banner" role="alert" hidden>
+      <p id="explore-setup-text"></p>
+      <p class="explore-setup-banner__file">No projeto: ficheiro <code>supabase/COLE_EXPLORAR_DESCoberta.sql</code></p>
+    </div>
+
+    <div class="explore-search-wrap">
+      <label class="explore-search" for="explore-search-input">
+        <svg class="explore-search__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="search" id="explore-search-input" class="explore-search__input" placeholder="Buscar por nome, cidade ou diagnóstico…" autocomplete="off" enterkeyhint="search" />
+      </label>
+    </div>
+
+    <div class="explore-filters" role="group" aria-label="Filtrar lista">
+      <button type="button" class="explore-chip explore-chip--active" data-explore-filter="all" aria-pressed="true">Todas</button>
+      <button type="button" class="explore-chip" data-explore-filter="dx" aria-pressed="false">Mesmo diagnóstico</button>
+      <button type="button" class="explore-chip" data-explore-filter="city" aria-pressed="false">Mesma cidade</button>
+    </div>
+
+    <p class="explore-hint" id="explore-hint"></p>
+
+    <main class="explore-main" id="explore-main">
+      <div class="explore-loading" id="explore-loading">
+        <div class="explore-loading__orb"></div>
+        <p>A encontrar mães na tua orbita…</p>
+      </div>
+
+      <div class="explore-empty" id="explore-empty" hidden>
+        <p class="explore-empty__title">Ainda ninguém por aqui</p>
+        <p class="explore-empty__text">Convida amigas ou completa o teu diagnóstico e cidade no perfil para apareceres nas sugestões.</p>
+        <a href="perfil.html" class="explore-empty__cta">Editar perfil</a>
+      </div>
+
+      <div id="explore-sections"></div>
+    </main>
+
+    <nav class="explore-bottom-nav" aria-label="Navegação">
+      <a href="index.html" class="explore-nav-link">Home</a>
+      <a href="community.html" class="explore-nav-link">Comunidade</a>
+      <a href="explorar.html" class="explore-nav-link explore-nav-link--active" aria-current="page">Explorar</a>
+      <a href="perfil.html" class="explore-nav-link">Perfil</a>
+    </nav>
+  </div>
+
+  <div class="explore-toast" id="explore-toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="explorar.js"></script>
+</body>
+</html>

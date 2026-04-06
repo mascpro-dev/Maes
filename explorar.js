@@ -1,0 +1,444 @@
+/**
+ * Aura — Explorar: descoberta de mães, presença, pedidos de conexão.
+ * Requer: supabase/COLE_EXPLORAR_DESCoberta.sql aplicado + sessão auth.
+ */
+(function () {
+  const DX_LABEL = {
+    tea: "TEA",
+    tdah: "TDAH",
+    down: "Síndrome de Down",
+    pc: "Paralisia cerebral",
+    rara: "Condição rara",
+    investigacao: "Em investigação",
+  };
+
+  const ONLINE_MS = 3 * 60 * 1000;
+  const AWAY_MS = 15 * 60 * 1000;
+
+  const el = {
+    loading: document.getElementById("explore-loading"),
+    empty: document.getElementById("explore-empty"),
+    sections: document.getElementById("explore-sections"),
+    search: document.getElementById("explore-search-input"),
+    hint: document.getElementById("explore-hint"),
+    toast: document.getElementById("explore-toast"),
+    setupBanner: document.getElementById("explore-setup-banner"),
+    setupText: document.getElementById("explore-setup-text"),
+  };
+
+  let supabase = null;
+  let userId = null;
+  let meProfile = null;
+  let allMothers = [];
+  let pendingToIds = new Set();
+  let filterMode = "all";
+  let searchQ = "";
+  let presenceInterval = null;
+
+  function showToast(msg) {
+    if (!el.toast) return;
+    el.toast.textContent = msg;
+    el.toast.classList.add("explore-toast--show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function () {
+      el.toast.classList.remove("explore-toast--show");
+    }, 2800);
+  }
+
+  function dxLabel(slug) {
+    if (!slug) return "—";
+    return DX_LABEL[slug] || slug;
+  }
+
+  function initials(name) {
+    if (!name || !String(name).trim()) return "…";
+    const p = String(name).trim().split(/\s+/).filter(Boolean);
+    if (p.length === 1) return p[0].slice(0, 2).toUpperCase();
+    return (p[0][0] + p[p.length - 1][0]).toUpperCase();
+  }
+
+  function norm(s) {
+    return String(s || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/\p{M}/gu, "");
+  }
+
+  function presenceState(p) {
+    if (!p) return { kind: "offline" };
+    const t = p.last_seen_at ? new Date(p.last_seen_at).getTime() : 0;
+    const fresh = Date.now() - t;
+    if (p.is_online || fresh < ONLINE_MS) return { kind: "online" };
+    if (fresh < AWAY_MS) return { kind: "away" };
+    return { kind: "offline" };
+  }
+
+  async function pulsePresence() {
+    if (!supabase || !userId) return;
+    const now = new Date().toISOString();
+    await supabase.from("user_presence").upsert(
+      {
+        user_id: userId,
+        is_online: true,
+        last_seen_at: now,
+      },
+      { onConflict: "user_id" }
+    );
+  }
+
+  async function loadData() {
+    const { data: u } = await supabase.auth.getUser();
+    userId = u?.user?.id;
+    if (!userId) throw new Error("Sem utilizador");
+
+    const { data: me, error: meErr } = await supabase
+      .from("profiles")
+      .select("diagnostico, cidade, full_name")
+      .eq("id", userId)
+      .maybeSingle();
+    if (meErr) console.warn("[Explorar] perfil:", meErr.message);
+    meProfile = me || {};
+
+    const { data: rows, error: rpcErr } = await supabase.rpc(
+      "list_profiles_for_discovery"
+    );
+    if (rpcErr) {
+      const msg = rpcErr.message || "";
+      if (
+        msg.includes("function") ||
+        msg.includes("schema cache") ||
+        rpcErr.code === "PGRST202"
+      ) {
+        showSetupBanner(
+          "A função list_profiles_for_discovery ainda não existe. Executa o SQL de Explorar no Supabase (ficheiro indicado abaixo)."
+        );
+      } else {
+        showSetupBanner("Não foi possível carregar perfis: " + msg);
+      }
+      throw rpcErr;
+    }
+
+    const { data: presRows } = await supabase
+      .from("user_presence")
+      .select("user_id, is_online, last_seen_at");
+    const presMap = {};
+    (presRows || []).forEach(function (r) {
+      presMap[r.user_id] = r;
+    });
+
+    const { data: reqRows } = await supabase
+      .from("connection_requests")
+      .select("to_user_id, status")
+      .eq("from_user_id", userId);
+    pendingToIds = new Set();
+    (reqRows || []).forEach(function (r) {
+      if (r.status === "pending" || r.status === "accepted") {
+        pendingToIds.add(r.to_user_id);
+      }
+    });
+
+    allMothers = (rows || []).map(function (r) {
+      const pres = presMap[r.id];
+      const st = presenceState(pres);
+      const sameDx = meProfile.diagnostico && r.diagnostico === meProfile.diagnostico;
+      const c1 = norm(meProfile.cidade);
+      const c2 = norm(r.cidade);
+      const sameCity = c1 && c2 && c1 === c2;
+      return {
+        ...r,
+        _presence: st,
+        _sameDx: !!sameDx,
+        _sameCity: !!sameCity,
+        _pending: pendingToIds.has(r.id),
+      };
+    });
+
+    hideSetupBanner();
+  }
+
+  function showSetupBanner(text) {
+    if (el.setupBanner && el.setupText) {
+      el.setupText.textContent = text;
+      el.setupBanner.hidden = false;
+    }
+  }
+
+  function hideSetupBanner() {
+    if (el.setupBanner) el.setupBanner.hidden = true;
+  }
+
+  function matchesSearch(m) {
+    if (!searchQ) return true;
+    const q = norm(searchQ);
+    const hay = [
+      norm(m.full_name),
+      norm(dxLabel(m.diagnostico)),
+      norm(m.diagnostico),
+      norm(m.cidade),
+      norm(m.bio),
+    ].join(" ");
+    return hay.includes(q);
+  }
+
+  function matchesFilter(m) {
+    if (filterMode === "dx") return m._sameDx;
+    if (filterMode === "city") return m._sameCity;
+    return true;
+  }
+
+  function filtered() {
+    return allMothers.filter(function (m) {
+      return matchesFilter(m) && matchesSearch(m);
+    });
+  }
+
+  function partition(list) {
+    const sameDx = [];
+    const sameCity = [];
+    const rest = [];
+    list.forEach(function (m) {
+      if (m._sameDx) sameDx.push(m);
+      else if (m._sameCity) sameCity.push(m);
+      else rest.push(m);
+    });
+    return { sameDx, sameCity, rest };
+  }
+
+  function statusClass(st) {
+    if (st.kind === "online") return "mother-card__status mother-card__status--online";
+    if (st.kind === "away") return "mother-card__status mother-card__status--away";
+    return "mother-card__status";
+  }
+
+  function statusTitle(st) {
+    if (st.kind === "online") return "Online agora";
+    if (st.kind === "away") return "Por aqui há pouco";
+    return "Offline";
+  }
+
+  function cardHtml(m, index) {
+    const st = m._presence;
+    const delay = Math.min(index * 0.045, 0.45);
+    const url = safeUrl(m.avatar_url);
+    const img = url
+      ? `<img class="mother-card__avatar" src="${url}" alt="" width="52" height="52" loading="lazy" />`
+      : `<span class="mother-card__avatar mother-card__avatar--initials" aria-hidden="true">${escapeHtml(initials(m.full_name))}</span>`;
+
+    const pills = [];
+    if (m._sameDx) {
+      pills.push(
+        '<span class="mother-card__pill mother-card__pill--match">Mesmo diagnóstico</span>'
+      );
+    }
+    if (m._sameCity && m.cidade) {
+      pills.push(
+        '<span class="mother-card__pill mother-card__pill--match">Mesma cidade</span>'
+      );
+    }
+    pills.push(
+      `<span class="mother-card__pill">${escapeHtml(dxLabel(m.diagnostico))}</span>`
+    );
+    if (m.cidade) {
+      pills.push(`<span>${escapeHtml(m.cidade)}</span>`);
+    }
+
+    let btn;
+    if (m._pending) {
+      btn =
+        '<button type="button" class="mother-card__connect mother-card__connect--sent" disabled>Pedido enviado</button>';
+    } else {
+      btn = `<button type="button" class="mother-card__connect" data-connect-id="${m.id}">Conectar</button>`;
+    }
+
+    const bio = m.bio
+      ? `<p class="mother-card__bio">${escapeHtml(m.bio)}</p>`
+      : "";
+
+    return `<article class="mother-card" style="--delay:${delay}s" data-mother-id="${m.id}">
+      <div class="mother-card__avatar-wrap">
+        <div class="mother-card__avatar-ring">${img}</div>
+        <span class="${statusClass(st)}" title="${statusTitle(st)}" aria-label="${statusTitle(st)}"></span>
+      </div>
+      <div class="mother-card__body">
+        <h2 class="mother-card__name">${escapeHtml(m.full_name || "Mãe Aura")}</h2>
+        <div class="mother-card__meta">${pills.join("")}</div>
+        ${bio}
+      </div>
+      <div class="mother-card__actions">${btn}</div>
+    </article>`;
+  }
+
+  function escapeHtml(s) {
+    return String(s || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function escapeAttr(s) {
+    return escapeHtml(s).replace(/'/g, "&#39;");
+  }
+
+  function safeUrl(u) {
+    const s = String(u || "").trim();
+    if (!/^https?:\/\//i.test(s)) return "";
+    return s.replace(/"/g, "%22").replace(/</g, "").replace(/>/g, "");
+  }
+
+  function render() {
+    const list = filtered();
+    if (el.loading) el.loading.hidden = true;
+
+    if (!list.length) {
+      if (el.empty) el.empty.hidden = false;
+      if (el.sections) el.sections.innerHTML = "";
+      updateHint();
+      return;
+    }
+
+    if (el.empty) el.empty.hidden = true;
+    const parts = partition(list);
+    let html = "";
+    let idx = 0;
+    function addSection(title, dot, arr) {
+      if (!arr.length) return;
+      const withIdx = arr.map(function (m) {
+        return { m: m, i: idx++ };
+      });
+      let block = `<section class="explore-section">
+        <h3 class="explore-section__label"><span class="explore-section__label-dot ${dot}" aria-hidden="true"></span>${escapeHtml(title)}</h3>
+        <div class="explore-section__cards">`;
+      withIdx.forEach(function (o) {
+        block += cardHtml(o.m, o.i);
+      });
+      block += "</div></section>";
+      html += block;
+    }
+
+    if (filterMode === "all" && !searchQ) {
+      addSection("Diagnóstico parecido ao teu", "", parts.sameDx);
+      addSection("Perto de ti", "explore-section__label-dot--terra", parts.sameCity);
+      addSection("Outras mães na Aura", "explore-section__label-dot--lav", parts.rest);
+    } else {
+      addSection("Resultados", "", list);
+    }
+
+    if (el.sections) el.sections.innerHTML = html;
+    bindConnectButtons();
+    updateHint();
+  }
+
+  function updateHint() {
+    if (!el.hint) return;
+    const n = filtered().length;
+    const city = meProfile.cidade ? ` · ${meProfile.cidade}` : "";
+    const dx = meProfile.diagnostico
+      ? dxLabel(meProfile.diagnostico)
+      : "completa o teu perfil";
+    if (!allMothers.length) {
+      el.hint.textContent = "";
+      return;
+    }
+    el.hint.textContent =
+      filterMode === "all" && !searchQ
+        ? `A mostrar ${n} mãe${n === 1 ? "" : "s"} · O teu contexto: ${dx}${city}`
+        : `${n} resultado${n === 1 ? "" : "s"}`;
+  }
+
+  async function onConnect(targetId) {
+    if (!supabase || !userId || pendingToIds.has(targetId)) return;
+    const { error } = await supabase.from("connection_requests").insert({
+      from_user_id: userId,
+      to_user_id: targetId,
+      status: "pending",
+    });
+    if (error) {
+      if (error.code === "23505") {
+        pendingToIds.add(targetId);
+        showToast("Já existe um pedido com esta mãe.");
+      } else if (error.message && error.message.includes("connection_requests")) {
+        showToast("Executa o SQL de Explorar no Supabase para ativar Conectar.");
+      } else {
+        showToast(error.message || "Não foi possível enviar.");
+      }
+      render();
+      return;
+    }
+    pendingToIds.add(targetId);
+    allMothers.forEach(function (m) {
+      if (m.id === targetId) m._pending = true;
+    });
+    showToast("Pedido de conexão enviado com carinho 💛");
+    render();
+  }
+
+  function bindConnectButtons() {
+    if (!el.sections) return;
+    el.sections.querySelectorAll("[data-connect-id]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        const id = btn.getAttribute("data-connect-id");
+        if (id) onConnect(id);
+      });
+    });
+  }
+
+  function onFilterClick(mode, btn) {
+    filterMode = mode;
+    document.querySelectorAll("[data-explore-filter]").forEach(function (b) {
+      const on = b === btn;
+      b.classList.toggle("explore-chip--active", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    render();
+  }
+
+  async function init() {
+    const ok = await window.__auraAuthReady;
+    if (!ok) return;
+
+    supabase = window.__auraSupabaseClient;
+    if (!supabase) return;
+
+    try {
+      await loadData();
+    } catch (e) {
+      if (el.loading) el.loading.hidden = true;
+      if (el.empty) {
+        el.empty.hidden = false;
+        el.empty.querySelector(".explore-empty__title").textContent =
+          "Algo falhou ao carregar";
+        el.empty.querySelector(".explore-empty__text").textContent =
+          (e && e.message) || "Verifica a sessão e o SQL no Supabase.";
+      }
+      return;
+    }
+
+    await pulsePresence();
+    presenceInterval = setInterval(pulsePresence, 45000);
+
+    window.addEventListener("pagehide", function () {
+      if (presenceInterval) clearInterval(presenceInterval);
+    });
+
+    render();
+
+    if (el.search) {
+      el.search.addEventListener("input", function () {
+        searchQ = el.search.value.trim();
+        render();
+      });
+    }
+
+    document.querySelectorAll("[data-explore-filter]").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        const mode = btn.getAttribute("data-explore-filter");
+        if (mode === "all" || mode === "dx" || mode === "city") {
+          onFilterClick(mode === "dx" ? "dx" : mode === "city" ? "city" : "all", btn);
+        }
+      });
+    });
+  }
+
+  init();
+})();
