@@ -120,7 +120,7 @@ a {
   border: 1px solid var(--card-border);
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
-  padding: 32px 26px 34px;
+  padding: 24px 26px 30px;
   transition: box-shadow var(--dur) var(--ease);
 }
 
@@ -131,8 +131,8 @@ a {
 /* Marca premium *dentro* do cartão (substitui o antigo cabeçalho “Entrar”) */
 .login-card__brand {
   text-align: center;
-  margin-bottom: 24px;
-  padding-bottom: 22px;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
   border-bottom: 1px solid rgba(45, 42, 38, 0.055);
 }
 
@@ -142,7 +142,7 @@ a {
   letter-spacing: 0.26em;
   text-transform: uppercase;
   color: var(--sage);
-  margin-bottom: 6px;
+  margin-bottom: 3px;
   opacity: 0.95;
 }
 
@@ -150,8 +150,8 @@ a {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+  gap: 6px;
+  margin-bottom: 6px;
 }
 
 .login-brand__logo-link {
@@ -171,7 +171,7 @@ a {
 .login-brand__rule {
   width: 56px;
   height: 3px;
-  margin: 0 auto 14px;
+  margin: 0 auto 10px;
   border-radius: var(--radius-pill);
   background: linear-gradient(90deg, transparent, var(--terracotta) 30%, var(--sage) 70%, transparent);
   opacity: 0.7;
@@ -183,11 +183,11 @@ a {
   color: var(--ink-mid);
   max-width: 28ch;
   margin: 0 auto;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .login-card__acesso {
-  margin-top: 14px;
+  margin-top: 10px;
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.2em;
