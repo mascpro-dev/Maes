@@ -163,6 +163,10 @@
                 <span class="perfil-row__label">Cidade</span>
                 <span class="perfil-row__value" id="perfil-display-city">—</span>
               </div>
+              <div class="perfil-row">
+                <span class="perfil-row__label">Estado</span>
+                <span class="perfil-row__value" id="perfil-display-state">—</span>
+              </div>
             </div>
             <div class="perfil-edit-panel" id="perfil-personal-edit" hidden>
               <label class="perfil-field">
@@ -182,6 +186,11 @@
                 <span class="perfil-field__label">Cidade</span>
                 <input type="text" id="perfil-input-city" class="perfil-input" maxlength="120"
                   autocomplete="address-level2" placeholder="Ex.: Sao Paulo" />
+              </label>
+              <label class="perfil-field">
+                <span class="perfil-field__label">Estado (UF)</span>
+                <input type="text" id="perfil-input-state" class="perfil-input" maxlength="2"
+                  autocomplete="address-level1" placeholder="Ex.: SP" />
               </label>
               <div class="perfil-edit-actions">
                 <button type="button" class="btn-perfil-ghost" id="btn-cancel-personal">Cancelar</button>

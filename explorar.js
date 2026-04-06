@@ -30,7 +30,7 @@
   let userId = null;
   let meProfile = null;
   let allMothers = [];
-  let pendingToIds = new Set();
+  let followingIds = new Set();
   let filterMode = "all";
   let searchQ = "";
   let presenceInterval = null;
@@ -93,7 +93,7 @@
 
     const { data: me, error: meErr } = await supabase
       .from("profiles")
-      .select("diagnostico, cidade, full_name")
+      .select("diagnostico, cidade, estado, full_name")
       .eq("id", userId)
       .maybeSingle();
     if (meErr) console.warn("[Explorar] perfil:", meErr.message);
@@ -126,16 +126,13 @@
       presMap[r.user_id] = r;
     });
 
-    const { data: reqRows } = await supabase
-      .from("connection_requests")
-      .select("to_user_id, status")
-      .eq("from_user_id", userId);
-    pendingToIds = new Set();
-    (reqRows || []).forEach(function (r) {
-      if (r.status === "pending" || r.status === "accepted") {
-        pendingToIds.add(r.to_user_id);
-      }
-    });
+    const { data: followRows } = await supabase
+      .from("follows")
+      .select("following_id")
+      .eq("follower_id", userId);
+    followingIds = new Set((followRows || []).map(function (r) {
+      return r.following_id;
+    }));
 
     allMothers = (rows || []).map(function (r) {
       const pres = presMap[r.id];
@@ -143,13 +140,15 @@
       const sameDx = meProfile.diagnostico && r.diagnostico === meProfile.diagnostico;
       const c1 = norm(meProfile.cidade);
       const c2 = norm(r.cidade);
-      const sameCity = c1 && c2 && c1 === c2;
+      const e1 = norm(meProfile.estado);
+      const e2 = norm(r.estado);
+      const sameCity = c1 && c2 && e1 && e2 && c1 === c2 && e1 === e2;
       return {
         ...r,
         _presence: st,
         _sameDx: !!sameDx,
         _sameCity: !!sameCity,
-        _pending: pendingToIds.has(r.id),
+        _following: followingIds.has(r.id),
       };
     });
 
@@ -175,6 +174,7 @@
       norm(dxLabel(m.diagnostico)),
       norm(m.diagnostico),
       norm(m.cidade),
+      norm(m.estado),
       norm(m.bio),
     ].join(" ");
     return hay.includes(q);
@@ -230,25 +230,22 @@
         '<span class="mother-card__pill mother-card__pill--match">Mesmo diagnóstico</span>'
       );
     }
-    if (m._sameCity && m.cidade) {
+    if (m._sameCity && m.cidade && m.estado) {
       pills.push(
-        '<span class="mother-card__pill mother-card__pill--match">Mesma cidade</span>'
+        '<span class="mother-card__pill mother-card__pill--match">Mesma cidade/estado</span>'
       );
     }
     pills.push(
       `<span class="mother-card__pill">${escapeHtml(dxLabel(m.diagnostico))}</span>`
     );
-    if (m.cidade) {
-      pills.push(`<span>${escapeHtml(m.cidade)}</span>`);
+    if (m.cidade || m.estado) {
+      const local = [m.cidade, m.estado].filter(Boolean).join(" - ");
+      pills.push(`<span>${escapeHtml(local)}</span>`);
     }
 
-    let btn;
-    if (m._pending) {
-      btn =
-        '<button type="button" class="mother-card__connect mother-card__connect--sent" disabled>Pedido enviado</button>';
-    } else {
-      btn = `<button type="button" class="mother-card__connect" data-connect-id="${m.id}">Conectar</button>`;
-    }
+    const btn = m._following
+      ? `<button type="button" class="mother-card__connect mother-card__connect--sent" data-follow-id="${m.id}" data-following="1">Seguindo</button>`
+      : `<button type="button" class="mother-card__connect" data-follow-id="${m.id}" data-following="0">Seguir</button>`;
 
     const bio = m.bio
       ? `<p class="mother-card__bio">${escapeHtml(m.bio)}</p>`
@@ -333,6 +330,7 @@
     if (!el.hint) return;
     const n = filtered().length;
     const city = meProfile.cidade ? ` · ${meProfile.cidade}` : "";
+    const state = meProfile.estado ? `/${meProfile.estado}` : "";
     const dx = meProfile.diagnostico
       ? dxLabel(meProfile.diagnostico)
       : "completa o teu perfil";
@@ -342,43 +340,56 @@
     }
     el.hint.textContent =
       filterMode === "all" && !searchQ
-        ? `A mostrar ${n} mãe${n === 1 ? "" : "s"} · O teu contexto: ${dx}${city}`
+        ? `A mostrar ${n} mãe${n === 1 ? "" : "s"} · O teu contexto: ${dx}${city}${state}`
         : `${n} resultado${n === 1 ? "" : "s"}`;
   }
 
-  async function onConnect(targetId) {
-    if (!supabase || !userId || pendingToIds.has(targetId)) return;
-    const { error } = await supabase.from("connection_requests").insert({
-      from_user_id: userId,
-      to_user_id: targetId,
-      status: "pending",
-    });
-    if (error) {
-      if (error.code === "23505") {
-        pendingToIds.add(targetId);
-        showToast("Já existe um pedido com esta mãe.");
-      } else if (error.message && error.message.includes("connection_requests")) {
-        showToast("Executa o SQL de Explorar no Supabase para ativar Conectar.");
-      } else {
-        showToast(error.message || "Não foi possível enviar.");
+  async function onFollowToggle(targetId, isFollowing) {
+    if (!supabase || !userId) return;
+    if (isFollowing) {
+      const { error } = await supabase
+        .from("follows")
+        .delete()
+        .eq("follower_id", userId)
+        .eq("following_id", targetId);
+      if (error) {
+        showToast(error.message || "Não foi possível deixar de seguir.");
+        return;
       }
-      render();
-      return;
+      followingIds.delete(targetId);
+      allMothers.forEach(function (m) {
+        if (m.id === targetId) m._following = false;
+      });
+      showToast("Você deixou de seguir este perfil.");
+    } else {
+      const { error } = await supabase.from("follows").insert({
+        follower_id: userId,
+        following_id: targetId,
+      });
+      if (error) {
+        showToast(
+          error.code === "23505"
+            ? "Você já segue este perfil."
+            : (error.message || "Não foi possível seguir.")
+        );
+        return;
+      }
+      followingIds.add(targetId);
+      allMothers.forEach(function (m) {
+        if (m.id === targetId) m._following = true;
+      });
+      showToast("Agora você está seguindo este perfil 💛");
     }
-    pendingToIds.add(targetId);
-    allMothers.forEach(function (m) {
-      if (m.id === targetId) m._pending = true;
-    });
-    showToast("Pedido de conexão enviado com carinho 💛");
     render();
   }
 
   function bindConnectButtons() {
     if (!el.sections) return;
-    el.sections.querySelectorAll("[data-connect-id]").forEach(function (btn) {
+    el.sections.querySelectorAll("[data-follow-id]").forEach(function (btn) {
       btn.addEventListener("click", function () {
-        const id = btn.getAttribute("data-connect-id");
-        if (id) onConnect(id);
+        const id = btn.getAttribute("data-follow-id");
+        const isFollowing = btn.getAttribute("data-following") === "1";
+        if (id) onFollowToggle(id, isFollowing);
       });
     });
   }

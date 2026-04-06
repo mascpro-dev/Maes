@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="aura-auth-checking">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aura — Feed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="feed.css" />
+</head>
+<body>
+  <script src="supabase-config.js"></script>
+  <script src="auth.js"></script>
+  <script type="module" src="auth-session-guard.js"></script>
+
+  <main class="feed-shell">
+    <header class="feed-header">
+      <a href="index.html" class="feed-back">← Início</a>
+      <h1>Feed</h1>
+      <a href="mensagens.html" class="feed-link">Mensagens</a>
+    </header>
+
+    <section class="composer">
+      <textarea id="post-content" maxlength="2000" placeholder="Compartilhe como foi seu dia..."></textarea>
+      <div class="composer-row">
+        <input id="post-image" type="file" accept="image/*" />
+        <button id="btn-post" type="button">Publicar</button>
+      </div>
+      <p id="feed-status" class="status"></p>
+    </section>
+
+    <section>
+      <h2>Postagens de quem você segue</h2>
+      <div id="feed-list" class="feed-list"></div>
+    </section>
+  </main>
+
+  <script type="module" src="feed.js"></script>
+</body>
+</html>
+

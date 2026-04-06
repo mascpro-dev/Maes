@@ -1,0 +1,115 @@
+body {
+  margin: 0;
+  font-family: "DM Sans", sans-serif;
+  background: #f7f3ee;
+  color: #2f2b27;
+}
+
+.dm-shell {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 20px 14px 30px;
+}
+
+.dm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dm-link {
+  color: #7a9e7e;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.dm-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.dm-users,
+.dm-chat {
+  background: #fff;
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.dm-user {
+  width: 100%;
+  border: 1px solid #e5ddd4;
+  border-radius: 10px;
+  background: #fff;
+  text-align: left;
+  padding: 10px;
+  margin: 0 0 8px;
+  cursor: pointer;
+}
+
+.dm-user--active {
+  border-color: #7a9e7e;
+  background: #f3faf4;
+}
+
+.dm-chat-title {
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.dm-messages {
+  min-height: 280px;
+  max-height: 440px;
+  overflow: auto;
+  border: 1px solid #efe7df;
+  border-radius: 10px;
+  padding: 8px;
+  background: #fbfaf8;
+}
+
+.dm-msg {
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.dm-msg--me {
+  background: #edf6ee;
+}
+
+.dm-send {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.dm-send input {
+  border: 1px solid #e5ddd4;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.dm-send button {
+  border: 0;
+  border-radius: 10px;
+  background: #7a9e7e;
+  color: #fff;
+  font-weight: 700;
+  padding: 10px 14px;
+}
+
+.dm-status {
+  min-height: 18px;
+  color: #7a6f66;
+  font-size: 0.88rem;
+}
+
+@media (max-width: 860px) {
+  .dm-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
