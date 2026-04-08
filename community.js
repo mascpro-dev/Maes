@@ -83,7 +83,14 @@ async function resolveProfilesMap(supabase, userIds, myUserId) {
 
   if (!error && Array.isArray(rows)) {
     rows.forEach((r) => {
-      if (r?.id) map.set(r.id, r);
+      if (r?.id) {
+        const av = r.avatar_url && String(r.avatar_url).trim();
+        map.set(r.id, {
+          id: r.id,
+          full_name: r.full_name,
+          avatar_url: av || null,
+        });
+      }
     });
     if (map.size > 0) return map;
   }
@@ -93,7 +100,10 @@ async function resolveProfilesMap(supabase, userIds, myUserId) {
     .select("id, full_name, avatar_url")
     .eq("id", myUserId)
     .maybeSingle();
-  if (me?.id) map.set(me.id, me);
+  if (me?.id) {
+    const av = me.avatar_url && String(me.avatar_url).trim();
+    map.set(me.id, { ...me, avatar_url: av || null });
+  }
 
   await Promise.all(
     uniq
@@ -103,7 +113,10 @@ async function resolveProfilesMap(supabase, userIds, myUserId) {
           p_target_id: tid,
         });
         const row = Array.isArray(r) ? r[0] : r;
-        if (row?.id) map.set(row.id, row);
+        if (row?.id) {
+          const av = row.avatar_url && String(row.avatar_url).trim();
+          map.set(row.id, { ...row, avatar_url: av || null });
+        }
       })
   );
 
@@ -148,6 +161,7 @@ async function boot() {
   let realtimeChannel = null;
   let presenceTimer = null;
   let pollTimer = null;
+  let headerCountTimer = null;
   const renderedIds = new Set();
   let lastMessagesForStage = [];
   let roomsFetchErrorToasted = false;
@@ -348,22 +362,47 @@ async function boot() {
     });
   }
 
-  function updateHeaderListeners(rid) {
+  function stopHeaderCountLoop() {
+    if (headerCountTimer) {
+      clearInterval(headerCountTimer);
+      headerCountTimer = null;
+    }
+  }
+
+  async function updateHeaderListeners(rid) {
+    if (!rid) return;
     const sinceIso = new Date(Date.now() - STALE_PRESENCE_MS).toISOString();
-    supabase
+    const numEl = document.getElementById("listener-count-num");
+    if (!numEl) return;
+
+    let n = 0;
+    const { data, error, count } = await supabase
       .from("community_room_presence")
-      .select("*", { count: "exact", head: true })
+      .select("user_id", { count: "exact" })
       .eq("room_id", rid)
-      .gte("last_seen_at", sinceIso)
-      .then(function ({ count, error }) {
-        if (error) return;
-        const numEl = document.getElementById("listener-count-num");
-        const n = effectiveListenerCount(
-          typeof count === "number" ? count : 0,
-          rid
-        );
-        if (numEl) numEl.textContent = String(n);
-      });
+      .gte("last_seen_at", sinceIso);
+
+    if (!error) {
+      if (typeof count === "number" && count >= 0) n = count;
+      else if (Array.isArray(data)) n = data.length;
+    } else {
+      console.warn("[Aura] contagem de ouvintes:", error);
+    }
+
+    const out = effectiveListenerCount(n, rid);
+    numEl.textContent = String(out);
+  }
+
+  function startHeaderCountLoop(rid) {
+    stopHeaderCountLoop();
+    headerCountTimer = setInterval(function () {
+      if (
+        String(currentRoomId) === String(rid) &&
+        isRoomPanelOpen()
+      ) {
+        updateHeaderListeners(rid);
+      }
+    }, 8000);
   }
 
   async function syncRoomsFromDb() {
@@ -439,7 +478,7 @@ async function boot() {
       },
       { onConflict: "room_id,user_id" }
     );
-    updateHeaderListeners(roomId);
+    await updateHeaderListeners(roomId);
     rebuildRecipientList(roomId);
   }
 
@@ -457,21 +496,38 @@ async function boot() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
+  function fillChatAvatarEl(av, name, grad, avatarUrl) {
+    const g = grad || gradForUser(name);
+    av.textContent = "";
+    av.innerHTML = "";
+    const url = avatarUrl && String(avatarUrl).trim();
+    if (url) {
+      av.style.background = g;
+      const img = document.createElement("img");
+      img.src = url;
+      img.alt = "";
+      img.width = 40;
+      img.height = 40;
+      img.loading = "lazy";
+      img.decoding = "async";
+      img.addEventListener("error", function () {
+        img.remove();
+        av.style.background = g;
+        av.textContent = initials(name);
+      });
+      av.appendChild(img);
+    } else {
+      av.style.background = g;
+      av.textContent = initials(name);
+    }
+  }
+
   function appendChatRow(name, text, grad, avatarUrl, directLine) {
     const row = document.createElement("div");
     row.className = "chat-msg" + (directLine ? " chat-msg--direct" : "");
     const av = document.createElement("span");
     av.className = "chat-msg__avatar";
-    if (avatarUrl) {
-      av.style.background = "transparent";
-      av.innerHTML =
-        '<img src="' +
-        String(avatarUrl).replace(/"/g, "") +
-        '" alt="" width="40" height="40" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>';
-    } else {
-      av.style.background = grad || gradForUser(name);
-      av.textContent = initials(name);
-    }
+    fillChatAvatarEl(av, name, grad, avatarUrl);
     const body = document.createElement("div");
     body.className = "chat-msg__body";
     if (directLine) {
@@ -531,7 +587,8 @@ async function boot() {
 
     const pr = profileMap.get(msg.user_id) || {};
     const nm = msg.user_id === userId ? "Você" : pr.full_name || "Mãe";
-    const av = pr.avatar_url || null;
+    const av =
+      (pr.avatar_url && String(pr.avatar_url).trim()) || null;
     const directLine = recId
       ? "Reservado · para " +
         (recFirst || "mãe") +
@@ -637,19 +694,13 @@ async function boot() {
     const shortTitle = title.replace(/^Sala:\s*/i "") || title;
     if (roomPanelTitleText) roomPanelTitleText.textContent = shortTitle;
 
-    const listenersEl = card.querySelector(".js-room-listeners");
-    const numEl = document.getElementById("listener-count-num");
-    if (listenersEl && numEl) {
-      const raw = parseInt(listenersEl.textContent.trim(), 10);
-      numEl.textContent = String(
-        effectiveListenerCount(Number.isFinite(raw) ? raw : 0, rid)
-      );
-    }
-
     roomPanel.classList.remove("hidden");
     roomPanel.setAttribute("aria-hidden", "false");
     if (main) main.setAttribute("aria-hidden", "true");
     document.body.style.overflow = "hidden";
+
+    const numEl = document.getElementById("listener-count-num");
+    if (numEl) numEl.textContent = "1";
 
     await heartbeatPresence(rid);
     await rebuildRecipientList(rid);
@@ -659,10 +710,12 @@ async function boot() {
 
     await loadRoomMessages(rid);
     await subscribeRoom(rid);
+    startHeaderCountLoop(rid);
   }
 
   async function closeRoom() {
     abortActiveRecording();
+    stopHeaderCountLoop();
     subscriptionEpoch++;
     if (currentRoomId) {
       await leavePresence(currentRoomId);
