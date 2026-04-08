@@ -168,8 +168,9 @@ a {
 
 .login-brand__logo-horizontal {
   display: block;
-  width: 100%;
-  max-width: min(320px, 88vw);
+  width: auto;
+  max-width: min(132px, 42vw);
+  max-height: 72px;
   height: auto;
   object-fit: contain;
 }

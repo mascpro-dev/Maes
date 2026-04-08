@@ -1,5 +1,5 @@
 /* Aura PWA — só trata pedidos do mesmo site; não mete em cache o Supabase nem outros domínios. */
-const CACHE_NAME = "aura-pwa-v3";
+const CACHE_NAME = "aura-pwa-v4";
 
 const PRECACHE_PATHS = [
   "index.html",
@@ -12,6 +12,7 @@ const PRECACHE_PATHS = [
   "assets/branding/favicon.svg",
   "assets/branding/icon-192.svg",
   "assets/branding/icon-512.svg",
+  "assets/branding/logohorizontal.svg",
 ];
 
 function scopeUrl(path) {
