@@ -1104,8 +1104,8 @@ a.btn-header-icon {
 .sidebar-brand__logo {
   display: block;
   width: auto;
-  max-width: 196px;
-  max-height: 40px;
+  max-width: min(200px, 52vw);
+  max-height: 36px;
   height: auto;
   object-fit: contain;
   transition: opacity var(--dur) var(--ease);

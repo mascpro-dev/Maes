@@ -151,9 +151,8 @@
 
 .perfil-sidebar__logo-horizontal {
   display: block;
-  width: auto;
-  max-width: 200px;
-  max-height: 44px;
+  width: 100%;
+  max-width: 220px;
   height: auto;
   object-fit: contain;
 }
