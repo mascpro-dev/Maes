@@ -738,7 +738,7 @@ async function boot() {
 
     const titleEl = card.querySelector(".room-card__title");
     const title = titleEl ? titleEl.textContent.trim() : "Sala";
-    const shortTitle = title.replace(/^Sala:\s*/i "") || title;
+    const shortTitle = title.replace(/^Sala:\s*/i, "") || title;
     if (roomPanelTitleText) roomPanelTitleText.textContent = shortTitle;
 
     roomPanel.classList.remove("hidden");
