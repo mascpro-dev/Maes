@@ -19,6 +19,22 @@
   <link rel="stylesheet" href="community.css?v=20260409" />
 </head>
 <body>
+  <script>
+    (function () {
+      window.__auraPendingCommunityRooms = [];
+      window.__auraEnterRoomBtn = function (btn) {
+        if (!btn || typeof btn.closest !== "function") return;
+        var card = btn.closest(".room-card");
+        if (!card) return;
+        var fn = window.__auraCommunityOpenRoom;
+        if (typeof fn === "function") {
+          fn(card);
+        } else {
+          window.__auraPendingCommunityRooms.push(card);
+        }
+      };
+    })();
+  </script>
   <script src="supabase-config.js"></script>
   <script src="auth.js"></script>
   <script type="module" src="auth-session-guard.js"></script>
@@ -92,7 +108,7 @@
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               <span><span class="js-room-listeners">0</span> ouvindo</span>
             </div>
-            <button type="button" class="btn-enter" id="btn-enter-room" aria-label="Entrar na sala Desafios da Escola">Entrar</button>
+            <button type="button" class="btn-enter" id="btn-enter-room" aria-label="Entrar na sala Desafios da Escola" onclick="window.__auraEnterRoomBtn(this)">Entrar</button>
           </div>
         </article>
 
@@ -111,7 +127,7 @@
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               <span><span class="js-room-listeners">0</span> ouvindo</span>
             </div>
-            <button type="button" class="btn-enter btn-enter--outline" aria-label="Entrar na sala Medicação e Medos">Entrar</button>
+            <button type="button" class="btn-enter btn-enter--outline" aria-label="Entrar na sala Medicação e Medos" onclick="window.__auraEnterRoomBtn(this)">Entrar</button>
           </div>
         </article>
 
@@ -130,7 +146,7 @@
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               <span><span class="js-room-listeners">0</span> ouvindo</span>
             </div>
-            <button type="button" class="btn-enter btn-enter--outline" aria-label="Entrar na sala Autocuidado sem Culpa">Entrar</button>
+            <button type="button" class="btn-enter btn-enter--outline" aria-label="Entrar na sala Autocuidado sem Culpa" onclick="window.__auraEnterRoomBtn(this)">Entrar</button>
           </div>
         </article>
 
@@ -149,7 +165,7 @@
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               <span><span class="js-room-listeners">0</span> ouvindo</span>
             </div>
-            <button type="button" class="btn-enter btn-enter--outline" aria-label="Entrar na sala Crises Sensoriais">Entrar</button>
+            <button type="button" class="btn-enter btn-enter--outline" aria-label="Entrar na sala Crises Sensoriais" onclick="window.__auraEnterRoomBtn(this)">Entrar</button>
           </div>
         </article>
 
@@ -176,7 +192,7 @@
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               <span><span class="js-room-listeners">0</span> ouvindo</span>
             </div>
-            <button type="button" class="btn-enter btn-enter--outline" aria-label="Entrar na sala Sono e rotina">Entrar</button>
+            <button type="button" class="btn-enter btn-enter--outline" aria-label="Entrar na sala Sono e rotina" onclick="window.__auraEnterRoomBtn(this)">Entrar</button>
           </div>
         </article>
 
@@ -194,7 +210,7 @@
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               <span><span class="js-room-listeners">0</span> ouvindo</span>
             </div>
-            <button type="button" class="btn-enter btn-enter--outline" aria-label="Entrar na sala Irmãos e ciúmes">Entrar</button>
+            <button type="button" class="btn-enter btn-enter--outline" aria-label="Entrar na sala Irmãos e ciúmes" onclick="window.__auraEnterRoomBtn(this)">Entrar</button>
           </div>
         </article>
       </div>
@@ -310,7 +326,7 @@
 
 </div><!-- /app-shell -->
 
-<script type="module" src="community.js?v=20260412"></script>
+<script type="module" src="community.js?v=20260413"></script>
 <script src="pwa.js"></script>
 </body>
 </html>
