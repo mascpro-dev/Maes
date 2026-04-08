@@ -220,9 +220,9 @@
           <span class="room-panel__title-text" id="room-panel-title-text">Desafios da Escola</span>
         </h2>
       </div>
-      <div class="listener-count" id="listener-count" aria-label="Ouvintes">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        <span id="listener-count-num">0</span>
+      <div class="listener-count" id="listener-count" aria-label="Pessoas nesta sala">
+        <svg class="listener-count__icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span id="listener-count-num" class="listener-count__num">0</span>
       </div>
     </div>
 
@@ -242,6 +242,14 @@
     <section class="chat-feed" aria-label="Chat em tempo real" aria-live="polite">
       <div class="chat-messages" id="chat-messages" role="log" aria-label="Mensagens do chat">
       </div><!-- /chat-messages -->
+
+      <div class="chat-recipient-bar" id="chat-recipient-bar">
+        <label class="chat-recipient-bar__label" for="chat-recipient">Enviar para</label>
+        <select class="chat-recipient-bar__select" id="chat-recipient" aria-describedby="chat-recipient-hint">
+          <option value="">Todas na sala (mensagem aberta)</option>
+        </select>
+        <p class="chat-recipient-bar__hint" id="chat-recipient-hint">Reservado: escolha uma mãe — <strong>todas na sala continuam vendo</strong> (transparência na comunidade).</p>
+      </div>
 
       <!-- Chat input -->
       <div class="chat-input-bar">

@@ -151,6 +151,60 @@ async function boot() {
   const renderedIds = new Set();
   let lastMessagesForStage = [];
   let roomsFetchErrorToasted = false;
+  let subscriptionEpoch = 0;
+
+  function isRoomPanelOpen() {
+    return !!(roomPanel && !roomPanel.classList.contains("hidden"));
+  }
+
+  /** Garante pelo menos 1 ouvinte quando a própria utilizadora está na sala (presença ainda a propagar). */
+  function effectiveListenerCount(raw, forRoomId) {
+    const n = typeof raw === "number" ? raw : 0;
+    if (forRoomId && String(forRoomId) === String(currentRoomId) && isRoomPanelOpen()) {
+      return Math.max(n, 1);
+    }
+    return n;
+  }
+
+  function getSelectedRecipientId() {
+    const sel = document.getElementById("chat-recipient");
+    const v = sel && sel.value ? String(sel.value).trim() : "";
+    return v || null;
+  }
+
+  async function rebuildRecipientList(rid) {
+    const sel = document.getElementById("chat-recipient");
+    if (!sel || !rid) return;
+    const sinceIso = new Date(Date.now() - STALE_PRESENCE_MS).toISOString();
+    const { data: pres } = await supabase
+      .from("community_room_presence")
+      .select("user_id")
+      .eq("room_id", rid)
+      .gte("last_seen_at", sinceIso);
+    const ids = [
+      ...new Set((pres || []).map((r) => r.user_id).filter(Boolean)),
+    ].filter((id) => id !== userId);
+    const keep = sel.value;
+    sel.innerHTML =
+      '<option value="">Todas na sala (mensagem aberta)</option>';
+    if (ids.length) {
+      const pmap = await resolveProfilesMap(supabase, ids, userId);
+      ids.forEach(function (oid) {
+        const pr = pmap.get(oid) || {};
+        const full = (pr.full_name || "Mãe").trim() || "Mãe";
+        const short = full.split(/\s+/)[0] || full;
+        const opt = document.createElement("option");
+        opt.value = oid;
+        opt.textContent = "Reservado · " + short;
+        sel.appendChild(opt);
+      });
+    }
+    if (keep && [...sel.options].some(function (o) { return o.value === keep; })) {
+      sel.value = keep;
+    } else {
+      sel.value = "";
+    }
+  }
 
   function setActiveChip(activeBtn) {
     document.querySelectorAll(".filter-chips .chip").forEach(function (b) {
@@ -288,7 +342,7 @@ async function boot() {
     });
     document.querySelectorAll(".room-card[data-room-id]").forEach(function (card) {
       const rid = card.getAttribute("data-room-id");
-      const n = counts[rid] || 0;
+      const n = effectiveListenerCount(counts[rid] || 0, rid);
       const el = card.querySelector(".js-room-listeners");
       if (el) el.textContent = String(n);
     });
@@ -304,7 +358,11 @@ async function boot() {
       .then(function ({ count, error }) {
         if (error) return;
         const numEl = document.getElementById("listener-count-num");
-        if (numEl && typeof count === "number") numEl.textContent = String(count);
+        const n = effectiveListenerCount(
+          typeof count === "number" ? count : 0,
+          rid
+        );
+        if (numEl) numEl.textContent = String(n);
       });
   }
 
@@ -343,10 +401,15 @@ async function boot() {
     await refreshListenerCounts(presRows || []);
   }
 
-  function stopRealtime() {
-    if (realtimeChannel) {
-      supabase.removeChannel(realtimeChannel);
-      realtimeChannel = null;
+  async function stopRealtime() {
+    if (!realtimeChannel) return;
+    const ch = realtimeChannel;
+    realtimeChannel = null;
+    try {
+      const r = supabase.removeChannel(ch);
+      if (r && typeof r.then === "function") await r;
+    } catch (e) {
+      console.warn("[Aura] removeChannel", e);
     }
   }
 
@@ -377,20 +440,26 @@ async function boot() {
       { onConflict: "room_id,user_id" }
     );
     updateHeaderListeners(roomId);
+    rebuildRecipientList(roomId);
   }
 
-  function appendHeartRow() {
+  function appendHeartRow(recipientFirstName) {
     const row = document.createElement("div");
     row.className = "chat-msg chat-msg--hearts";
+    const sub = recipientFirstName
+      ? " para " + recipientFirstName + " · toda a sala vê"
+      : " para todas na sala";
     row.innerHTML =
-      '<span class="chat-msg__hearts">💛💛</span><span class="chat-msg__hearts-text">Você enviou carinho para a sala</span>';
+      '<span class="chat-msg__hearts">💛💛</span><span class="chat-msg__hearts-text">Você enviou carinho' +
+      sub +
+      "</span>";
     chatMessages.appendChild(row);
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
-  function appendChatRow(name, text, grad, avatarUrl) {
+  function appendChatRow(name, text, grad, avatarUrl, directLine) {
     const row = document.createElement("div");
-    row.className = "chat-msg";
+    row.className = "chat-msg" + (directLine ? " chat-msg--direct" : "");
     const av = document.createElement("span");
     av.className = "chat-msg__avatar";
     if (avatarUrl) {
@@ -405,6 +474,12 @@ async function boot() {
     }
     const body = document.createElement("div");
     body.className = "chat-msg__body";
+    if (directLine) {
+      const tag = document.createElement("span");
+      tag.className = "chat-msg__direct-tag";
+      tag.textContent = directLine;
+      body.appendChild(tag);
+    }
     const nm = document.createElement("span");
     nm.className = "chat-msg__name";
     nm.textContent = name;
@@ -419,33 +494,50 @@ async function boot() {
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
-  function appendHeartFromPeer(name) {
+  function appendHeartFromPeer(senderFirst, recipientFirst) {
     const row = document.createElement("div");
     row.className = "chat-msg chat-msg--hearts";
+    const extra = recipientFirst ? " (para " + recipientFirst + ")" : "";
     row.innerHTML =
       '<span class="chat-msg__hearts">💛</span><span class="chat-msg__hearts-text">' +
-      name +
-      " enviou carinho</span>";
+      senderFirst +
+      " enviou carinho" +
+      extra +
+      " · toda a sala vê</span>";
     chatMessages.appendChild(row);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  function firstName(full) {
+    if (!full || !String(full).trim()) return "Mãe";
+    return String(full).trim().split(/\s+/)[0] || "Mãe";
   }
 
   async function renderMessageRecord(msg, profileMap) {
     if (renderedIds.has(msg.id)) return;
     renderedIds.add(msg.id);
 
+    const recId = msg.recipient_user_id || null;
+    const recPr = recId ? profileMap.get(recId) : null;
+    const recFirst = recPr ? firstName(recPr.full_name) : null;
+
     if (msg.message_kind === "heart") {
       const pr = profileMap.get(msg.user_id) || {};
       const nm = msg.user_id === userId ? "Você" : pr.full_name || "Mãe";
-      if (msg.user_id === userId) appendHeartRow();
-      else appendHeartFromPeer(nm.split(/\s+/)[0] || nm);
+      if (msg.user_id === userId) appendHeartRow(recFirst);
+      else appendHeartFromPeer(firstName(nm), recFirst);
       return;
     }
 
     const pr = profileMap.get(msg.user_id) || {};
     const nm = msg.user_id === userId ? "Você" : pr.full_name || "Mãe";
     const av = pr.avatar_url || null;
-    appendChatRow(nm, msg.content, gradForUser(msg.user_id), av);
+    const directLine = recId
+      ? "Reservado · para " +
+        (recFirst || "mãe") +
+        " — toda a sala pode ler"
+      : null;
+    appendChatRow(nm, msg.content, gradForUser(msg.user_id), av, directLine);
   }
 
   async function loadRoomMessages(rid) {
@@ -454,7 +546,9 @@ async function boot() {
 
     const { data: msgs, error } = await supabase
       .from("community_room_messages")
-      .select("id, user_id, content, message_kind, created_at")
+      .select(
+        "id, room_id, user_id, content, message_kind, created_at, recipient_user_id"
+      )
       .eq("room_id", rid)
       .order("created_at", { ascending: true })
       .limit(120);
@@ -465,7 +559,11 @@ async function boot() {
       return;
     }
 
-    const ids = (msgs || []).map((m) => m.user_id);
+    const ids = [];
+    (msgs || []).forEach(function (m) {
+      ids.push(m.user_id);
+      if (m.recipient_user_id) ids.push(m.recipient_user_id);
+    });
     const profileMap = await resolveProfilesMap(supabase, ids, userId);
     lastMessagesForStage = msgs || [];
 
@@ -475,10 +573,12 @@ async function boot() {
     renderStageFromMessages(msgs || [], profileMap);
   }
 
-  function subscribeRoom(rid) {
-    stopRealtime();
+  async function subscribeRoom(rid) {
+    await stopRealtime();
+    subscriptionEpoch++;
+    const myEpoch = subscriptionEpoch;
     const ch = supabase
-      .channel("comm-room-" + rid)
+      .channel("comm-room-" + rid + "-" + myEpoch + "-" + Date.now())
       .on(
         "postgres_changes",
         {
@@ -488,13 +588,19 @@ async function boot() {
           filter: "room_id=eq." + rid,
         },
         async function (payload) {
+          if (myEpoch !== subscriptionEpoch) return;
           const msg = payload.new;
-          if (!msg || renderedIds.has(msg.id)) return;
+          if (!msg || String(msg.room_id) !== String(currentRoomId)) return;
+          if (renderedIds.has(msg.id)) return;
           lastMessagesForStage = lastMessagesForStage.concat(msg);
           if (lastMessagesForStage.length > 200) {
             lastMessagesForStage = lastMessagesForStage.slice(-200);
           }
-          const uids = [...new Set(lastMessagesForStage.map((m) => m.user_id))];
+          const uids = [];
+          lastMessagesForStage.forEach(function (m) {
+            uids.push(m.user_id);
+            if (m.recipient_user_id) uids.push(m.recipient_user_id);
+          });
           const profileMap = await resolveProfilesMap(supabase, uids, userId);
           await renderMessageRecord(msg, profileMap);
           renderStageFromMessages(lastMessagesForStage, profileMap);
@@ -518,7 +624,8 @@ async function boot() {
 
     if (currentRoomId && currentRoomId !== rid) {
       await leavePresence(currentRoomId);
-      stopRealtime();
+      subscriptionEpoch++;
+      await stopRealtime();
       stopPresence();
       currentRoomId = null;
     }
@@ -532,7 +639,12 @@ async function boot() {
 
     const listenersEl = card.querySelector(".js-room-listeners");
     const numEl = document.getElementById("listener-count-num");
-    if (listenersEl && numEl) numEl.textContent = listenersEl.textContent.trim() || "0";
+    if (listenersEl && numEl) {
+      const raw = parseInt(listenersEl.textContent.trim(), 10);
+      numEl.textContent = String(
+        effectiveListenerCount(Number.isFinite(raw) ? raw : 0, rid)
+      );
+    }
 
     roomPanel.classList.remove("hidden");
     roomPanel.setAttribute("aria-hidden", "false");
@@ -540,20 +652,22 @@ async function boot() {
     document.body.style.overflow = "hidden";
 
     await heartbeatPresence(rid);
+    await rebuildRecipientList(rid);
     presenceTimer = setInterval(function () {
       heartbeatPresence(rid);
     }, PRESENCE_TICK_MS);
 
     await loadRoomMessages(rid);
-    subscribeRoom(rid);
+    await subscribeRoom(rid);
   }
 
   async function closeRoom() {
     abortActiveRecording();
+    subscriptionEpoch++;
     if (currentRoomId) {
       await leavePresence(currentRoomId);
     }
-    stopRealtime();
+    await stopRealtime();
     stopPresence();
     currentRoomId = null;
 
@@ -599,15 +713,21 @@ async function boot() {
     const t = (chatInput.value || "").trim();
     if (!t) return;
     chatInput.value = "";
+    const recipientId = getSelectedRecipientId();
+    const insertPayload = {
+      room_id: currentRoomId,
+      user_id: userId,
+      content: t,
+      message_kind: "text",
+    };
+    if (recipientId) insertPayload.recipient_user_id = recipientId;
+
     const { data, error } = await supabase
       .from("community_room_messages")
-      .insert({
-        room_id: currentRoomId,
-        user_id: userId,
-        content: t,
-        message_kind: "text",
-      })
-      .select("id, user_id, content, message_kind, created_at")
+      .insert(insertPayload)
+      .select(
+        "id, room_id, user_id, content, message_kind, created_at, recipient_user_id"
+      )
       .single();
 
     if (error) {
@@ -616,7 +736,9 @@ async function boot() {
       return;
     }
     if (data && !renderedIds.has(data.id)) {
-      const profileMap = await resolveProfilesMap(supabase, [userId], userId);
+      const ids = [userId];
+      if (data.recipient_user_id) ids.push(data.recipient_user_id);
+      const profileMap = await resolveProfilesMap(supabase, ids, userId);
       await renderMessageRecord(data, profileMap);
       lastMessagesForStage = lastMessagesForStage.concat(data);
       renderStageFromMessages(lastMessagesForStage, profileMap);
@@ -633,15 +755,20 @@ async function boot() {
 
   fabHeart?.addEventListener("click", async function () {
     if (!currentRoomId) return;
+    const recipientId = getSelectedRecipientId();
+    const ins = {
+      room_id: currentRoomId,
+      user_id: userId,
+      content: "💛",
+      message_kind: "heart",
+    };
+    if (recipientId) ins.recipient_user_id = recipientId;
     const { data, error } = await supabase
       .from("community_room_messages")
-      .insert({
-        room_id: currentRoomId,
-        user_id: userId,
-        content: "💛",
-        message_kind: "heart",
-      })
-      .select("id, user_id, content, message_kind, created_at")
+      .insert(ins)
+      .select(
+        "id, room_id, user_id, content, message_kind, created_at, recipient_user_id"
+      )
       .single();
 
     if (error) {
@@ -649,7 +776,9 @@ async function boot() {
       return;
     }
     if (data && !renderedIds.has(data.id)) {
-      const profileMap = await resolveProfilesMap(supabase, [userId], userId);
+      const ids = [userId];
+      if (data.recipient_user_id) ids.push(data.recipient_user_id);
+      const profileMap = await resolveProfilesMap(supabase, ids, userId);
       await renderMessageRecord(data, profileMap);
     }
     showToast("Coração enviado com carinho");
@@ -759,22 +888,29 @@ async function boot() {
     const line = isDemo
       ? "🎤 Áudio (demonstração · " + formatDur(durationSec) + ")"
       : "🎤 Mensagem de voz · " + formatDur(durationSec);
+    const recipientId = getSelectedRecipientId();
+    const vins = {
+      room_id: currentRoomId,
+      user_id: userId,
+      content: line,
+      message_kind: "text",
+    };
+    if (recipientId) vins.recipient_user_id = recipientId;
     const { data, error } = await supabase
       .from("community_room_messages")
-      .insert({
-        room_id: currentRoomId,
-        user_id: userId,
-        content: line,
-        message_kind: "text",
-      })
-      .select("id, user_id, content, message_kind, created_at")
+      .insert(vins)
+      .select(
+        "id, room_id, user_id, content, message_kind, created_at, recipient_user_id"
+      )
       .single();
     if (error) {
       showToast("Chat não guardou o áudio como texto.");
       return;
     }
     if (data && !renderedIds.has(data.id)) {
-      const profileMap = await resolveProfilesMap(supabase, [userId], userId);
+      const ids = [userId];
+      if (data.recipient_user_id) ids.push(data.recipient_user_id);
+      const profileMap = await resolveProfilesMap(supabase, ids, userId);
       await renderMessageRecord(data, profileMap);
       lastMessagesForStage = lastMessagesForStage.concat(data);
       renderStageFromMessages(lastMessagesForStage, profileMap);

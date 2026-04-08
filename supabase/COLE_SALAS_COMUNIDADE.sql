@@ -105,6 +105,9 @@ on conflict (slug) do update set
   is_featured = excluded.is_featured,
   sort_order = excluded.sort_order;
 
+alter table public.community_room_messages
+  add column if not exists recipient_user_id uuid references public.profiles (id) on delete set null;
+
 -- alter publication supabase_realtime add table public.community_room_messages;
 
 -- Perfis (nomes no chat) em lote — opcional mas recomendado
