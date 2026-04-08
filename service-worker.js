@@ -1,5 +1,5 @@
 /* Aura PWA — só trata pedidos do mesmo site; não mete em cache o Supabase nem outros domínios. */
-const CACHE_NAME = "aura-pwa-v6";
+const CACHE_NAME = "aura-pwa-v8";
 
 const PRECACHE_PATHS = [
   "index.html",
@@ -82,23 +82,27 @@ self.addEventListener("fetch", (event) => {
         }
       }
 
+      /* CSS/JS: rede primeiro — evita ficar preso a community.css / community.js antigos após deploy */
+      if (isCacheableAsset(url)) {
+        try {
+          const response = await fetch(event.request);
+          if (response.ok && response.type === "basic") {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then(function (c) {
+              return c.put(event.request, copy);
+            });
+          }
+          return response;
+        } catch (e) {
+          const cached = await caches.match(event.request);
+          if (cached) return cached;
+          throw e;
+        }
+      }
+
       const cached = await caches.match(event.request);
       if (cached) return cached;
-
-      try {
-        const response = await fetch(event.request);
-        if (
-          response.ok &&
-          response.type === "basic" &&
-          isCacheableAsset(url)
-        ) {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((c) => c.put(event.request, copy));
-        }
-        return response;
-      } catch (e) {
-        throw e;
-      }
+      return fetch(event.request);
     })()
   );
 });
