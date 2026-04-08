@@ -445,6 +445,14 @@ a.btn-header-icon {
   color: var(--ink-light);
 }
 
+.room-card__peers-hint {
+  margin-top: 4px;
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--ink-light);
+  line-height: 1.3;
+}
+
 .room-card__meta {
   flex-shrink: 0;
   width: 96px;
@@ -632,6 +640,10 @@ a.btn-header-icon {
   max-width: 268px;
   justify-items: center;
   align-items: start;
+}
+
+.stage-grid--empty {
+  min-height: 72px;
 }
 
 .speaker {

@@ -1,12 +1,132 @@
-(function () {
-  "use strict";
+/**
+ * Comunidade — salas com chat e presença reais (Supabase).
+ */
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm";
 
-  const PHOTOS = {
-    ana: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=128&h=128&fit=crop&crop=face",
-    bia: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=128&h=128&fit=crop&crop=face",
-    carla: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=128&h=128&fit=crop&crop=face",
-    you: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=128&h=128&fit=crop&crop=face",
-  };
+const STALE_PRESENCE_MS = 120000;
+const PRESENCE_TICK_MS = 25000;
+const LISTENER_POLL_MS = 45000;
+
+const MIC_ON_SVG =
+  '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="23" x2="16" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
+const MIC_OFF_SVG =
+  '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+
+function hashHue(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = ((h << 5) - h + str.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h) % 360;
+}
+
+function gradForUser(id) {
+  if (!id) return "linear-gradient(135deg,#7a9e7e,#5d8262)";
+  const hue = hashHue(String(id));
+  return `linear-gradient(135deg, hsl(${hue},42%,52%), hsl(${(hue + 44) % 360},38%,44%))`;
+}
+
+function initials(name) {
+  if (typeof AuraAuth !== "undefined" && AuraAuth.initialsFromNome) {
+    return AuraAuth.initialsFromNome(name);
+  }
+  if (!name || !String(name).trim()) return "AU";
+  const p = String(name).trim().split(/\s+/).filter(Boolean);
+  if (p.length >= 2) return (p[0][0] + p[1][0]).toUpperCase();
+  return String(name).trim().slice(0, 2).toUpperCase();
+}
+
+function showToast(text) {
+  let t = document.getElementById("comm-toast");
+  if (!t) {
+    t = document.createElement("div");
+    t.id = "comm-toast";
+    t.className = "toast";
+    t.setAttribute("role", "status");
+    document.body.appendChild(t);
+  }
+  t.textContent = text;
+  t.classList.add("toast--show");
+  clearTimeout(showToast._h);
+  showToast._h = setTimeout(function () {
+    t.classList.remove("toast--show");
+  }, 2600);
+}
+
+async function getSupabase() {
+  if (window.__auraAuthReady) {
+    const ok = await window.__auraAuthReady;
+    if (!ok) return null;
+  }
+  if (window.__auraSupabaseClient) return window.__auraSupabaseClient;
+  const url = window.AURA_SUPABASE_URL;
+  const key = window.AURA_SUPABASE_ANON_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
+}
+
+async function resolveProfilesMap(supabase, userIds, myUserId) {
+  const uniq = [...new Set((userIds || []).filter(Boolean))];
+  const map = new Map();
+  if (!uniq.length) return map;
+
+  const { data: rows, error } = await supabase.rpc(
+    "resolve_profiles_for_community_chat",
+    { p_user_ids: uniq }
+  );
+
+  if (!error && Array.isArray(rows)) {
+    rows.forEach((r) => {
+      if (r?.id) map.set(r.id, r);
+    });
+    if (map.size > 0) return map;
+  }
+
+  const { data: me } = await supabase
+    .from("profiles")
+    .select("id, full_name, avatar_url")
+    .eq("id", myUserId)
+    .maybeSingle();
+  if (me?.id) map.set(me.id, me);
+
+  await Promise.all(
+    uniq
+      .filter((id) => id !== myUserId)
+      .map(async (tid) => {
+        const { data: r } = await supabase.rpc("get_public_profile", {
+          p_target_id: tid,
+        });
+        const row = Array.isArray(r) ? r[0] : r;
+        if (row?.id) map.set(row.id, row);
+      })
+  );
+
+  return map;
+}
+
+async function boot() {
+  const supabase = await getSupabase();
+  if (!supabase) return;
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const userId = user?.id;
+  if (!userId) return;
+
+  let myProfile = null;
+  const { data: profRow } = await supabase
+    .from("profiles")
+    .select("id, full_name, avatar_url")
+    .eq("id", userId)
+    .maybeSingle();
+  myProfile = profRow || { id: userId, full_name: "Você", avatar_url: null };
 
   const main = document.getElementById("comm-main");
   const roomPanel = document.getElementById("room-panel");
@@ -19,29 +139,18 @@
   const fabVoice = document.getElementById("fab-voice");
   const stageGrid = document.getElementById("stage-grid");
 
-  const speakers = stageGrid
-    ? Array.from(stageGrid.querySelectorAll(".speaker"))
-    : [];
-  let speakerIndex = 0;
-  let speakerTimer = null;
-  let chatSimTimer = null;
-
-  function showToast(text) {
-    let t = document.getElementById("comm-toast");
-    if (!t) {
-      t = document.createElement("div");
-      t.id = "comm-toast";
-      t.className = "toast";
-      t.setAttribute("role", "status");
-      document.body.appendChild(t);
-    }
-    t.textContent = text;
-    t.classList.add("toast--show");
-    clearTimeout(showToast._h);
-    showToast._h = setTimeout(function () {
-      t.classList.remove("toast--show");
-    }, 2600);
+  if (!chatMessages) {
+    console.warn("[Aura] community: #chat-messages em falta");
+    return;
   }
+
+  let currentRoomId = null;
+  let realtimeChannel = null;
+  let presenceTimer = null;
+  let pollTimer = null;
+  const renderedIds = new Set();
+  let lastMessagesForStage = [];
+  let roomsFetchErrorToasted = false;
 
   function setActiveChip(activeBtn) {
     document.querySelectorAll(".filter-chips .chip").forEach(function (b) {
@@ -55,6 +164,7 @@
     chip.addEventListener("click", function () {
       setActiveChip(chip);
       const f = chip.getAttribute("data-filter");
+      if (!main) return;
       main.querySelectorAll(".room-card").forEach(function (card) {
         const tag = card.getAttribute("data-tag") || "";
         const show = f === "all" || tag === f;
@@ -63,141 +173,236 @@
     });
   });
 
-  function openRoom(card) {
-    if (!card || !roomPanel) return;
-    const titleEl = card.querySelector(".room-card__title");
-    const title = titleEl ? titleEl.textContent.trim() : "Sala";
-    const shortTitle = title.replace(/^Sala:\s*/i, "") || title;
-    if (roomPanelTitleText) roomPanelTitleText.textContent = shortTitle;
-    const badge = card.querySelector(".listener-badge");
-    const numEl = document.getElementById("listener-count-num");
-    if (badge && numEl) {
-      const m = badge.textContent.match(/\d+/);
-      if (m) numEl.textContent = m[0];
-    }
-    roomPanel.classList.remove("hidden");
-    roomPanel.setAttribute("aria-hidden", "false");
-    if (main) main.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "hidden";
-    startSpeakerRotation();
-    startChatSimulation();
+  function micMutedHtml() {
+    return '<div class="speaker__mic speaker__mic--muted">' + MIC_OFF_SVG + "</div>";
   }
 
-  function abortActiveRecording() {
-    if (mediaRecorder && mediaRecorder.state !== "inactive") {
-      var rec = mediaRecorder;
-      var stream = mediaStream;
-      mediaRecorder = null;
-      mediaChunks = [];
-      rec.onstop = function () {
-        if (stream) {
-          stream.getTracks().forEach(function (t) {
-            t.stop();
-          });
+  function micLiveHtml() {
+    return '<div class="speaker__mic">' + MIC_ON_SVG + "</div>";
+  }
+
+  function renderStageFromMessages(msgs, profileMap) {
+    if (!stageGrid) return;
+    stageGrid.classList.remove("stage-grid--empty");
+    stageGrid.setAttribute("aria-hidden", "false");
+    const others = [];
+    const seen = new Set();
+    for (let i = msgs.length - 1; i >= 0 && others.length < 3; i--) {
+      const uid = msgs[i].user_id;
+      if (!uid || uid === userId || seen.has(uid)) continue;
+      seen.add(uid);
+      others.push(uid);
+    }
+    others.reverse();
+    const slots = [];
+    others.forEach(function (ouid) {
+      const pr = profileMap.get(ouid) || {};
+      slots.push({
+        userId: ouid,
+        name: (pr.full_name || "Mãe").split(/\s+/)[0] || "Mãe",
+        avatar_url: pr.avatar_url || null,
+        isYou: false,
+      });
+    });
+    slots.push({
+      userId: userId,
+      name: "Você",
+      avatar_url: myProfile?.avatar_url || null,
+      isYou: true,
+    });
+    while (slots.length < 4) {
+      slots.unshift({
+        userId: null,
+        name: "…",
+        avatar_url: null,
+        isYou: false,
+        placeholder: true,
+      });
+    }
+    const display = slots.slice(-4);
+
+    stageGrid.innerHTML = display
+      .map(function (s, idx) {
+        const speaking = !s.placeholder && !s.isYou && idx === 0;
+        const youCls = s.isYou ? " speaker--you" : "";
+        const speakCls = speaking ? " speaking" : "";
+        const aria = s.isYou
+          ? "Você"
+          : s.placeholder
+            ? "Lugar vago no palco"
+            : s.name + " — na sala";
+        const grad = gradForUser(s.userId || "x" + idx);
+        let innerAv =
+          '<div class="speaker__avatar" style="background:' +
+          grad +
+          '">' +
+          (s.placeholder ? "·" : initials(s.name)) +
+          "</div>";
+        if (s.avatar_url && !s.placeholder) {
+          innerAv =
+            '<div class="speaker__avatar" style="background:' +
+            grad +
+            '"><img src="' +
+            String(s.avatar_url).replace(/"/g, "") +
+            '" alt="" width="128" height="128" loading="lazy"/></div>';
         }
-        mediaStream = null;
-        setVoiceFabRecording(false);
-      };
-      rec.stop();
-    } else {
-      if (mediaStream) {
-        mediaStream.getTracks().forEach(function (t) {
-          t.stop();
-        });
-        mediaStream = null;
+        const mic = s.placeholder ? micMutedHtml() : s.isYou ? micMutedHtml() : speaking ? micLiveHtml() : micMutedHtml();
+        return (
+          '<div class="speaker' +
+          speakCls +
+          youCls +
+          '" data-user-slot="' +
+          idx +
+          '" aria-label="' +
+          aria +
+          '">' +
+          '<div class="speaker__ring">' +
+          innerAv +
+          "</div>" +
+          '<span class="speaker__name">' +
+          (s.placeholder ? "…" : s.name) +
+          "</span>" +
+          mic +
+          "</div>"
+        );
+      })
+      .join("");
+  }
+
+  async function refreshListenerCounts(allPresenceRows) {
+    const sinceIso = new Date(Date.now() - STALE_PRESENCE_MS).toISOString();
+    const rows =
+      allPresenceRows ||
+      (await (async function () {
+        const { data } = await supabase
+          .from("community_room_presence")
+          .select("room_id, last_seen_at");
+        return data;
+      })());
+    if (!rows) return;
+    const counts = {};
+    rows.forEach(function (r) {
+      if (!r.room_id || !r.last_seen_at) return;
+      if (new Date(r.last_seen_at).getTime() < new Date(sinceIso).getTime()) return;
+      counts[r.room_id] = (counts[r.room_id] || 0) + 1;
+    });
+    document.querySelectorAll(".room-card[data-room-id]").forEach(function (card) {
+      const rid = card.getAttribute("data-room-id");
+      const n = counts[rid] || 0;
+      const el = card.querySelector(".js-room-listeners");
+      if (el) el.textContent = String(n);
+    });
+  }
+
+  function updateHeaderListeners(rid) {
+    const sinceIso = new Date(Date.now() - STALE_PRESENCE_MS).toISOString();
+    supabase
+      .from("community_room_presence")
+      .select("*", { count: "exact", head: true })
+      .eq("room_id", rid)
+      .gte("last_seen_at", sinceIso)
+      .then(function ({ count, error }) {
+        if (error) return;
+        const numEl = document.getElementById("listener-count-num");
+        if (numEl && typeof count === "number") numEl.textContent = String(count);
+      });
+  }
+
+  async function syncRoomsFromDb() {
+    const { data: rooms, error } = await supabase
+      .from("community_rooms")
+      .select("id, slug, title, description, tag, is_featured, sort_order")
+      .order("sort_order", { ascending: true });
+
+    if (error) {
+      console.warn("[Aura] community_rooms:", error);
+      if (!roomsFetchErrorToasted) {
+        roomsFetchErrorToasted = true;
+        showToast("Executa o SQL das salas no Supabase (COLE_SALAS_COMUNIDADE).");
       }
-      mediaRecorder = null;
-      mediaChunks = [];
-      setVoiceFabRecording(false);
+      return;
+    }
+
+    (rooms || []).forEach(function (room) {
+      const card = document.querySelector('.room-card[data-room-slug="' + room.slug + '"]');
+      if (!card) return;
+      card.setAttribute("data-room-id", room.id);
+      const titleEl = card.querySelector(".room-card__title");
+      if (titleEl) titleEl.textContent = "Sala: " + room.title;
+      const descEl = card.querySelector(".room-card__desc");
+      if (descEl && room.description) descEl.textContent = room.description;
+      if (room.tag) card.setAttribute("data-tag", room.tag);
+      if (room.is_featured === false) {
+        card.classList.add("room-card--community");
+      }
+    });
+
+    const { data: presRows } = await supabase
+      .from("community_room_presence")
+      .select("room_id, last_seen_at");
+    await refreshListenerCounts(presRows || []);
+  }
+
+  function stopRealtime() {
+    if (realtimeChannel) {
+      supabase.removeChannel(realtimeChannel);
+      realtimeChannel = null;
     }
   }
 
-  function closeRoom() {
-    abortActiveRecording();
-
-    roomPanel.classList.add("hidden");
-    roomPanel.setAttribute("aria-hidden", "true");
-    if (main) main.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "";
-    stopSpeakerRotation();
-    stopChatSimulation();
+  function stopPresence() {
+    if (presenceTimer) {
+      clearInterval(presenceTimer);
+      presenceTimer = null;
+    }
   }
 
-  main.addEventListener("click", function (e) {
-    const enter = e.target.closest(".btn-enter");
-    if (!enter) return;
-    const card = enter.closest(".room-card");
-    openRoom(card);
-  });
-
-  document
-    .getElementById("btn-propose-room")
-    ?.addEventListener("click", function () {
-      showToast(
-        "Em breve: escolha tema, horário e convide outras mães — com as mesmas regras de respeito da Aura."
-      );
-    });
-
-  btnLeave.addEventListener("click", closeRoom);
-
-  function applySpeaking(index) {
-    speakers.forEach(function (sp, i) {
-      sp.classList.toggle("speaking", i === index);
-      const mic = sp.querySelector(".speaker__mic");
-      if (!mic) return;
-      if (i === index && !sp.classList.contains("speaker--you")) {
-        mic.classList.remove("speaker__mic--muted");
-        mic.innerHTML =
-          '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="19" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="8" y1="23" x2="16" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
-      } else if (!sp.classList.contains("speaker--you")) {
-        mic.classList.add("speaker__mic--muted");
-        mic.innerHTML =
-          '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
-      }
-    });
+  async function leavePresence(roomId) {
+    if (!roomId || !userId) return;
+    await supabase
+      .from("community_room_presence")
+      .delete()
+      .eq("room_id", roomId)
+      .eq("user_id", userId);
   }
 
-  function startSpeakerRotation() {
-    const nonYou = speakers.filter(function (s) {
-      return !s.classList.contains("speaker--you");
-    });
-    if (!nonYou.length) return;
-    speakerIndex = 0;
-    applySpeaking(speakers.indexOf(nonYou[0]));
-    stopSpeakerRotation();
-    speakerTimer = setInterval(function () {
-      speakerIndex = (speakerIndex + 1) % nonYou.length;
-      applySpeaking(speakers.indexOf(nonYou[speakerIndex]));
-    }, 7000);
+  async function heartbeatPresence(roomId) {
+    if (!roomId || !userId) return;
+    await supabase.from("community_room_presence").upsert(
+      {
+        room_id: roomId,
+        user_id: userId,
+        last_seen_at: new Date().toISOString(),
+      },
+      { onConflict: "room_id,user_id" }
+    );
+    updateHeaderListeners(roomId);
   }
 
-  function stopSpeakerRotation() {
-    if (speakerTimer) clearInterval(speakerTimer);
-    speakerTimer = null;
+  function appendHeartRow() {
+    const row = document.createElement("div");
+    row.className = "chat-msg chat-msg--hearts";
+    row.innerHTML =
+      '<span class="chat-msg__hearts">💛💛</span><span class="chat-msg__hearts-text">Você enviou carinho para a sala</span>';
+    chatMessages.appendChild(row);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
-  const SIM_LINES = [
-    { name: "Helena", initials: "HL", grad: "linear-gradient(135deg,#ba8fc4,#9b6ba6)", text: "Concordo demais com a Ana 💛" },
-    { name: "Flávia", initials: "FL", grad: "linear-gradient(135deg,#d4906e,#c47a5b)", text: "Aqui a escola também demorou, mas valeu insistir." },
-    { name: "Bia Rosa", initials: "BR", grad: "linear-gradient(135deg,#c47a5b,#a8603e)", text: "Salvou meu dia esse papo. Obrigada, meninas." },
-  ];
-  let simIdx = 0;
-
-  function appendChatMessage(name, text, grad) {
+  function appendChatRow(name, text, grad, avatarUrl) {
     const row = document.createElement("div");
     row.className = "chat-msg";
     const av = document.createElement("span");
     av.className = "chat-msg__avatar";
-    av.style.background =
-      grad || "linear-gradient(135deg,#7a9e7e,#5d8262)";
-    av.textContent = name
-      .split(" ")
-      .map(function (p) {
-        return p[0];
-      })
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
+    if (avatarUrl) {
+      av.style.background = "transparent";
+      av.innerHTML =
+        '<img src="' +
+        String(avatarUrl).replace(/"/g, "") +
+        '" alt="" width="40" height="40" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>';
+    } else {
+      av.style.background = grad || gradForUser(name);
+      av.textContent = initials(name);
+    }
     const body = document.createElement("div");
     body.className = "chat-msg__body";
     const nm = document.createElement("span");
@@ -214,69 +419,243 @@
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
-  function startChatSimulation() {
-    stopChatSimulation();
-    chatSimTimer = setInterval(function () {
-      const line = SIM_LINES[simIdx % SIM_LINES.length];
-      simIdx++;
-      appendChatMessage(line.name, line.text, line.grad);
-    }, 12000);
-  }
-
-  function stopChatSimulation() {
-    if (chatSimTimer) clearInterval(chatSimTimer);
-    chatSimTimer = null;
-  }
-
-  function appendUserMessage(text) {
+  function appendHeartFromPeer(name) {
     const row = document.createElement("div");
-    row.className = "chat-msg";
-    const av = document.createElement("span");
-    av.className = "chat-msg__avatar";
-    av.style.background = "linear-gradient(135deg,#7a9e7e,#c47a5b)";
-    av.textContent = "JM";
-    const body = document.createElement("div");
-    body.className = "chat-msg__body";
-    const nm = document.createElement("span");
-    nm.className = "chat-msg__name";
-    nm.textContent = "Você";
-    const tx = document.createElement("span");
-    tx.className = "chat-msg__text";
-    tx.textContent = text;
-    body.appendChild(nm);
-    body.appendChild(tx);
-    row.appendChild(av);
-    row.appendChild(body);
+    row.className = "chat-msg chat-msg--hearts";
+    row.innerHTML =
+      '<span class="chat-msg__hearts">💛</span><span class="chat-msg__hearts-text">' +
+      name +
+      " enviou carinho</span>";
     chatMessages.appendChild(row);
     chatMessages.scrollTop = chatMessages.scrollHeight;
   }
 
-  function sendChat() {
-    const t = (chatInput.value || "").trim();
-    if (!t) return;
-    appendUserMessage(t);
-    chatInput.value = "";
+  async function renderMessageRecord(msg, profileMap) {
+    if (renderedIds.has(msg.id)) return;
+    renderedIds.add(msg.id);
+
+    if (msg.message_kind === "heart") {
+      const pr = profileMap.get(msg.user_id) || {};
+      const nm = msg.user_id === userId ? "Você" : pr.full_name || "Mãe";
+      if (msg.user_id === userId) appendHeartRow();
+      else appendHeartFromPeer(nm.split(/\s+/)[0] || nm);
+      return;
+    }
+
+    const pr = profileMap.get(msg.user_id) || {};
+    const nm = msg.user_id === userId ? "Você" : pr.full_name || "Mãe";
+    const av = pr.avatar_url || null;
+    appendChatRow(nm, msg.content, gradForUser(msg.user_id), av);
   }
 
-  btnSend.addEventListener("click", sendChat);
-  chatInput.addEventListener("keydown", function (e) {
+  async function loadRoomMessages(rid) {
+    renderedIds.clear();
+    chatMessages.innerHTML = "";
+
+    const { data: msgs, error } = await supabase
+      .from("community_room_messages")
+      .select("id, user_id, content, message_kind, created_at")
+      .eq("room_id", rid)
+      .order("created_at", { ascending: true })
+      .limit(120);
+
+    if (error) {
+      showToast("Não foi possível carregar o chat. Verifica RLS e tabelas.");
+      console.warn(error);
+      return;
+    }
+
+    const ids = (msgs || []).map((m) => m.user_id);
+    const profileMap = await resolveProfilesMap(supabase, ids, userId);
+    lastMessagesForStage = msgs || [];
+
+    for (let i = 0; i < (msgs || []).length; i++) {
+      await renderMessageRecord(msgs[i], profileMap);
+    }
+    renderStageFromMessages(msgs || [], profileMap);
+  }
+
+  function subscribeRoom(rid) {
+    stopRealtime();
+    const ch = supabase
+      .channel("comm-room-" + rid)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "community_room_messages",
+          filter: "room_id=eq." + rid,
+        },
+        async function (payload) {
+          const msg = payload.new;
+          if (!msg || renderedIds.has(msg.id)) return;
+          lastMessagesForStage = lastMessagesForStage.concat(msg);
+          if (lastMessagesForStage.length > 200) {
+            lastMessagesForStage = lastMessagesForStage.slice(-200);
+          }
+          const uids = [...new Set(lastMessagesForStage.map((m) => m.user_id))];
+          const profileMap = await resolveProfilesMap(supabase, uids, userId);
+          await renderMessageRecord(msg, profileMap);
+          renderStageFromMessages(lastMessagesForStage, profileMap);
+        }
+      )
+      .subscribe();
+    realtimeChannel = ch;
+  }
+
+  async function openRoom(card) {
+    if (!card || !roomPanel) return;
+    const rid = card.getAttribute("data-room-id");
+    if (!rid) {
+      showToast("Salas ainda não ativas no Supabase — corre o SQL da comunidade.");
+      return;
+    }
+
+    if (currentRoomId === rid && !roomPanel.classList.contains("hidden")) {
+      return;
+    }
+
+    if (currentRoomId && currentRoomId !== rid) {
+      await leavePresence(currentRoomId);
+      stopRealtime();
+      stopPresence();
+      currentRoomId = null;
+    }
+
+    currentRoomId = rid;
+
+    const titleEl = card.querySelector(".room-card__title");
+    const title = titleEl ? titleEl.textContent.trim() : "Sala";
+    const shortTitle = title.replace(/^Sala:\s*/i "") || title;
+    if (roomPanelTitleText) roomPanelTitleText.textContent = shortTitle;
+
+    const listenersEl = card.querySelector(".js-room-listeners");
+    const numEl = document.getElementById("listener-count-num");
+    if (listenersEl && numEl) numEl.textContent = listenersEl.textContent.trim() || "0";
+
+    roomPanel.classList.remove("hidden");
+    roomPanel.setAttribute("aria-hidden", "false");
+    if (main) main.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "hidden";
+
+    await heartbeatPresence(rid);
+    presenceTimer = setInterval(function () {
+      heartbeatPresence(rid);
+    }, PRESENCE_TICK_MS);
+
+    await loadRoomMessages(rid);
+    subscribeRoom(rid);
+  }
+
+  async function closeRoom() {
+    abortActiveRecording();
+    if (currentRoomId) {
+      await leavePresence(currentRoomId);
+    }
+    stopRealtime();
+    stopPresence();
+    currentRoomId = null;
+
+    if (roomPanel) {
+      roomPanel.classList.add("hidden");
+      roomPanel.setAttribute("aria-hidden", "true");
+    }
+    if (main) main.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "";
+    if (stageGrid) {
+      stageGrid.innerHTML = "";
+      stageGrid.classList.add("stage-grid--empty");
+      stageGrid.setAttribute("aria-hidden", "true");
+    }
+
+    const { data: presRows } = await supabase
+      .from("community_room_presence")
+      .select("room_id, last_seen_at");
+    await refreshListenerCounts(presRows || []);
+  }
+
+  if (main) {
+    main.addEventListener("click", function (e) {
+      const enter = e.target.closest(".btn-enter");
+      if (!enter) return;
+      const card = enter.closest(".room-card");
+      openRoom(card);
+    });
+  }
+
+  document.getElementById("btn-propose-room")?.addEventListener("click", function () {
+    showToast(
+      "Em breve: escolha tema, horário e convide outras mães — com as mesmas regras de respeito da Aura."
+    );
+  });
+
+  btnLeave?.addEventListener("click", function () {
+    closeRoom();
+  });
+
+  async function sendChat() {
+    if (!currentRoomId) return;
+    const t = (chatInput.value || "").trim();
+    if (!t) return;
+    chatInput.value = "";
+    const { data, error } = await supabase
+      .from("community_room_messages")
+      .insert({
+        room_id: currentRoomId,
+        user_id: userId,
+        content: t,
+        message_kind: "text",
+      })
+      .select("id, user_id, content, message_kind, created_at")
+      .single();
+
+    if (error) {
+      showToast(error.message || "Não foi possível enviar.");
+      chatInput.value = t;
+      return;
+    }
+    if (data && !renderedIds.has(data.id)) {
+      const profileMap = await resolveProfilesMap(supabase, [userId], userId);
+      await renderMessageRecord(data, profileMap);
+      lastMessagesForStage = lastMessagesForStage.concat(data);
+      renderStageFromMessages(lastMessagesForStage, profileMap);
+    }
+  }
+
+  btnSend?.addEventListener("click", sendChat);
+  chatInput?.addEventListener("keydown", function (e) {
     if (e.key === "Enter") {
       e.preventDefault();
       sendChat();
     }
   });
 
-  fabHeart.addEventListener("click", function () {
-    const row = document.createElement("div");
-    row.className = "chat-msg chat-msg--hearts";
-    row.innerHTML =
-      '<span class="chat-msg__hearts">💛💛</span><span class="chat-msg__hearts-text">Você enviou carinho para a sala</span>';
-    chatMessages.appendChild(row);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+  fabHeart?.addEventListener("click", async function () {
+    if (!currentRoomId) return;
+    const { data, error } = await supabase
+      .from("community_room_messages")
+      .insert({
+        room_id: currentRoomId,
+        user_id: userId,
+        content: "💛",
+        message_kind: "heart",
+      })
+      .select("id, user_id, content, message_kind, created_at")
+      .single();
+
+    if (error) {
+      showToast(error.message || "Não foi possível enviar.");
+      return;
+    }
+    if (data && !renderedIds.has(data.id)) {
+      const profileMap = await resolveProfilesMap(supabase, [userId], userId);
+      await renderMessageRecord(data, profileMap);
+    }
     showToast("Coração enviado com carinho");
   });
 
-  /* Gravador de áudio → mensagem de voz no chat (MediaRecorder ou demo) */
+  /* Gravador — envia linha de texto para todas verem (sem storage de áudio ainda) */
   let voiceRecording = false;
   let mediaRecorder = null;
   let mediaStream = null;
@@ -294,7 +673,9 @@
     var row = document.createElement("div");
     row.className = "chat-msg chat-msg--voice";
     row.innerHTML =
-      '<span class="chat-msg__avatar" style="background:linear-gradient(135deg,#7a9e7e,#c47a5b)">JM</span>' +
+      '<span class="chat-msg__avatar" style="background:linear-gradient(135deg,#7a9e7e,#c47a5b)">' +
+      initials(myProfile?.full_name || "Você") +
+      "</span>" +
       '<div class="chat-msg__body">' +
       '<span class="chat-msg__name">Você · áudio</span>' +
       '<div class="chat-msg__voice">' +
@@ -366,27 +747,53 @@
 
   function pickMime() {
     if (typeof MediaRecorder === "undefined") return "";
-    var types = [
-      "audio/webm;codecs=opus",
-      "audio/webm",
-      "audio/mp4",
-    ];
+    var types = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4"];
     for (var i = 0; i < types.length; i++) {
       if (MediaRecorder.isTypeSupported(types[i])) return types[i];
     }
     return "";
   }
 
+  async function persistVoiceNote(durationSec, isDemo) {
+    if (!currentRoomId) return;
+    const line = isDemo
+      ? "🎤 Áudio (demonstração · " + formatDur(durationSec) + ")"
+      : "🎤 Mensagem de voz · " + formatDur(durationSec);
+    const { data, error } = await supabase
+      .from("community_room_messages")
+      .insert({
+        room_id: currentRoomId,
+        user_id: userId,
+        content: line,
+        message_kind: "text",
+      })
+      .select("id, user_id, content, message_kind, created_at")
+      .single();
+    if (error) {
+      showToast("Chat não guardou o áudio como texto.");
+      return;
+    }
+    if (data && !renderedIds.has(data.id)) {
+      const profileMap = await resolveProfilesMap(supabase, [userId], userId);
+      await renderMessageRecord(data, profileMap);
+      lastMessagesForStage = lastMessagesForStage.concat(data);
+      renderStageFromMessages(lastMessagesForStage, profileMap);
+    }
+  }
+
   async function startVoiceRecord() {
     if (typeof MediaRecorder === "undefined") {
       showToast("Gravação não suportada neste navegador.");
+      await persistVoiceNote(5, true);
       appendVoiceMessage(null, 5, true);
       return;
     }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       showToast("Microfone não disponível — enviando demonstração.");
-      setTimeout(function () {
-        appendVoiceMessage(null, 4 + Math.floor(Math.random() * 5), true);
+      setTimeout(async function () {
+        var d = 4 + Math.floor(Math.random() * 5);
+        await persistVoiceNote(d, true);
+        appendVoiceMessage(null, d, true);
         showToast("Áudio de demonstração enviado ao chat");
       }, 600);
       return;
@@ -403,7 +810,7 @@
       rec.ondataavailable = function (e) {
         if (e.data && e.data.size) mediaChunks.push(e.data);
       };
-      rec.onstop = function () {
+      rec.onstop = async function () {
         if (mediaStream) {
           mediaStream.getTracks().forEach(function (t) {
             t.stop();
@@ -423,6 +830,7 @@
         var blob = new Blob(chunks, { type: mimeType });
         var url = URL.createObjectURL(blob);
         appendVoiceMessage(url, elapsed, false);
+        await persistVoiceNote(elapsed, false);
         showToast("Áudio enviado ao chat");
       };
       recordStartedAt = Date.now();
@@ -431,6 +839,7 @@
     } catch (err) {
       showToast("Não foi possível acessar o microfone.");
       appendVoiceMessage(null, 5, true);
+      await persistVoiceNote(5, true);
     }
   }
 
@@ -438,6 +847,35 @@
     if (mediaRecorder && mediaRecorder.state !== "inactive") {
       mediaRecorder.stop();
     } else {
+      setVoiceFabRecording(false);
+    }
+  }
+
+  function abortActiveRecording() {
+    if (mediaRecorder && mediaRecorder.state !== "inactive") {
+      var rec = mediaRecorder;
+      var stream = mediaStream;
+      mediaRecorder = null;
+      mediaChunks = [];
+      rec.onstop = function () {
+        if (stream) {
+          stream.getTracks().forEach(function (t) {
+            t.stop();
+          });
+        }
+        mediaStream = null;
+        setVoiceFabRecording(false);
+      };
+      rec.stop();
+    } else {
+      if (mediaStream) {
+        mediaStream.getTracks().forEach(function (t) {
+          t.stop();
+        });
+        mediaStream = null;
+      }
+      mediaRecorder = null;
+      mediaChunks = [];
       setVoiceFabRecording(false);
     }
   }
@@ -456,33 +894,10 @@
     showToast("Busca em breve");
   });
 
-  /* Fotos no palco (fallback em gradiente se imagem falhar) */
-  function fillStagePhotos() {
-    const map = [
-      { id: "sp-ana", url: PHOTOS.ana, initials: "AL" },
-      { id: "sp-bia", url: PHOTOS.bia, initials: "BR" },
-      { id: "sp-carla", url: PHOTOS.carla, initials: "CM" },
-      { id: "sp-you", url: PHOTOS.you, initials: "JM" },
-    ];
-    map.forEach(function (m) {
-      const el = document.getElementById(m.id);
-      if (!el) return;
-      const holder = el.querySelector(".speaker__avatar");
-      if (!holder) return;
-      const img = document.createElement("img");
-      img.src = m.url;
-      img.alt = "";
-      img.width = 128;
-      img.height = 128;
-      img.onload = function () {
-        holder.textContent = "";
-        holder.appendChild(img);
-      };
-      img.onerror = function () {
-        holder.textContent = m.initials;
-      };
-    });
-  }
+  await syncRoomsFromDb();
+  pollTimer = setInterval(function () {
+    syncRoomsFromDb();
+  }, LISTENER_POLL_MS);
+}
 
-  fillStagePhotos();
-})();
+boot();
