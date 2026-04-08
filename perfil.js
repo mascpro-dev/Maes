@@ -376,6 +376,12 @@ function renderProfile(profile, children) {
 
   renderProfile(merged, children || []);
 
+  if (new URLSearchParams(window.location.search).get('completar') === 'rede') {
+    toast(
+      'Para a rede de apoio (Explorar): confirma telefone, cidade, UF, bio (mín. 20 caracteres) e foto de perfil.'
+    );
+  }
+
   document.getElementById('btn-toggle-personal')?.addEventListener('click', () => setPersonalEditMode(true));
   document.getElementById('btn-cancel-personal')?.addEventListener('click', () => {
     const inName = document.getElementById('perfil-input-name');
@@ -398,6 +404,24 @@ function renderProfile(profile, children) {
     const phone = (inPhone?.value || '').trim() || null;
     const cidade = (inCity?.value || '').trim() || null;
     const estado = (inState?.value || '').trim().toUpperCase().slice(0, 2) || null;
+
+    if (!full_name || full_name.length < 3) {
+      toast('Indica o nome completo (mínimo 3 letras).');
+      return;
+    }
+    const phoneDigits = (phone || '').replace(/\D/g, '');
+    if (phoneDigits.length < 10) {
+      toast('Telefone com DDD: mínimo 10 dígitos.');
+      return;
+    }
+    if (!cidade || cidade.length < 2) {
+      toast('Indica a cidade.');
+      return;
+    }
+    if (!estado || estado.length !== 2) {
+      toast('Indica o estado (UF com 2 letras, ex.: SP).');
+      return;
+    }
 
     const { error } = await supabase.from('profiles').update({ full_name, phone, cidade, estado }).eq('id', uid);
     if (error) {
@@ -428,6 +452,10 @@ function renderProfile(profile, children) {
   document.getElementById('btn-save-bio')?.addEventListener('click', async () => {
     const inBio = document.getElementById('perfil-input-bio');
     const bio = (inBio?.value || '').trim() || null;
+    if (!bio || bio.length < 20) {
+      toast('A bio deve ter pelo menos 20 caracteres (para a rede de apoio).');
+      return;
+    }
     const { error } = await supabase.from('profiles').update({ bio }).eq('id', uid);
     if (error) {
       const msg = error.message || '';

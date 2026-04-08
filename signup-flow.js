@@ -99,13 +99,22 @@ export async function signupStep1Mother({ fullName, email, phone, password }) {
   const { client, error } = getSignupClient();
   if (error) return { ok: false, message: error };
 
+  const phoneTrim = (phone || "").trim();
+  const phoneDigits = phoneTrim.replace(/\D/g, "");
+  if (phoneDigits.length < 10) {
+    return {
+      ok: false,
+      message: "Indica um telemóvel válido com DDD (mínimo 10 dígitos).",
+    };
+  }
+
   const { data, error: signErr } = await client.auth.signUp({
     email: email.trim(),
     password,
     options: {
       data: {
         full_name: fullName.trim(),
-        phone: (phone || '').trim(),
+        phone: phoneTrim,
       },
     },
   });
@@ -140,7 +149,7 @@ export async function signupStep1Mother({ fullName, email, phone, password }) {
     id: user.id,
     email: email.trim(),
     [P.fullName]: fullName.trim(),
-    [P.phone]: (phone || '').trim() || null,
+    [P.phone]: phoneTrim || null,
     [P.termsAt]: new Date().toISOString(),
   };
 
@@ -151,7 +160,7 @@ export async function signupStep1Mother({ fullName, email, phone, password }) {
     window.AuraAuth.saveProfile({
       nomeCompleto: fullName.trim(),
       email: email.trim(),
-      phone: (phone || '').trim(),
+      phone: phoneTrim,
       termsAcceptedAt: row[P.termsAt],
     });
     window.AuraAuth.setLoggedIn(true);
@@ -182,6 +191,13 @@ export async function signupStep2Child({ nome, dataNascimento, diagnosticos }) {
 
   const { error: insErr } = await client.from(C.table).insert(payload);
   if (insErr) return { ok: false, message: insErr.message };
+
+  const dx0 = Array.isArray(diagnosticos) && diagnosticos.length ? String(diagnosticos[0]).trim() : "";
+  if (dx0) {
+    const P = SIGNUP_SCHEMA.profiles;
+    const { error: dxErr } = await client.from(P.table).update({ diagnostico: dx0 }).eq("id", userId);
+    if (dxErr) console.warn("[signup] profiles.diagnostico:", dxErr.message);
+  }
 
   if (typeof window.AuraAuth !== 'undefined') {
     window.AuraAuth.saveProfile({

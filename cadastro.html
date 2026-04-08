@@ -60,8 +60,9 @@
 
         <div class="field">
           <label class="field__label" for="telefone">Telefone</label>
-          <input class="field__input" type="tel" id="telefone" name="telefone" autocomplete="tel"
-            inputmode="tel" placeholder="(00) 00000-0000" />
+          <input class="field__input" type="tel" id="telefone" name="telefone" autocomplete="tel" required
+            inputmode="tel" minlength="10" placeholder="(00) 00000-0000 com DDD"
+            title="Obrigatório: telemóvel ou fixo com DDD (mínimo 10 dígitos)" />
         </div>
 
         <div class="field">
@@ -136,6 +137,11 @@
       const email = document.getElementById('email').value.trim();
       const phone = document.getElementById('telefone').value.trim();
       const senha = document.getElementById('senha').value;
+      const phoneDigits = phone.replace(/\D/g, '');
+      if (phoneDigits.length < 10) {
+        showSignupMessage('Indica um telemóvel ou telefone com DDD (mínimo 10 dígitos).');
+        return;
+      }
 
       btn.disabled = true;
       const res = await signupStep1Mother({

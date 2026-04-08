@@ -35,11 +35,11 @@
       <h1 class="onboarding-bv__title" id="bv-title">Tudo pronto</h1>
       <p class="onboarding-bv__message" id="bv-message"></p>
       <p class="onboarding-bv__hint">Na Comunidade, encontra salas alinhadas com o que marcou — comece quando quiser.</p>
-      <button type="button" class="onboarding-bv__btn" id="bv-go">Ir para o Aura</button>
+      <button type="button" class="onboarding-bv__btn" id="bv-go">Completar perfil (rede de apoio)</button>
     </div>
     <div class="onboarding-bv__fallback" id="fallback" hidden>
       <p>Não encontrámos os dados deste passo.</p>
-      <p style="margin-top: 12px;"><a href="index.html">Abrir o Aura</a></p>
+      <p style="margin-top: 12px;"><a href="perfil.html">Completar perfil</a> · <a href="community.html">Comunidade</a></p>
     </div>
   </div>
 
@@ -64,7 +64,7 @@
     } else {
       try {
         const data = JSON.parse(raw);
-        msgEl.textContent = data.message || 'Bem-vinda à Aura!';
+        msgEl.textContent = data.message || 'Bem-vinda à CONTA MÃE!';
         titleEl.textContent = data.firstName ? `Olá, ${data.firstName}` : 'Bem-vinda';
         card.hidden = false;
       } catch (e) {
@@ -76,7 +76,7 @@
       try {
         sessionStorage.removeItem(WELCOME_STORAGE_KEY);
       } catch (e) { /* ignore */ }
-      window.location.href = 'index.html?onboarded=1';
+      window.location.href = 'perfil.html?completar=rede';
     });
   </script>
   <script src="pwa.js"></script>

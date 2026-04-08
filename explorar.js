@@ -24,6 +24,10 @@
     toast: document.getElementById("explore-toast"),
     setupBanner: document.getElementById("explore-setup-banner"),
     setupText: document.getElementById("explore-setup-text"),
+    sqlHint: document.getElementById("explore-setup-sql-hint"),
+    profileGate: document.getElementById("explore-profile-gate"),
+    profileGateList: document.getElementById("explore-profile-gate-list"),
+    shell: document.getElementById("explore-shell"),
   };
 
   let supabase = null;
@@ -36,6 +40,46 @@
   let presenceInterval = null;
   let emptyCopy = null;
   let cardNavBound = false;
+  let profileGateActive = false;
+
+  function getExploreProfileGaps(p) {
+    const gaps = [];
+    const name = (p && p.full_name ? String(p.full_name) : "").trim();
+    if (name.length < 3) gaps.push("Nome completo (mínimo 3 letras)");
+    const phoneDigits = String(p && p.phone ? p.phone : "").replace(/\D/g, "");
+    if (phoneDigits.length < 10) gaps.push("Telemóvel com DDD (10 ou 11 dígitos)");
+    const cidade = (p && p.cidade ? String(p.cidade) : "").trim();
+    if (cidade.length < 2) gaps.push("Cidade");
+    const estado = (p && p.estado ? String(p.estado) : "").trim().toUpperCase();
+    if (estado.length !== 2) gaps.push("Estado (UF com 2 letras, ex.: SP)");
+    const dx = (p && p.diagnostico ? String(p.diagnostico) : "").trim();
+    if (!dx) gaps.push("Diagnóstico (completa o passo 2 do cadastro ou edita os dados do filho)");
+    const bio = (p && p.bio ? String(p.bio) : "").trim();
+    if (bio.length < 20) gaps.push("Bio — pelo menos 20 caracteres sobre ti");
+    const avatar = (p && p.avatar_url ? String(p.avatar_url) : "").trim();
+    if (!avatar) gaps.push("Foto de perfil");
+    return gaps;
+  }
+
+  function showProfileGate(gaps) {
+    profileGateActive = true;
+    if (el.shell) el.shell.classList.add("explore-shell--profile-blocked");
+    if (el.profileGate) el.profileGate.hidden = false;
+    if (el.profileGateList) {
+      el.profileGateList.innerHTML = gaps
+        .map(function (g) {
+          return "<li>" + escapeHtml(g) + "</li>";
+        })
+        .join("");
+    }
+    hideSetupBanner();
+  }
+
+  function hideProfileGate() {
+    profileGateActive = false;
+    if (el.shell) el.shell.classList.remove("explore-shell--profile-blocked");
+    if (el.profileGate) el.profileGate.hidden = true;
+  }
 
   function showToast(msg) {
     if (!el.toast) return;
@@ -93,13 +137,37 @@
     userId = u?.user?.id;
     if (!userId) throw new Error("Sem utilizador");
 
-    const { data: me, error: meErr } = await supabase
-      .from("profiles")
-      .select("diagnostico, cidade, estado, full_name")
-      .eq("id", userId)
-      .maybeSingle();
+    const [{ data: me, error: meErr }, { data: ch0 }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("diagnostico, cidade, estado, full_name, bio, avatar_url, phone")
+        .eq("id", userId)
+        .maybeSingle(),
+      supabase
+        .from("children")
+        .select("diagnosticos")
+        .eq("user_id", userId)
+        .limit(1)
+        .maybeSingle(),
+    ]);
     if (meErr) console.warn("[Explorar] perfil:", meErr.message);
     meProfile = me || {};
+    const dxFromChild =
+      ch0 &&
+      Array.isArray(ch0.diagnosticos) &&
+      ch0.diagnosticos.length &&
+      String(ch0.diagnosticos[0]).trim();
+    if (dxFromChild && !String(meProfile.diagnostico || "").trim()) {
+      meProfile.diagnostico = String(dxFromChild).trim();
+    }
+
+    const gaps = getExploreProfileGaps(meProfile);
+    if (gaps.length) {
+      showProfileGate(gaps);
+      allMothers = [];
+      return;
+    }
+    hideProfileGate();
 
     const { data: rows, error: rpcErr } = await supabase.rpc(
       "list_profiles_for_discovery"
@@ -157,15 +225,18 @@
     hideSetupBanner();
   }
 
-  function showSetupBanner(text) {
+  function showSetupBanner(text, opts) {
+    opts = opts || {};
     if (el.setupBanner && el.setupText) {
       el.setupText.textContent = text;
       el.setupBanner.hidden = false;
+      if (el.sqlHint) el.sqlHint.hidden = !!opts.hideSqlHint;
     }
   }
 
   function hideSetupBanner() {
     if (el.setupBanner) el.setupBanner.hidden = true;
+    if (el.sqlHint) el.sqlHint.hidden = false;
   }
 
   function matchesSearch(m) {
@@ -287,6 +358,13 @@
   }
 
   function render() {
+    if (profileGateActive) {
+      if (el.loading) el.loading.hidden = true;
+      if (el.empty) el.empty.hidden = true;
+      if (el.sections) el.sections.innerHTML = "";
+      return;
+    }
+
     const list = filtered();
     if (el.loading) el.loading.hidden = true;
 

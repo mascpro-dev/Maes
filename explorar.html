@@ -33,7 +33,7 @@
     </div>
 
     <header class="explore-header">
-      <a href="index.html" class="explore-back" aria-label="Voltar ao início">
+      <a href="community.html" class="explore-back" aria-label="Voltar à Comunidade">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
       </a>
       <div class="explore-header__text">
@@ -45,7 +45,15 @@
 
     <div class="explore-setup-banner" id="explore-setup-banner" role="alert" hidden>
       <p id="explore-setup-text"></p>
-      <p class="explore-setup-banner__file">No projeto: ficheiro <code>supabase/COLE_EXPLORAR_DESCoberta.sql</code></p>
+      <p class="explore-setup-banner__file" id="explore-setup-sql-hint">No projeto: ficheiro <code>supabase/COLE_EXPLORAR_DESCoberta.sql</code></p>
+    </div>
+
+    <div class="explore-profile-gate" id="explore-profile-gate" role="region" aria-labelledby="explore-profile-gate-title" hidden>
+      <p class="explore-profile-gate__title" id="explore-profile-gate-title">Perfil incompleto</p>
+      <p class="explore-profile-gate__lead">Para aparecer na rede de apoio e ver outras mães com contexto, preenche:</p>
+      <ul class="explore-profile-gate__list" id="explore-profile-gate-list"></ul>
+      <a href="perfil.html" class="explore-profile-gate__cta">Completar perfil</a>
+      <a href="community.html" class="explore-profile-gate__secondary">Voltar à Comunidade</a>
     </div>
 
     <div class="explore-search-wrap">
