@@ -757,16 +757,13 @@ async function boot() {
     await refreshListenerCounts(presRows || []);
   }
 
-  /* Salas no DOM com data-room-id antes de aceitar cliques (evita corrida com sync) */
-  await syncRoomsFromDb();
-
   function onRoomEnterClick(e) {
     const enter = e.target.closest(".btn-enter");
     if (!enter) return;
     const card = enter.closest(".room-card");
     if (!card) return;
-    if (main && !main.contains(card)) return;
     e.preventDefault();
+    e.stopPropagation();
     void openRoom(card).catch(function (err) {
       console.error("[Aura] openRoom", err);
       showToast("Não foi possível abrir a sala. Recarrega a página.");
@@ -774,9 +771,9 @@ async function boot() {
   }
 
   if (appShell) {
-    appShell.addEventListener("click", onRoomEnterClick);
+    appShell.addEventListener("click", onRoomEnterClick, false);
   } else if (main) {
-    main.addEventListener("click", onRoomEnterClick);
+    main.addEventListener("click", onRoomEnterClick, false);
   }
 
   document.getElementById("btn-propose-room")?.addEventListener("click", function () {
@@ -1109,6 +1106,10 @@ async function boot() {
 
   document.getElementById("btn-search")?.addEventListener("click", function () {
     showToast("Busca em breve");
+  });
+
+  void syncRoomsFromDb().catch(function (err) {
+    console.warn("[Aura] syncRoomsFromDb", err);
   });
 
   pollTimer = setInterval(function () {
