@@ -12,6 +12,32 @@ const MIC_ON_SVG =
 const MIC_OFF_SVG =
   '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/><path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
 
+/** "Entrar" na sala: captura no documento (fase capture) para não depender da ordem do boot nem de outros listeners. */
+let __auraCommunityEnterImpl = null;
+const __auraPendingRoomCards = [];
+
+document.addEventListener(
+  "click",
+  function (auraEv) {
+    const el = auraEv.target;
+    if (!el || typeof el.closest !== "function") return;
+    const enter = el.closest(".btn-enter");
+    if (!enter) return;
+    const card = enter.closest(".room-card");
+    if (!card) return;
+    const shell = document.getElementById("app-shell");
+    if (!shell || !shell.contains(card)) return;
+    auraEv.preventDefault();
+    auraEv.stopPropagation();
+    if (typeof __auraCommunityEnterImpl === "function") {
+      __auraCommunityEnterImpl(card);
+    } else {
+      __auraPendingRoomCards.push(card);
+    }
+  },
+  true
+);
+
 function hashHue(str) {
   let h = 0;
   for (let i = 0; i < str.length; i++) {
@@ -125,24 +151,36 @@ async function resolveProfilesMap(supabase, userIds, myUserId) {
 
 async function boot() {
   const supabase = await getSupabase();
-  if (!supabase) return;
+  if (!supabase) {
+    __auraCommunityEnterImpl = function () {
+      showToast("Sessão indisponível. Abre o login.");
+    };
+    return;
+  }
 
   const {
     data: { user },
   } = await supabase.auth.getUser();
   const userId = user?.id;
-  if (!userId) return;
+  if (!userId) {
+    __auraCommunityEnterImpl = function () {
+      showToast("Precisas de iniciar sessão.");
+    };
+    return;
+  }
 
-  let myProfile = null;
-  const { data: profRow } = await supabase
+  let myProfile = { id: userId, full_name: "Você", avatar_url: null };
+  void supabase
     .from("profiles")
     .select("id, full_name, avatar_url")
     .eq("id", userId)
-    .maybeSingle();
-  myProfile = profRow || { id: userId, full_name: "Você", avatar_url: null };
+    .maybeSingle()
+    .then(function (res) {
+      const row = res && res.data;
+      if (row && row.id) myProfile = row;
+    });
 
   const main = document.getElementById("comm-main");
-  const appShell = document.getElementById("app-shell");
   const roomPanel = document.getElementById("room-panel");
   const btnLeave = document.getElementById("btn-leave");
   const roomPanelTitleText = document.getElementById("room-panel-title-text");
@@ -155,6 +193,9 @@ async function boot() {
 
   if (!chatMessages) {
     console.warn("[Aura] community: #chat-messages em falta");
+    __auraCommunityEnterImpl = function () {
+      showToast("Erro ao carregar a página da comunidade.");
+    };
     return;
   }
 
@@ -757,23 +798,15 @@ async function boot() {
     await refreshListenerCounts(presRows || []);
   }
 
-  function onRoomEnterClick(e) {
-    const enter = e.target.closest(".btn-enter");
-    if (!enter) return;
-    const card = enter.closest(".room-card");
-    if (!card) return;
-    e.preventDefault();
-    e.stopPropagation();
+  __auraCommunityEnterImpl = function (card) {
     void openRoom(card).catch(function (err) {
       console.error("[Aura] openRoom", err);
       showToast("Não foi possível abrir a sala. Recarrega a página.");
     });
-  }
-
-  if (appShell) {
-    appShell.addEventListener("click", onRoomEnterClick, false);
-  } else if (main) {
-    main.addEventListener("click", onRoomEnterClick, false);
+  };
+  while (__auraPendingRoomCards.length) {
+    const queued = __auraPendingRoomCards.shift();
+    __auraCommunityEnterImpl(queued);
   }
 
   document.getElementById("btn-propose-room")?.addEventListener("click", function () {
@@ -1117,4 +1150,9 @@ async function boot() {
   }, LISTENER_POLL_MS);
 }
 
-boot();
+void boot().catch(function (err) {
+  console.error("[Aura] community boot", err);
+  __auraCommunityEnterImpl = function () {
+    showToast("Falha ao iniciar a comunidade. Recarrega a página.");
+  };
+});
