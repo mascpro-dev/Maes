@@ -142,6 +142,7 @@ async function boot() {
   myProfile = profRow || { id: userId, full_name: "Você", avatar_url: null };
 
   const main = document.getElementById("comm-main");
+  const appShell = document.getElementById("app-shell");
   const roomPanel = document.getElementById("room-panel");
   const btnLeave = document.getElementById("btn-leave");
   const roomPanelTitleText = document.getElementById("room-panel-title-text");
@@ -669,7 +670,21 @@ async function boot() {
 
   async function openRoom(card) {
     if (!card || !roomPanel) return;
-    const rid = card.getAttribute("data-room-id");
+    let rid = card.getAttribute("data-room-id");
+    if (!rid) {
+      const slug = card.getAttribute("data-room-slug");
+      if (slug) {
+        const { data: row, error } = await supabase
+          .from("community_rooms")
+          .select("id")
+          .eq("slug", slug)
+          .maybeSingle();
+        if (!error && row?.id) {
+          rid = row.id;
+          card.setAttribute("data-room-id", rid);
+        }
+      }
+    }
     if (!rid) {
       showToast("Salas ainda não ativas no Supabase — corre o SQL da comunidade.");
       return;
@@ -742,13 +757,26 @@ async function boot() {
     await refreshListenerCounts(presRows || []);
   }
 
-  if (main) {
-    main.addEventListener("click", function (e) {
-      const enter = e.target.closest(".btn-enter");
-      if (!enter) return;
-      const card = enter.closest(".room-card");
-      openRoom(card);
+  /* Salas no DOM com data-room-id antes de aceitar cliques (evita corrida com sync) */
+  await syncRoomsFromDb();
+
+  function onRoomEnterClick(e) {
+    const enter = e.target.closest(".btn-enter");
+    if (!enter) return;
+    const card = enter.closest(".room-card");
+    if (!card) return;
+    if (main && !main.contains(card)) return;
+    e.preventDefault();
+    void openRoom(card).catch(function (err) {
+      console.error("[Aura] openRoom", err);
+      showToast("Não foi possível abrir a sala. Recarrega a página.");
     });
+  }
+
+  if (appShell) {
+    appShell.addEventListener("click", onRoomEnterClick);
+  } else if (main) {
+    main.addEventListener("click", onRoomEnterClick);
   }
 
   document.getElementById("btn-propose-room")?.addEventListener("click", function () {
@@ -1083,7 +1111,6 @@ async function boot() {
     showToast("Busca em breve");
   });
 
-  await syncRoomsFromDb();
   pollTimer = setInterval(function () {
     syncRoomsFromDb();
   }, LISTENER_POLL_MS);

@@ -1,5 +1,5 @@
 /* Aura PWA — só trata pedidos do mesmo site; não mete em cache o Supabase nem outros domínios. */
-const CACHE_NAME = "aura-pwa-v8";
+const CACHE_NAME = "aura-pwa-v9";
 
 const PRECACHE_PATHS = [
   "index.html",
