@@ -1220,24 +1220,33 @@ button.btn-header-icon {
   transition: opacity var(--dur) var(--ease);
 }
 
-/* Bottom nav */
+/* Bottom nav — ancorado à viewport sem translateX (evita movimento no Safari/Chrome móvel) */
 .bottom-nav {
   position: fixed;
+  left: 0;
+  right: 0;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: var(--app-max-w);
-  height: var(--nav-h);
+  width: min(100%, var(--app-max-w));
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+  transform: none;
+  height: auto;
+  min-height: var(--nav-h);
   display: flex;
   align-items: flex-start;
   justify-content: space-around;
-  padding: 10px 8px 0;
-  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  padding: 10px max(8px, env(safe-area-inset-left, 0px)) 0
+    max(8px, env(safe-area-inset-right, 0px));
+  padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
   background: var(--cream-card);
   border-top: 1.5px solid var(--cream-deep);
   box-shadow: 0 -4px 24px rgba(45, 42, 38, 0.06);
   z-index: 40;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  touch-action: manipulation;
 }
 
 .nav-btn {

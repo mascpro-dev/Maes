@@ -48,7 +48,7 @@ function statusLabel(status) {
   return 'A conferir';
 }
 
-function renderRefundCard(row, { showRecipient, showOkButton }) {
+function renderRefundCard(row, { showRecipient, showOkButton, showRevertButton }) {
   const tag = (row.service_type || 'Recibo').trim() || 'Recibo';
   const provider = (row.provider_name || 'Prestador não indicado').trim();
   const metaDate = formatRefundDate(row);
@@ -64,6 +64,10 @@ function renderRefundCard(row, { showRecipient, showOkButton }) {
     showOkButton && rid
       ? `<button type="button" class="reemb-card__ok" data-reemb-ok="${rid}">Tudo certo — incluir no relatório</button>`
       : '';
+  const revertBtn =
+    showRevertButton && rid
+      ? `<button type="button" class="reemb-card__revert" data-reemb-revert="${rid}">Voltar para Pendentes</button>`
+      : '';
 
   return `<li>
     <article class="${cardClass}">
@@ -75,6 +79,7 @@ function renderRefundCard(row, { showRecipient, showOkButton }) {
       <p class="reemb-card__meta">${esc(metaDate)} · ${amount}</p>
       ${recipient}
       ${okBtn}
+      ${revertBtn}
     </article>
   </li>`;
 }
@@ -109,7 +114,9 @@ function renderRefundLists(rows) {
       .join('');
   }
   if (sentList) {
-    sentList.innerHTML = sent.map((r) => renderRefundCard(r, { showRecipient: true })).join('');
+    sentList.innerHTML = sent
+      .map((r) => renderRefundCard(r, { showRecipient: true, showRevertButton: true }))
+      .join('');
   }
   if (pendingEmpty) {
     pendingEmpty.hidden = pending.length > 0;
@@ -274,6 +281,32 @@ document.getElementById('reemb-pending-list')?.addEventListener('click', async (
   await loadRefundsFromSupabase();
 });
 
+document.getElementById('reemb-sent-list')?.addEventListener('click', async (ev) => {
+  const btn = ev.target.closest('[data-reemb-revert]');
+  if (!btn) return;
+  const id = btn.getAttribute('data-reemb-revert');
+  if (!id) return;
+  if (!window.confirm('Voltar este pedido para Pendentes? Sai do relatório até voltares a confirmar.')) return;
+  const auth = await getSupabaseUser();
+  if (!auth) {
+    window.alert('Sessão expirada. Entra de novo.');
+    return;
+  }
+  btn.disabled = true;
+  const { supabase, userId } = auth;
+  const { error } = await supabase
+    .from('refunds')
+    .update({ status: 'pendente' })
+    .eq('id', id)
+    .eq('user_id', userId);
+  btn.disabled = false;
+  if (error) {
+    window.alert('Não foi possível reverter: ' + (error.message || 'erro'));
+    return;
+  }
+  await loadRefundsFromSupabase();
+});
+
 function createCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let out = 'AURA-';
@@ -281,8 +314,43 @@ function createCode() {
   return out;
 }
 
+/**
+ * URL absoluta da landing de indicação (pasta indicacao/ com index.html).
+ * Compatível com links do tipo /indicacao?ref= no mesmo domínio que o resto do app.
+ */
+function getReferralLandingUrl() {
+  try {
+    const u = new URL(window.location.href);
+    let path = u.pathname;
+    const marker = '/indicacao';
+    const idx = path.indexOf(marker);
+    if (idx >= 0) {
+      const basePath = path.slice(0, idx + marker.length);
+      return `${u.origin}${basePath}/`.replace(/\/+$/, '/');
+    }
+    const i = path.lastIndexOf('/');
+    const dir = i >= 0 ? path.slice(0, i + 1) : '/';
+    return `${u.origin}${dir}indicacao/`;
+  } catch (_) {
+    return 'https://contamae.app/indicacao/';
+  }
+}
+
+function buildAffiliateShareLink(code) {
+  const c = String(code || '').trim();
+  if (!c) return '';
+  try {
+    const u = new URL(getReferralLandingUrl());
+    u.searchParams.set('ref', c);
+    return u.toString();
+  } catch (_) {
+    return `${getReferralLandingUrl()}?ref=${encodeURIComponent(c)}`;
+  }
+}
+
+/** Valor gravado em partner_program_accounts.referral_base_url (sem query). */
 function getDefaultBaseUrl() {
-  return 'https://contamae.app/indicacao';
+  return getReferralLandingUrl();
 }
 
 (function setupAffiliatePreview() {
@@ -325,9 +393,8 @@ function getDefaultBaseUrl() {
   }
 
   function renderState(state) {
-    const base = (state.referral_base_url || getDefaultBaseUrl()).replace(/\/$/, '');
     const code = (state.referral_code || '').trim();
-    linkEl.value = code ? `${base}?ref=${encodeURIComponent(code)}` : '';
+    linkEl.value = buildAffiliateShareLink(code);
     commissionPendingEl.textContent = toMoney(Number(state.commission_pending_cents) || 0);
 
     if (state.enabled) {

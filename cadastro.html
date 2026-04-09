@@ -101,6 +101,14 @@
   <script type="module">
     import { getSignupClient, signupStep1Mother } from './signup-flow.js';
 
+    try {
+      const p = new URLSearchParams(window.location.search);
+      const r = (p.get('ref') || p.get('code') || '').trim();
+      if (r) sessionStorage.setItem('aura_signup_ref_code', r);
+    } catch (_) {
+      /* ignore */
+    }
+
     const form = document.getElementById('form-cadastro');
     const errEl = document.getElementById('signup-error');
     const btn = document.getElementById('btn-submit');

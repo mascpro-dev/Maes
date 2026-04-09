@@ -1171,14 +1171,20 @@ a.btn-scan {
 }
 
 /* ── Bottom Navigation ───────────────────────────────────── */
+/* Sem translateX(-50%): em mobile o centro da viewport muda com a barra do browser e o sino “salta”. */
 .bottom-nav {
   position: fixed;
+  left: 0;
+  right: 0;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100%;
-  max-width: var(--app-max-w);
-  height: var(--nav-h);
+  width: min(100%, var(--app-max-w));
+  max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+  transform: none;
+  height: auto;
+  min-height: var(--nav-h);
   background: rgba(245,239,228,.92);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -1186,9 +1192,13 @@ a.btn-scan {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: 0 10px 10px;
+  padding: 0 max(10px, env(safe-area-inset-left, 0px)) max(10px, env(safe-area-inset-bottom, 0px))
+    max(10px, env(safe-area-inset-right, 0px));
   z-index: 100;
   box-shadow: 0 -8px 32px rgba(45,42,38,.08);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  touch-action: manipulation;
 }
 
 /* Logo temporária: visível só na sidebar desktop (≥960px) */
@@ -2426,6 +2436,40 @@ a.btn-scan {
 
 .reemb-card__ok:disabled {
   opacity: 0.65;
+  cursor: wait;
+}
+
+.reemb-card--done {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.reemb-card__revert {
+  margin-top: 12px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px dashed rgba(45, 42, 38, 0.28);
+  background: transparent;
+  color: var(--ink-light);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), color var(--dur) var(--ease),
+    background var(--dur) var(--ease);
+}
+
+.reemb-card__revert:hover:not(:disabled),
+.reemb-card__revert:focus-visible:not(:disabled) {
+  border-color: rgba(196, 122, 91, 0.45);
+  color: var(--terracotta-dark);
+  background: rgba(196, 122, 91, 0.06);
+}
+
+.reemb-card__revert:disabled {
+  opacity: 0.6;
   cursor: wait;
 }
 

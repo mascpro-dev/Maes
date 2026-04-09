@@ -144,6 +144,23 @@ export async function signupStep1Mother({ fullName, email, phone, password }) {
     };
   }
 
+  let referredBy = null;
+  try {
+    const refCode =
+      typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('aura_signup_ref_code') : null;
+    const trimmed = refCode ? String(refCode).trim() : '';
+    if (trimmed) {
+      const { data: refUid, error: refErr } = await client.rpc('referrer_user_id_from_referral_code', {
+        p_code: trimmed,
+      });
+      if (!refErr && refUid && refUid !== user.id) {
+        referredBy = refUid;
+      }
+    }
+  } catch (_) {
+    /* RPC em falta ou rede: cadastro continua sem referred_by */
+  }
+
   const P = SIGNUP_SCHEMA.profiles;
   const row = {
     id: user.id,
@@ -151,10 +168,19 @@ export async function signupStep1Mother({ fullName, email, phone, password }) {
     [P.fullName]: fullName.trim(),
     [P.phone]: phoneTrim || null,
     [P.termsAt]: new Date().toISOString(),
+    ...(referredBy ? { referred_by: referredBy } : {}),
   };
 
   const { error: upErr } = await client.from(P.table).upsert(row, { onConflict: 'id' });
   if (upErr) return { ok: false, message: upErr.message };
+
+  if (referredBy) {
+    try {
+      sessionStorage.removeItem('aura_signup_ref_code');
+    } catch (_) {
+      /* ignore */
+    }
+  }
 
   if (typeof window.AuraAuth !== 'undefined') {
     window.AuraAuth.saveProfile({
