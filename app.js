@@ -380,8 +380,8 @@ let auraAppointmentCountdownTimer = null;
         title: 'Reembolsos',
         body:
           refunds === 1
-            ? 'Tens 1 pedido de reembolso em análise.'
-            : `Tens ${refunds} pedidos de reembolso em análise.`,
+            ? 'Tens 1 recibo a conferir em Meus reembolsos — dá OK em Pendentes para o incluir no relatório.'
+            : `Tens ${refunds} recibos a conferir em Meus reembolsos — confirma cada um com OK antes do relatório.`,
         actions: [{ label: 'Ver reembolsos', href: 'reembolsos.html', primary: true }],
       });
     }

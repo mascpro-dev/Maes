@@ -392,7 +392,8 @@ async function initRefundAssistant(supabase, userId) {
       service_date: null,
       provider_name: null,
       service_type: null,
-      recipient_label: 'Operadora do teu plano de saúde (canal Conta Mãe)',
+      recipient_label:
+        'Plano de saúde ou genitor (envio por ti, com relatório impresso do Conta Mãe)',
     });
 
     if (insErr) {
@@ -411,7 +412,7 @@ async function initRefundAssistant(supabase, userId) {
     } catch (e) { /* ignore */ }
 
     window.AuraDashboard?.refreshRefundPendingLabel?.();
-    if (typeof showToast === 'function') showToast('Recibo enviado — status pendente ✓');
+    if (typeof showToast === 'function') showToast('Recibo em Pendentes — confere e dá OK em Meus reembolsos ✓');
   });
 }
 

@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS public.refunds (
   service_date date,
   provider_name text,
   service_type text,
-  recipient_label text NOT NULL DEFAULT 'Operadora do teu plano de saúde (canal Conta Mãe)',
+  recipient_label text NOT NULL DEFAULT 'Plano de saúde ou genitor (envio por ti, com relatório impresso do Conta Mãe)',
   ocr_confidence integer,
   raw_ocr_snippet text,
   created_at timestamptz NOT NULL DEFAULT timezone('utc'::text, now()),
@@ -147,8 +147,12 @@ ALTER TABLE public.refunds ADD COLUMN IF NOT EXISTS created_at timestamptz;
 ALTER TABLE public.refunds ADD COLUMN IF NOT EXISTS updated_at timestamptz;
 
 UPDATE public.refunds
-SET recipient_label = 'Operadora do teu plano de saúde (canal Conta Mãe)'
+SET recipient_label = 'Plano de saúde ou genitor (envio por ti, com relatório impresso do Conta Mãe)'
 WHERE recipient_label IS NULL OR trim(recipient_label) = '';
+
+UPDATE public.refunds
+SET recipient_label = 'Plano de saúde ou genitor (envio por ti, com relatório impresso do Conta Mãe)'
+WHERE recipient_label = 'Operadora do teu plano de saúde (canal Conta Mãe)';
 
 UPDATE public.refunds
 SET created_at = timezone('utc'::text, now())

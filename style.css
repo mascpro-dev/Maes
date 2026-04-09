@@ -2397,6 +2397,38 @@ a.btn-scan {
   box-shadow: var(--shadow-sm);
 }
 
+.reemb-card--pending {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.reemb-card__ok {
+  margin-top: 14px;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 11px;
+  border: none;
+  background: linear-gradient(135deg, var(--sage-mid), var(--sage));
+  color: #fff;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(122, 158, 126, 0.35);
+  transition: filter var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+
+.reemb-card__ok:hover:not(:disabled),
+.reemb-card__ok:focus-visible:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.reemb-card__ok:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
 .reemb-card__top {
   display: flex;
   align-items: center;
@@ -2524,19 +2556,20 @@ a.btn-scan {
 
 .reemb-affiliate__stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+  align-items: stretch;
 }
 
 .reemb-affiliate__stat {
-  background: var(--white);
-  border: 1px solid rgba(196,122,91,.16);
-  border-radius: 12px;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(122, 158, 126, 0.28);
+  border-radius: 14px;
+  padding: 0;
+  min-height: 0;
+  box-shadow: 0 2px 12px rgba(45, 42, 38, 0.06);
+  overflow: hidden;
 }
 
 .reemb-affiliate__stat-label {
@@ -2572,11 +2605,40 @@ a.btn-scan {
   font-size: 0.85rem;
   line-height: 1.55;
   color: var(--ink-light, #7a7166);
-  margin: 0 0 1.25rem;
+  margin: 0 0 1rem;
   padding: 12px 14px;
   border-radius: 12px;
   background: rgba(122, 158, 126, 0.1);
   border: 1px solid rgba(122, 158, 126, 0.22);
+}
+
+.reemb-report-btn {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 0 6px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(122, 158, 126, 0.5);
+  background: var(--sage-mid, #8fad8a);
+  color: #fff;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+}
+
+.reemb-report-btn:hover,
+.reemb-report-btn:focus-visible {
+  filter: brightness(1.06);
+}
+
+.reemb-report-hint {
+  font-size: 0.75rem;
+  color: var(--ink-light, #7a7166);
+  margin: 0 0 1.35rem;
+  line-height: 1.4;
 }
 
 .reemb-sent-hint {
@@ -2603,56 +2665,93 @@ a.btn-scan {
 .reemb-affiliate__stat--action {
   display: flex;
   flex-direction: column;
+  min-height: 148px;
+}
+
+.reemb-affiliate__stat-head {
+  padding: 14px 14px 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   align-items: flex-start;
-  gap: 10px;
+}
+
+.reemb-affiliate__stat-actions {
+  margin-top: auto;
+  padding: 12px 14px 14px;
+  border-top: 1px solid rgba(122, 158, 126, 0.15);
+  background: rgba(122, 158, 126, 0.06);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .reemb-affiliate__stat-foot {
   font-size: 0.72rem;
   font-weight: 400;
   color: var(--ink-light, #7a7166);
-  margin: -4px 0 0;
-  line-height: 1.35;
+  margin: 4px 0 0;
+  line-height: 1.4;
 }
 
 .reemb-affiliate__action-btn {
   width: 100%;
-  margin-top: 4px;
+  margin: 0;
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid rgba(122, 158, 126, 0.45);
-  background: rgba(122, 158, 126, 0.12);
+  border: 1px solid rgba(122, 158, 126, 0.4);
+  background: #fff;
   color: #3d5a40;
-  font-size: 0.78rem;
-  font-weight: 600;
+  font-size: 0.76rem;
+  font-weight: 700;
   font-family: inherit;
   cursor: pointer;
   text-align: center;
   line-height: 1.35;
+  box-sizing: border-box;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
 
 .reemb-affiliate__action-btn:hover,
 .reemb-affiliate__action-btn:focus-visible {
-  background: rgba(122, 158, 126, 0.2);
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(122, 158, 126, 0.65);
 }
 
 .reemb-affiliate__action-link {
-  display: inline-block;
-  margin-top: 2px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #5a7d5e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(122, 158, 126, 0.4);
+  background: #fff;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #3d5a40;
   text-decoration: none;
+  text-align: center;
+  line-height: 1.35;
+  box-sizing: border-box;
+  transition: background var(--dur) var(--ease), border-color var(--dur) var(--ease);
 }
 
 .reemb-affiliate__action-link:hover,
 .reemb-affiliate__action-link:focus-visible {
-  text-decoration: underline;
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(122, 158, 126, 0.65);
+  text-decoration: none;
 }
 
-@media (max-width: 430px) {
+@media (max-width: 520px) {
   .reemb-affiliate__stats {
     grid-template-columns: 1fr;
+  }
+
+  .reemb-affiliate__stat--action {
+    min-height: 0;
   }
 }
 

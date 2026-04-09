@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>CONTA MÃE — Reembolsos</title>
   <meta name="description"
-    content="Acompanhe reembolsos pendentes e enviados ao plano de saúde no Aura." />
+    content="Organize recibos, gere um relatório para imprimir e envie ao plano de saúde ou genitor — Conta Mãe." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -54,23 +54,33 @@
       </a>
 
       <p class="reemb-analysis-note" id="reemb-analysis-note">
-        Os pedidos abaixo são <strong>teus</strong>: a conferência documental e o encaminhamento à operadora são feitos pela
-        equipa Conta Mãe em conjunto com o fluxo do teu plano de saúde.
+        <strong>Importante:</strong> o Conta Mãe <strong>não envia</strong> documentos ao teu plano de saúde nem a terceiros.
+        O app <strong>recebe</strong> os teus recibos, <strong>organiza</strong> os dados e permite <strong>gerar um relatório
+        para imprimires</strong> — és <strong>tu</strong> quem entrega o papel ao <strong>convénio</strong> ou ao
+        <strong>genitor</strong>, quando for preciso.
       </p>
+
+      <button type="button" class="reemb-report-btn" id="btn-reemb-print-report">
+        Gerar relatório para imprimir
+      </button>
+      <p class="reemb-report-hint" id="reemb-report-hint">O relatório lista só pedidos com OK em Pendentes. Junta o papel aos
+        recibos antes de enviar ao plano ou genitor.</p>
 
       <section class="reemb-section" aria-labelledby="reemb-pending-heading">
         <h2 class="reemb-section__title" id="reemb-pending-heading">Pendentes</h2>
-        <p class="reemb-empty" id="reemb-pending-empty" hidden>Nenhum pedido pendente. Envios pelo scanner ou pelo cartão
-          do painel aparecem aqui quando estiverem em análise.</p>
+        <p class="reemb-empty" id="reemb-pending-empty" hidden>Quando escaneares ou enviares um recibo pelo painel, ele
+          aparece aqui primeiro. Confere valor, data e prestador e toca em <strong>Tudo certo — incluir no relatório</strong>
+          para o mover à secção de baixo.</p>
         <ul class="reemb-list" id="reemb-pending-list" role="list"></ul>
       </section>
 
       <section class="reemb-section" aria-labelledby="reemb-sent-heading">
-        <h2 class="reemb-section__title" id="reemb-sent-heading">Enviados recentemente</h2>
+        <h2 class="reemb-section__title" id="reemb-sent-heading">Registados (relatório)</h2>
         <p class="reemb-sent-hint" id="reemb-sent-hint">
-          Estes pedidos já foram submetidos por ti no app e encaminhados para a operadora do teu plano (canal Conta Mãe).
+          Só entram aqui os pedidos em que deste <strong>OK em Pendentes</strong> (após conferir o scan). Estes entram no
+          <strong>relatório para impressão</strong> — a entrega ao plano ou ao genitor é sempre feita por ti.
         </p>
-        <p class="reemb-empty" id="reemb-sent-empty" hidden>Ainda não há envios concluídos registados.</p>
+        <p class="reemb-empty" id="reemb-sent-empty" hidden>Ainda não há pedidos nesta lista.</p>
         <ul class="reemb-list" id="reemb-sent-list" role="list"></ul>
       </section>
 
@@ -94,18 +104,26 @@
 
         <div class="reemb-affiliate__stats" aria-label="Resumo de comissão e rede">
           <article class="reemb-affiliate__stat reemb-affiliate__stat--action">
-            <span class="reemb-affiliate__stat-label">Comissão pendente</span>
-            <strong class="reemb-affiliate__stat-value" id="reemb-commission-pending">R$ 0,00</strong>
-            <button type="button" class="reemb-affiliate__action-btn" id="btn-pix-withdraw">
-              Pedir saque via PIX (−R$ 10 por transferência)
-            </button>
+            <div class="reemb-affiliate__stat-head">
+              <span class="reemb-affiliate__stat-label">Comissão pendente</span>
+              <strong class="reemb-affiliate__stat-value" id="reemb-commission-pending">R$ 0,00</strong>
+            </div>
+            <div class="reemb-affiliate__stat-actions">
+              <button type="button" class="reemb-affiliate__action-btn" id="btn-pix-withdraw">
+                Pedir saque via PIX (−R$ 10)
+              </button>
+            </div>
           </article>
           <article class="reemb-affiliate__stat reemb-affiliate__stat--action">
-            <span class="reemb-affiliate__stat-label">Rede (pessoas na tua árvore)</span>
-            <strong class="reemb-affiliate__stat-value" id="reemb-network-count">0</strong>
-            <p class="reemb-affiliate__stat-foot" id="reemb-network-detail">Indicados diretos: 0</p>
-            <a href="indicados.html" class="reemb-affiliate__action-link" id="btn-open-referrals">Ver indicadas e enviar
-              mensagem</a>
+            <div class="reemb-affiliate__stat-head">
+              <span class="reemb-affiliate__stat-label">Rede (pessoas na árvore)</span>
+              <strong class="reemb-affiliate__stat-value" id="reemb-network-count">0</strong>
+              <p class="reemb-affiliate__stat-foot" id="reemb-network-detail">Indicados diretos: 0</p>
+            </div>
+            <div class="reemb-affiliate__stat-actions">
+              <a href="indicados.html" class="reemb-affiliate__action-link" id="btn-open-referrals">Ver indicadas ·
+                mensagens</a>
+            </div>
           </article>
         </div>
 

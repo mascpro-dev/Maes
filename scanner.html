@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>CONTA MÃE — Escanear Recibo</title>
-  <meta name="description" content="Escaneie seu recibo médico com IA. O Assistente de Reembolso Aura detecta automaticamente valor, data e prestador para envio ao plano de saúde." />
+  <meta name="description" content="Digitalize o recibo: o Conta Mãe lê valor, data e prestador para organizares pedidos de reembolso e gerares relatório para imprimir." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -221,9 +221,9 @@
 
     <!-- ══ CONFIRM BUTTON ════════════════════════════════════ -->
     <div class="confirm-wrap" id="confirm-wrap">
-      <button class="btn-confirm" id="btn-confirm" aria-label="Confirmar dados e enviar para o plano de saúde">
+      <button class="btn-confirm" id="btn-confirm" aria-label="Confirmar dados e guardar no app para o relatório de reembolso">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 2 11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-        Confirmar e Enviar para o Plano
+        Confirmar e guardar no app
       </button>
       <p class="confirm-sub">Dados criptografados · LGPD compliant</p>
     </div>
@@ -234,8 +234,8 @@
         <div class="success-icon">
           <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
-        <h2 class="success-title">Reembolso enviado!</h2>
-        <p class="success-sub" id="success-amount-line">Pedido registado e encaminhado ao fluxo do plano.</p>
+        <h2 class="success-title">Pedido guardado!</h2>
+        <p class="success-sub" id="success-amount-line">Recibo registado no Conta Mãe.</p>
         <p class="success-sub success-sub--muted" id="success-sub-dynamic"></p>
         <button class="btn-success-close" id="btn-success-close">Voltar ao início</button>
       </div>

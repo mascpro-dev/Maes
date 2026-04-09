@@ -43,22 +43,27 @@ function amountLine(row) {
 }
 
 function statusLabel(status) {
-  if (status === 'enviado') return 'Enviado';
+  if (status === 'enviado') return 'No relatório';
   if (status === 'cancelado') return 'Cancelado';
-  return 'Aguardando análise';
+  return 'A conferir';
 }
 
-function renderRefundCard(row, { showRecipient }) {
+function renderRefundCard(row, { showRecipient, showOkButton }) {
   const tag = (row.service_type || 'Recibo').trim() || 'Recibo';
   const provider = (row.provider_name || 'Prestador não indicado').trim();
   const metaDate = formatRefundDate(row);
   const amount = amountLine(row);
   const recipient =
     showRecipient && row.recipient_label
-      ? `<p class="reemb-card__recipient">Encaminhado a: ${esc(row.recipient_label)}</p>`
+      ? `<p class="reemb-card__recipient">Sugestão de destino (envio por ti): ${esc(row.recipient_label)}</p>`
       : '';
   const okClass = row.status === 'enviado' ? ' reemb-card__status--ok' : '';
   const cardClass = row.status === 'enviado' ? 'reemb-card reemb-card--done' : 'reemb-card reemb-card--pending';
+  const rid = row.id ? esc(String(row.id)) : '';
+  const okBtn =
+    showOkButton && rid
+      ? `<button type="button" class="reemb-card__ok" data-reemb-ok="${rid}">Tudo certo — incluir no relatório</button>`
+      : '';
 
   return `<li>
     <article class="${cardClass}">
@@ -69,6 +74,7 @@ function renderRefundCard(row, { showRecipient }) {
       <p class="reemb-card__provider">${esc(provider)}</p>
       <p class="reemb-card__meta">${esc(metaDate)} · ${amount}</p>
       ${recipient}
+      ${okBtn}
     </article>
   </li>`;
 }
@@ -79,13 +85,13 @@ function setSummary(count) {
 
   if (count === 0) {
     summaryEl.textContent =
-      'Nenhum reembolso pendente no momento. Quando escanear um recibo ou enviar pelo painel, ele aparecerá aqui.';
+      'Nenhum pedido a conferir. Novos scans ou envios pelo painel aparecem em Pendentes até confirmares com OK.';
     return;
   }
 
   const pedido = count === 1 ? 'pedido' : 'pedidos';
   const verb = count === 1 ? 'aguarda' : 'aguardam';
-  summaryEl.innerHTML = `Tens <strong id="reemb-pending-count">${count}</strong> ${pedido} que ${verb} envio ou análise.`;
+  summaryEl.innerHTML = `Tens <strong id="reemb-pending-count">${count}</strong> ${pedido} que ${verb} a tua confirmação (OK) para entrarem no relatório.`;
 }
 
 function renderRefundLists(rows) {
@@ -98,7 +104,9 @@ function renderRefundLists(rows) {
   const sent = (rows || []).filter((r) => r.status === 'enviado');
 
   if (pendingList) {
-    pendingList.innerHTML = pending.map((r) => renderRefundCard(r, { showRecipient: false })).join('');
+    pendingList.innerHTML = pending
+      .map((r) => renderRefundCard(r, { showRecipient: false, showOkButton: true }))
+      .join('');
   }
   if (sentList) {
     sentList.innerHTML = sent.map((r) => renderRefundCard(r, { showRecipient: true })).join('');
@@ -120,6 +128,71 @@ function renderRefundLists(rows) {
   if (typeof window.AuraDashboard?.refreshRefundPendingLabel === 'function') {
     window.AuraDashboard.refreshRefundPendingLabel();
   }
+}
+
+/** Última lista carregada (para relatório impresso). */
+let cachedRefundRows = [];
+
+function openPrintableReport(rows) {
+  const list = (rows || []).filter((r) => r.status === 'enviado');
+  if (!list.length) {
+    window.alert(
+      'Ainda não há pedidos no relatório. Confirma primeiro os itens em Pendentes com «Tudo certo — incluir no relatório».'
+    );
+    return;
+  }
+  const generated = new Date().toLocaleString('pt-BR');
+  const rowsHtml = list
+    .map((r) => {
+      const st = statusLabel(r.status);
+      const prov = esc((r.provider_name || '—').trim());
+      const dt = esc(formatRefundDate(r));
+      const val =
+        r.amount_cents != null && Number.isFinite(Number(r.amount_cents))
+          ? esc(toMoney(r.amount_cents))
+          : '—';
+      const tipo = esc((r.service_type || '—').trim());
+      return `<tr><td>${esc(st)}</td><td>${tipo}</td><td>${prov}</td><td>${dt}</td><td>${val}</td></tr>`;
+    })
+    .join('');
+
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"/><title>Relatório de reembolsos — Conta Mãe</title>
+<style>
+  body{font-family:system-ui,-apple-system,sans-serif;padding:20px;color:#1a1714;max-width:800px;margin:0 auto;}
+  h1{font-size:1.25rem;margin:0 0 8px;}
+  .lead{font-size:.85rem;color:#444;line-height:1.5;margin:0 0 16px;}
+  .meta{font-size:.75rem;color:#666;margin-bottom:20px;}
+  table{width:100%;border-collapse:collapse;font-size:.8rem;}
+  th,td{border:1px solid #ccc;padding:8px;text-align:left;}
+  th{background:#f0f4f1;}
+  .foot{margin-top:24px;font-size:.75rem;color:#555;line-height:1.5;}
+  @media print{body{padding:12px}}
+</style></head><body>
+  <h1>Relatório de pedidos de reembolso</h1>
+  <p class="lead">Conta Mãe — resumo gerado pela titular para <strong>impressão</strong>. Junta este documento aos recibos originais e envia <strong>tu</strong> ao teu plano de saúde ou ao genitor, conforme o teu caso. O Conta Mãe não envia estes papéis por ti.</p>
+  <p class="meta">Gerado em ${esc(generated)}</p>
+  <table>
+    <thead><tr><th>Estado</th><th>Tipo</th><th>Prestador</th><th>Data</th><th>Valor</th></tr></thead>
+    <tbody>${rowsHtml}</tbody>
+  </table>
+  <p class="foot">Assinatura: ________________________________ &nbsp; Data: ____/____/________</p>
+</body></html>`;
+
+  const w = window.open('', '_blank', 'noopener,noreferrer');
+  if (!w) {
+    window.alert('Permite pop-ups para abrir o relatório.');
+    return;
+  }
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(() => {
+    try {
+      w.print();
+    } catch (_) {
+      /* ignore */
+    }
+  }, 250);
 }
 
 async function getSupabaseUser() {
@@ -168,8 +241,38 @@ async function loadRefundsFromSupabase() {
     return;
   }
 
-  renderRefundLists(data || []);
+  cachedRefundRows = data || [];
+  renderRefundLists(cachedRefundRows);
 }
+
+document.getElementById('btn-reemb-print-report')?.addEventListener('click', () => {
+  openPrintableReport(cachedRefundRows);
+});
+
+document.getElementById('reemb-pending-list')?.addEventListener('click', async (ev) => {
+  const btn = ev.target.closest('[data-reemb-ok]');
+  if (!btn) return;
+  const id = btn.getAttribute('data-reemb-ok');
+  if (!id) return;
+  const auth = await getSupabaseUser();
+  if (!auth) {
+    window.alert('Sessão expirada. Entra de novo.');
+    return;
+  }
+  btn.disabled = true;
+  const { supabase, userId } = auth;
+  const { error } = await supabase
+    .from('refunds')
+    .update({ status: 'enviado' })
+    .eq('id', id)
+    .eq('user_id', userId);
+  btn.disabled = false;
+  if (error) {
+    window.alert('Não foi possível confirmar: ' + (error.message || 'erro'));
+    return;
+  }
+  await loadRefundsFromSupabase();
+});
 
 function createCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -221,7 +324,7 @@ function getDefaultBaseUrl() {
     return next;
   }
 
-  function renderState(state, source) {
+  function renderState(state) {
     const base = (state.referral_base_url || getDefaultBaseUrl()).replace(/\/$/, '');
     const code = (state.referral_code || '').trim();
     linkEl.value = code ? `${base}?ref=${encodeURIComponent(code)}` : '';
@@ -232,9 +335,7 @@ function getDefaultBaseUrl() {
       return;
     }
     statusEl.textContent =
-      source === 'supabase'
-        ? 'Programa em preparação: os dados estão ligados ao Supabase; a comissão de 3% será aplicada quando os pagamentos no app estiverem ativos.'
-        : 'Programa em preparação: o teu link já está pronto; a comissão de 3% sobre o que as tuas indicadas diretas pagarem no app entrará quando o programa estiver ativo.';
+      'Programa em preparação: o teu link já está pronto; a comissão de 3% sobre o que as tuas indicadas diretas pagarem no app entrará quando o programa estiver ativo.';
   }
 
   copyBtn.addEventListener('click', async () => {
@@ -296,12 +397,12 @@ function getDefaultBaseUrl() {
           console.warn('[reembolsos] partner_program_accounts:', error.message);
         }
         const local = saveState(loadState());
-        renderState(local, 'local');
+        renderState(local);
         return;
       }
 
       if (row) {
-        renderState(row, 'supabase');
+        renderState(row);
         saveState({
           enabled: !!row.enabled,
           referral_code: row.referral_code || createCode(),
@@ -327,7 +428,7 @@ function getDefaultBaseUrl() {
         .single();
 
       if (!insErr && inserted) {
-        renderState(inserted, 'supabase');
+        renderState(inserted);
         saveState({
           enabled: !!inserted.enabled,
           referral_code: inserted.referral_code || createCode(),
@@ -338,11 +439,11 @@ function getDefaultBaseUrl() {
       }
 
       const local = saveState(loadState());
-      renderState(local, 'local');
+      renderState(local);
     }
 
     const local = saveState(loadState());
-    renderState(local, 'local');
+    renderState(local);
     networkCountEl.textContent = '0';
     if (networkDetailEl) networkDetailEl.textContent = 'Inicia sessão para veres a tua rede.';
   })();

@@ -3,7 +3,8 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm';
 
 const STORAGE_BUCKET = 'receipts';
-const DEFAULT_RECIPIENT = 'Operadora do teu plano de saúde (canal Conta Mãe)';
+const DEFAULT_RECIPIENT =
+  'Plano de saúde ou genitor (envio por ti, com relatório impresso do Conta Mãe)';
 
 const inputCamera = document.getElementById('input-camera');
 const inputGallery = document.getElementById('input-gallery');
@@ -545,7 +546,7 @@ async function main() {
 
         const row = {
           user_id: userId,
-          status: 'enviado',
+          status: 'pendente',
           receipt_path: path,
           amount_cents: amountCents,
           service_date: toISODate(serviceDate),
@@ -581,11 +582,11 @@ async function main() {
 
         const amountLine = formatBRL(amountCents);
         if (successAmountEl) {
-          successAmountEl.innerHTML = `Pedido de <strong>${amountLine}</strong> registado e encaminhado ao fluxo do plano.`;
+          successAmountEl.innerHTML = `Pedido de <strong>${amountLine}</strong> está em <strong>Pendentes</strong>. Confere os dados e toca em <strong>Tudo certo</strong> para o passar ao relatório.`;
         }
         if (successSubEl) {
           successSubEl.textContent =
-            'Prazo estimado de resposta da operadora: 5–7 dias úteis (varia por convênio).';
+            'Só depois desse OK é que o pedido entra na lista para imprimires e enviares tu ao plano ou ao genitor.';
         }
         successOverlay && successOverlay.classList.remove('hidden');
       } finally {
