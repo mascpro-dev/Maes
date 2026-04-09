@@ -6,7 +6,7 @@ create table if not exists public.partner_program_accounts (
   user_id uuid primary key references public.profiles (id) on delete cascade,
   enabled boolean not null default false,
   referral_code text not null unique,
-  referral_base_url text not null default 'https://contamae.app/indicacao',
+  referral_base_url text not null default '',
   commission_pending_cents bigint not null default 0,
   cashback_pending_cents bigint not null default 0,
   total_released_cents bigint not null default 0,

@@ -316,24 +316,37 @@ function createCode() {
 
 /**
  * URL absoluta da landing de indicação (pasta indicacao/ com index.html).
- * Compatível com links do tipo /indicacao?ref= no mesmo domínio que o resto do app.
+ * Usa o mesmo domínio em que a app está aberta (https). Opcional: AURA_APP_PUBLIC_URL em supabase-config.js.
  */
 function getReferralLandingUrl() {
+  if (typeof window === 'undefined') return '';
+
+  const configured =
+    typeof window.AURA_APP_PUBLIC_URL === 'string' ? window.AURA_APP_PUBLIC_URL.trim().replace(/\/$/, '') : '';
+
   try {
     const u = new URL(window.location.href);
-    let path = u.pathname;
-    const marker = '/indicacao';
-    const idx = path.indexOf(marker);
-    if (idx >= 0) {
-      const basePath = path.slice(0, idx + marker.length);
-      return `${u.origin}${basePath}/`.replace(/\/+$/, '/');
+    if (u.protocol === 'http:' || u.protocol === 'https:') {
+      let path = u.pathname;
+      const marker = '/indicacao';
+      const idx = path.indexOf(marker);
+      if (idx >= 0) {
+        const basePath = path.slice(0, idx + marker.length);
+        return `${u.origin}${basePath}/`;
+      }
+      const i = path.lastIndexOf('/');
+      const dir = i >= 0 ? path.slice(0, i + 1) : '/';
+      return `${u.origin}${dir}indicacao/`;
     }
-    const i = path.lastIndexOf('/');
-    const dir = i >= 0 ? path.slice(0, i + 1) : '/';
-    return `${u.origin}${dir}indicacao/`;
   } catch (_) {
-    return 'https://contamae.app/indicacao/';
+    /* ignore */
   }
+
+  if (configured) {
+    return `${configured}/indicacao/`;
+  }
+
+  return '';
 }
 
 function buildAffiliateShareLink(code) {
