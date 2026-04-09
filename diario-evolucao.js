@@ -815,6 +815,17 @@ async function main() {
   });
 
   btnRel.addEventListener('click', async () => {
+    // Abre imediatamente para não cair no bloqueio de popup após awaits.
+    const w = window.open('', '_blank');
+    if (!w) {
+      showToast('Permite pop-ups para abrir o relatório.');
+      return;
+    }
+    w.document.write(
+      '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"/><title>Gerando relatório…</title></head><body style="font-family:system-ui,sans-serif;padding:24px;color:#2d2a26;">Gerando relatório…</body></html>'
+    );
+    w.document.close();
+
     const start = dateKeyLocal(weekStart);
     const end = dateKeyLocal(addDays(weekStart, 6));
     const rangeLabel = formatRange(weekStart, addDays(weekStart, 6));
@@ -831,6 +842,11 @@ async function main() {
         .order('created_at', { ascending: true });
       if (error) {
         showToast('Não foi possível carregar os registos da nuvem.');
+        w.document.open();
+        w.document.write(
+          '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"/><title>Erro no relatório</title></head><body style="font-family:system-ui,sans-serif;padding:24px;color:#2d2a26;">Não foi possível carregar os registos da nuvem.</body></html>'
+        );
+        w.document.close();
         return;
       }
       cloudRows = data || [];
@@ -886,11 +902,7 @@ th{background:#e8f2e9;}
 <p style="margin-top:20px;font-size:.8rem;color:#a09a92;">Documento gerado para partilha com profissionais de saúde. Confirme os dados antes de enviar.</p>
 </body></html>`;
 
-    const w = window.open('', '_blank', 'noopener,noreferrer');
-    if (!w) {
-      showToast('Permite pop-ups para abrir o relatório.');
-      return;
-    }
+    w.document.open();
     w.document.write(html);
     w.document.close();
     w.focus();

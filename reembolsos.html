@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="aura-auth-checking">
 
 <head>
   <meta charset="UTF-8" />
@@ -48,56 +48,34 @@
     </header>
 
     <main class="reemb-main" role="main">
-      <p class="reemb-intro" id="reemb-summary">Você tem <strong id="reemb-pending-count">2</strong> pedidos que aguardam
-        envio ou análise.</p>
+      <p class="reemb-intro" id="reemb-summary">A carregar os teus reembolsos…</p>
       <a href="#reemb-affiliate-heading" class="reemb-affiliate-jump">
-        Ver link de indicação e cashback
+        Ver link de indicação e comissões
       </a>
+
+      <p class="reemb-analysis-note" id="reemb-analysis-note">
+        Os pedidos abaixo são <strong>teus</strong>: a conferência documental e o encaminhamento à operadora são feitos pela
+        equipa Conta Mãe em conjunto com o fluxo do teu plano de saúde.
+      </p>
 
       <section class="reemb-section" aria-labelledby="reemb-pending-heading">
         <h2 class="reemb-section__title" id="reemb-pending-heading">Pendentes</h2>
-        <ul class="reemb-list" role="list">
-          <li>
-            <article class="reemb-card reemb-card--pending">
-              <div class="reemb-card__top">
-                <span class="reemb-card__tag">Fisioterapia</span>
-                <span class="reemb-card__status">Pendente</span>
-              </div>
-              <p class="reemb-card__provider">Clínica Crescer — Moema</p>
-              <p class="reemb-card__meta">28 mar 2026 · <strong>R$ 180,00</strong></p>
-            </article>
-          </li>
-          <li>
-            <article class="reemb-card reemb-card--pending">
-              <div class="reemb-card__top">
-                <span class="reemb-card__tag">Consulta</span>
-                <span class="reemb-card__status">Aguardando análise</span>
-              </div>
-              <p class="reemb-card__provider">Dra. Helena Martins — Neurologia</p>
-              <p class="reemb-card__meta">15 mar 2026 · <strong>R$ 350,00</strong></p>
-            </article>
-          </li>
-        </ul>
+        <p class="reemb-empty" id="reemb-pending-empty" hidden>Nenhum pedido pendente. Envios pelo scanner ou pelo cartão
+          do painel aparecem aqui quando estiverem em análise.</p>
+        <ul class="reemb-list" id="reemb-pending-list" role="list"></ul>
       </section>
 
       <section class="reemb-section" aria-labelledby="reemb-sent-heading">
         <h2 class="reemb-section__title" id="reemb-sent-heading">Enviados recentemente</h2>
-        <ul class="reemb-list" role="list">
-          <li>
-            <article class="reemb-card reemb-card--done">
-              <div class="reemb-card__top">
-                <span class="reemb-card__tag">Exame</span>
-                <span class="reemb-card__status reemb-card__status--ok">Enviado</span>
-              </div>
-              <p class="reemb-card__provider">Laboratório Vida</p>
-              <p class="reemb-card__meta">2 mar 2026 · R$ 89,00</p>
-            </article>
-          </li>
-        </ul>
+        <p class="reemb-sent-hint" id="reemb-sent-hint">
+          Estes pedidos já foram submetidos por ti no app e encaminhados para a operadora do teu plano (canal Conta Mãe).
+        </p>
+        <p class="reemb-empty" id="reemb-sent-empty" hidden>Ainda não há envios concluídos registados.</p>
+        <ul class="reemb-list" id="reemb-sent-list" role="list"></ul>
       </section>
 
       <section class="reemb-section reemb-section--affiliate" aria-labelledby="reemb-affiliate-heading">
-        <h2 class="reemb-section__title" id="reemb-affiliate-heading">Indicações e cashback</h2>
+        <h2 class="reemb-section__title" id="reemb-affiliate-heading">Indicações e comissão</h2>
         <p class="reemb-affiliate__intro" id="reemb-affiliate-status">
           Estamos a preparar o programa de parceiros. Já deixamos o teu link pronto para ativar.
         </p>
@@ -109,28 +87,31 @@
             <button type="button" class="reemb-affiliate__copy" id="btn-copy-affiliate-link">Copiar</button>
           </div>
           <p class="reemb-affiliate__hint">
-            Quando os parceiros entrarem no ar, compras por este link vão gerar comissão e cashback.
+            Comissão de <strong>3%</strong> sobre tudo o que as tuas indicadas <strong>diretas</strong> pagarem pelo app,
+            quando o programa estiver ativo e ligado a pagamentos.
           </p>
         </div>
 
-        <div class="reemb-affiliate__stats" aria-label="Resumo de comissões e cashback">
-          <article class="reemb-affiliate__stat">
+        <div class="reemb-affiliate__stats" aria-label="Resumo de comissão e rede">
+          <article class="reemb-affiliate__stat reemb-affiliate__stat--action">
             <span class="reemb-affiliate__stat-label">Comissão pendente</span>
             <strong class="reemb-affiliate__stat-value" id="reemb-commission-pending">R$ 0,00</strong>
+            <button type="button" class="reemb-affiliate__action-btn" id="btn-pix-withdraw">
+              Pedir saque via PIX (−R$ 10 por transferência)
+            </button>
           </article>
-          <article class="reemb-affiliate__stat">
-            <span class="reemb-affiliate__stat-label">Cashback pendente</span>
-            <strong class="reemb-affiliate__stat-value" id="reemb-cashback-pending">R$ 0,00</strong>
-          </article>
-          <article class="reemb-affiliate__stat">
-            <span class="reemb-affiliate__stat-label">Total já liberado</span>
-            <strong class="reemb-affiliate__stat-value" id="reemb-total-released">R$ 0,00</strong>
+          <article class="reemb-affiliate__stat reemb-affiliate__stat--action">
+            <span class="reemb-affiliate__stat-label">Rede (pessoas na tua árvore)</span>
+            <strong class="reemb-affiliate__stat-value" id="reemb-network-count">0</strong>
+            <p class="reemb-affiliate__stat-foot" id="reemb-network-detail">Indicados diretos: 0</p>
+            <a href="indicados.html" class="reemb-affiliate__action-link" id="btn-open-referrals">Ver indicadas e enviar
+              mensagem</a>
           </article>
         </div>
 
-        <a href="mailto:marceloconelheiros@conexoes.digital?subject=Interesse%20em%20parcerias%20e%20cashback"
-          class="reemb-affiliate__partner-link">
-          Quero indicar parceiros para o programa
+        <a href="https://wa.me/5514991570389?text=Ol%C3%A1%21%20Vim%20do%20app%20Conta%20M%C3%A3e%20e%20quero%20indicar%20um%20parceiro."
+          class="reemb-affiliate__partner-link" target="_blank" rel="noopener noreferrer">
+          Quero indicar parceiros para o programa (WhatsApp)
         </a>
       </section>
     </main>

@@ -808,6 +808,69 @@ a { text-decoration: none; }
 
 .success-sub strong { color: var(--white); }
 
+.success-sub--muted {
+  margin-top: -18px;
+  margin-bottom: 28px;
+  font-size: .78rem;
+  color: rgba(255,255,255,.45);
+}
+
+.scan-manual-panel {
+  margin: 0 16px 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  background: var(--cam-surface);
+  border: 1px solid var(--cam-border);
+  box-shadow: var(--shadow-sm);
+}
+
+.scan-manual-panel.hidden {
+  display: none;
+}
+
+.scan-manual-hint {
+  font-size: .78rem;
+  color: var(--ink-light);
+  margin: 0 0 12px;
+  line-height: 1.45;
+}
+
+.scan-manual-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 12px;
+}
+
+.scan-manual-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: .68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: rgba(245, 239, 228, 0.55);
+}
+
+.scan-manual-field--wide {
+  grid-column: 1 / -1;
+}
+
+.scan-manual-field input {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--cam-border);
+  background: rgba(0, 0, 0, 0.35);
+  color: var(--cream);
+}
+
+.scan-manual-field input::placeholder {
+  color: rgba(245, 239, 228, 0.35);
+}
+
 .btn-success-close {
   width: 100%;
   padding: 14px;

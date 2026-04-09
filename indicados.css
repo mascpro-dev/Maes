@@ -1,0 +1,98 @@
+.indicados-wrap {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 24px 18px 48px;
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+.indicados-header {
+  margin-bottom: 20px;
+}
+
+.indicados-back {
+  display: inline-block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #5a7d5e;
+  text-decoration: none;
+  margin-bottom: 12px;
+}
+
+.indicados-back:hover,
+.indicados-back:focus-visible {
+  text-decoration: underline;
+}
+
+.indicados-title {
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #1a1714;
+  margin: 0 0 8px;
+}
+
+.indicados-lead {
+  font-size: 0.88rem;
+  color: #5c564c;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.indicados-status {
+  font-size: 0.85rem;
+  color: #7a7166;
+  margin: 0 0 16px;
+  min-height: 1.2em;
+}
+
+.indicados-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.indicados-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #faf6ef;
+  border: 1px solid rgba(122, 158, 126, 0.25);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+.indicados-card__name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #1a1714;
+  margin: 0;
+}
+
+.indicados-card__meta {
+  font-size: 0.75rem;
+  color: #7a7166;
+  margin: 4px 0 0;
+}
+
+.indicados-card__btn {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  background: #7a9e7e;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: inherit;
+}
+
+.indicados-card__btn:hover,
+.indicados-card__btn:focus-visible {
+  filter: brightness(1.05);
+}

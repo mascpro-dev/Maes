@@ -388,6 +388,11 @@ async function initRefundAssistant(supabase, userId) {
       user_id: userId,
       status: REFUND_STATUS,
       receipt_path: path,
+      amount_cents: null,
+      service_date: null,
+      provider_name: null,
+      service_type: null,
+      recipient_label: 'Operadora do teu plano de saúde (canal Conta Mãe)',
     });
 
     if (insErr) {

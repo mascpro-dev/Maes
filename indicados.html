@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="aura-auth-checking">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>CONTA MÃE — As minhas indicadas</title>
+  <meta name="description" content="Vê quem entrou pela tua rede de indicação e abre conversa no app." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="indicados.css" />
+  <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" sizes="any" />
+  <meta name="theme-color" content="#7a9e7e" />
+</head>
+
+<body>
+  <script src="supabase-config.js"></script>
+  <script src="auth.js"></script>
+  <script type="module" src="auth-session-guard.js"></script>
+
+  <div class="indicados-wrap">
+    <header class="indicados-header">
+      <a href="reembolsos.html" class="indicados-back" aria-label="Voltar a reembolsos">← Voltar</a>
+      <h1 class="indicados-title">As minhas indicadas</h1>
+      <p class="indicados-lead">Pessoas que se registaram com o teu código. Podes enviar mensagem pelo Conta Mãe.</p>
+    </header>
+
+    <p class="indicados-status" id="indicados-status" aria-live="polite">A carregar…</p>
+    <ul class="indicados-list" id="indicados-list" role="list"></ul>
+  </div>
+
+  <script type="module" src="indicados.js"></script>
+  <script src="pwa.js"></script>
+</body>
+
+</html>

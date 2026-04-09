@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="aura-auth-checking">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -19,6 +19,9 @@
   <meta name="apple-mobile-web-app-title" content="CONTA MÃE" />
 </head>
 <body>
+  <script src="supabase-config.js"></script>
+  <script src="auth.js"></script>
+  <script type="module" src="auth-session-guard.js"></script>
 
   <div class="app-shell">
 
@@ -96,7 +99,7 @@
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
               <span>Valor detectado</span>
             </div>
-            <div class="ai-tag__value">R$&nbsp;250,00</div>
+            <div class="ai-tag__value">—</div>
             <div class="ai-tag__connector"></div>
           </div>
 
@@ -106,7 +109,7 @@
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
               <span>Data</span>
             </div>
-            <div class="ai-tag__value">02/04/2026</div>
+            <div class="ai-tag__value">—</div>
             <div class="ai-tag__connector"></div>
           </div>
 
@@ -116,19 +119,19 @@
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
               <span>Prestador</span>
             </div>
-            <div class="ai-tag__value">Clínica Crescer</div>
+            <div class="ai-tag__value">—</div>
             <div class="ai-tag__connector"></div>
           </div>
 
         </div><!-- /ai-tags -->
 
         <!-- Confidence indicator -->
-        <div class="confidence-bar" id="confidence-bar" aria-label="Confiança da leitura: 94%">
+        <div class="confidence-bar" id="confidence-bar" aria-label="Confiança da leitura">
           <span class="confidence-label">Confiança da leitura</span>
           <div class="confidence-track">
             <div class="confidence-fill" id="confidence-fill"></div>
           </div>
-          <span class="confidence-pct" id="confidence-pct">94%</span>
+          <span class="confidence-pct" id="confidence-pct">0%</span>
         </div>
 
       </div><!-- /viewfinder -->
@@ -141,13 +144,35 @@
 
     </main>
 
+    <div class="scan-manual-panel hidden" id="scan-manual-panel" aria-label="Confirmar dados do recibo">
+      <p class="scan-manual-hint">Confirma ou corrige o que foi lido do papel (obrigatório antes de enviar).</p>
+      <div class="scan-manual-grid">
+        <label class="scan-manual-field">
+          <span>Valor (R$)</span>
+          <input type="text" id="scan-field-valor" inputmode="decimal" placeholder="ex.: 180,50" autocomplete="off" />
+        </label>
+        <label class="scan-manual-field">
+          <span>Data (dd/mm/aaaa)</span>
+          <input type="text" id="scan-field-data" inputmode="numeric" placeholder="ex.: 09/04/2026" autocomplete="off" />
+        </label>
+        <label class="scan-manual-field scan-manual-field--wide">
+          <span>Prestador / estabelecimento</span>
+          <input type="text" id="scan-field-prestador" placeholder="Nome da clínica ou profissional" autocomplete="off" />
+        </label>
+        <label class="scan-manual-field scan-manual-field--wide">
+          <span>Tipo de serviço</span>
+          <input type="text" id="scan-field-tipo" placeholder="ex.: Consulta, fisioterapia, exame" autocomplete="off" />
+        </label>
+      </div>
+    </div>
+
     <!-- ══ DETECTED DATA STRIP ══════════════════════════════ -->
     <div class="data-strip" id="data-strip" aria-label="Dados detectados">
       <div class="data-chip" id="chip-valor">
         <span class="chip-icon">💰</span>
         <div>
           <span class="chip-label">Valor</span>
-          <span class="chip-val">R$ 250,00</span>
+          <span class="chip-val" id="chip-valor-val">—</span>
         </div>
       </div>
       <div class="data-divider"></div>
@@ -155,7 +180,7 @@
         <span class="chip-icon">📅</span>
         <div>
           <span class="chip-label">Data</span>
-          <span class="chip-val">02/04/2026</span>
+          <span class="chip-val" id="chip-data-val">—</span>
         </div>
       </div>
       <div class="data-divider"></div>
@@ -163,7 +188,7 @@
         <span class="chip-icon">🏥</span>
         <div>
           <span class="chip-label">Tipo</span>
-          <span class="chip-val">Consulta ABA</span>
+          <span class="chip-val" id="chip-tipo-val">—</span>
         </div>
       </div>
     </div>
@@ -210,7 +235,8 @@
           <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
         </div>
         <h2 class="success-title">Reembolso enviado!</h2>
-        <p class="success-sub">Seu pedido de <strong>R$ 250,00</strong> foi enviado ao plano.<br/>Prazo estimado: <strong>5–7 dias úteis</strong>.</p>
+        <p class="success-sub" id="success-amount-line">Pedido registado e encaminhado ao fluxo do plano.</p>
+        <p class="success-sub success-sub--muted" id="success-sub-dynamic"></p>
         <button class="btn-success-close" id="btn-success-close">Voltar ao início</button>
       </div>
     </div>
@@ -222,7 +248,7 @@
   <!-- INPUT OCULTO: abre galeria de fotos -->
   <input type="file" id="input-gallery" accept="image/*" style="display:none" aria-hidden="true" />
 
-  <script src="scanner.js"></script>
+  <script type="module" src="scanner-page.js"></script>
   <script src="pwa.js"></script>
 </body>
 </html>
