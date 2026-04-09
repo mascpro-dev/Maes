@@ -194,6 +194,8 @@ async function boot() {
   let realtimeChannel = null;
   let presenceTimer = null;
   let pollTimer = null;
+  let chatPollTimer = null;
+  let chatPollBusy = false;
   let headerCountTimer = null;
   const renderedIds = new Set();
   let lastMessagesForStage = [];
@@ -473,7 +475,61 @@ async function boot() {
     await refreshListenerCounts(presRows || []);
   }
 
+  function clearChatPoll() {
+    if (chatPollTimer) {
+      clearInterval(chatPollTimer);
+      chatPollTimer = null;
+    }
+    chatPollBusy = false;
+  }
+
+  /** Se o WebSocket Realtime falhar ou a tabela não estiver na publicação, mantém o chat atualizado. */
+  function startChatPollFallback(rid, myEpoch) {
+    clearChatPoll();
+    async function tick() {
+      if (myEpoch !== subscriptionEpoch || String(currentRoomId) !== String(rid)) {
+        clearChatPoll();
+        return;
+      }
+      if (chatPollBusy) return;
+      chatPollBusy = true;
+      try {
+        const { data: msgs, error } = await supabase
+          .from("community_room_messages")
+          .select(
+            "id, room_id, user_id, content, message_kind, created_at, recipient_user_id"
+          )
+          .eq("room_id", rid)
+          .order("created_at", { ascending: true })
+          .limit(120);
+        if (error || !msgs) return;
+        const newOnes = msgs.filter(function (m) {
+          return !renderedIds.has(m.id);
+        });
+        if (!newOnes.length) return;
+        const uids = [];
+        msgs.forEach(function (m) {
+          uids.push(m.user_id);
+          if (m.recipient_user_id) uids.push(m.recipient_user_id);
+        });
+        const profileMap = await resolveProfilesMap(supabase, uids, userId);
+        for (let i = 0; i < newOnes.length; i++) {
+          await renderMessageRecord(newOnes[i], profileMap);
+        }
+        lastMessagesForStage = msgs;
+        renderStageFromMessages(msgs, profileMap);
+      } catch (e) {
+        console.warn("[Aura] chat poll", e);
+      } finally {
+        chatPollBusy = false;
+      }
+    }
+    void tick();
+    chatPollTimer = setInterval(tick, 3500);
+  }
+
   async function stopRealtime() {
+    clearChatPoll();
     if (!realtimeChannel) return;
     const ch = realtimeChannel;
     realtimeChannel = null;
@@ -667,6 +723,7 @@ async function boot() {
     await stopRealtime();
     subscriptionEpoch++;
     const myEpoch = subscriptionEpoch;
+    let gotSubscribed = false;
     const ch = supabase
       .channel("comm-room-" + rid + "-" + myEpoch + "-" + Date.now())
       .on(
@@ -696,8 +753,36 @@ async function boot() {
           renderStageFromMessages(lastMessagesForStage, profileMap);
         }
       )
-      .subscribe();
+      .subscribe(function (status) {
+        if (status === "SUBSCRIBED") {
+          gotSubscribed = true;
+          clearChatPoll();
+        } else if (
+          status === "CHANNEL_ERROR" ||
+          status === "TIMED_OUT" ||
+          status === "CLOSED"
+        ) {
+          console.warn("[Aura] comunidade realtime:", status);
+          if (
+            myEpoch === subscriptionEpoch &&
+            String(currentRoomId) === String(rid)
+          ) {
+            startChatPollFallback(rid, myEpoch);
+          }
+        }
+      });
     realtimeChannel = ch;
+    setTimeout(function () {
+      if (myEpoch !== subscriptionEpoch || String(currentRoomId) !== String(rid)) {
+        return;
+      }
+      if (!gotSubscribed) {
+        console.warn(
+          "[Aura] comunidade: sem SUBSCRIBED a tempo — ativar publicação Realtime no Supabase ou usar polling"
+        );
+        startChatPollFallback(rid, myEpoch);
+      }
+    }, 8000);
   }
 
   async function openRoom(card) {

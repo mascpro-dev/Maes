@@ -108,7 +108,18 @@ on conflict (slug) do update set
 alter table public.community_room_messages
   add column if not exists recipient_user_id uuid references public.profiles (id) on delete set null;
 
--- alter publication supabase_realtime add table public.community_room_messages;
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'community_room_messages'
+  ) then
+    alter publication supabase_realtime add table public.community_room_messages;
+  end if;
+end $$;
 
 -- Perfis (nomes no chat) em lote — opcional mas recomendado
 create or replace function public.resolve_profiles_for_community_chat(p_user_ids uuid[])

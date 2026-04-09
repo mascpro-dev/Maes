@@ -111,8 +111,6 @@ on conflict (slug) do update set
   is_featured = excluded.is_featured,
   sort_order = excluded.sort_order;
 
--- Realtime: no painel Supabase → Database → Replication, ativa a tabela
--- community_room_messages (ou executa a linha abaixo uma vez).
--- alter publication supabase_realtime add table public.community_room_messages;
+-- Realtime: ver migração 20260408220000_community_messages_realtime.sql (publicação supabase_realtime).
 --
 -- Nomes no chat em lote: migrar também 20260408190000_resolve_chat_profiles.sql (ou COLE_SALAS_COMUNIDADE.sql).

@@ -24,6 +24,9 @@
 </head>
 
 <body>
+  <script src="supabase-config.js"></script>
+  <script src="auth.js"></script>
+  <script type="module" src="auth-session-guard.js"></script>
 
   <div class="app-wrapper app-wrapper--reemb">
 
@@ -89,6 +92,44 @@
           </li>
         </ul>
       </section>
+
+      <section class="reemb-section reemb-section--affiliate" aria-labelledby="reemb-affiliate-heading">
+        <h2 class="reemb-section__title" id="reemb-affiliate-heading">Indicações e cashback</h2>
+        <p class="reemb-affiliate__intro" id="reemb-affiliate-status">
+          Estamos a preparar o programa de parceiros. Já deixamos o teu link pronto para ativar.
+        </p>
+
+        <div class="reemb-affiliate__box">
+          <label for="reemb-affiliate-link" class="reemb-affiliate__label">O teu link de indicação</label>
+          <div class="reemb-affiliate__row">
+            <input id="reemb-affiliate-link" class="reemb-affiliate__input" type="text" readonly value="" />
+            <button type="button" class="reemb-affiliate__copy" id="btn-copy-affiliate-link">Copiar</button>
+          </div>
+          <p class="reemb-affiliate__hint">
+            Quando os parceiros entrarem no ar, compras por este link vão gerar comissão e cashback.
+          </p>
+        </div>
+
+        <div class="reemb-affiliate__stats" aria-label="Resumo de comissões e cashback">
+          <article class="reemb-affiliate__stat">
+            <span class="reemb-affiliate__stat-label">Comissão pendente</span>
+            <strong class="reemb-affiliate__stat-value" id="reemb-commission-pending">R$ 0,00</strong>
+          </article>
+          <article class="reemb-affiliate__stat">
+            <span class="reemb-affiliate__stat-label">Cashback pendente</span>
+            <strong class="reemb-affiliate__stat-value" id="reemb-cashback-pending">R$ 0,00</strong>
+          </article>
+          <article class="reemb-affiliate__stat">
+            <span class="reemb-affiliate__stat-label">Total já liberado</span>
+            <strong class="reemb-affiliate__stat-value" id="reemb-total-released">R$ 0,00</strong>
+          </article>
+        </div>
+
+        <a href="mailto:marceloconelheiros@conexoes.digital?subject=Interesse%20em%20parcerias%20e%20cashback"
+          class="reemb-affiliate__partner-link">
+          Quero indicar parceiros para o programa
+        </a>
+      </section>
     </main>
 
     <footer class="reemb-footer">
@@ -103,7 +144,7 @@
     </footer>
   </div>
 
-  <script src="reembolsos.js"></script>
+  <script type="module" src="reembolsos.js"></script>
   <script src="pwa.js"></script>
 </body>
 
