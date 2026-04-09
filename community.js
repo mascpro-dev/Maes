@@ -192,6 +192,7 @@ async function boot() {
 
   let currentRoomId = null;
   let realtimeChannel = null;
+  let recipientNotifyChannel = null;
   let presenceTimer = null;
   let pollTimer = null;
   let chatPollTimer = null;
@@ -874,6 +875,119 @@ async function boot() {
     await refreshListenerCounts(presRows || []);
   }
 
+  async function stopRecipientNotifier() {
+    if (!recipientNotifyChannel) return;
+    const ch = recipientNotifyChannel;
+    recipientNotifyChannel = null;
+    try {
+      const r = supabase.removeChannel(ch);
+      if (r && typeof r.then === "function") await r;
+    } catch (e) {
+      console.warn("[Aura] removeRecipientNotifier", e);
+    }
+  }
+
+  /** Avisos quando uma mensagem na sala tem recipient_user_id = utilizadora (modo «enviar para»). */
+  function startRecipientNotifier() {
+    void stopRecipientNotifier().then(function () {
+      if (!userId || !supabase) return;
+      recipientNotifyChannel = supabase
+        .channel("aura-comm-recipient-" + userId + "-" + Date.now())
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "community_room_messages",
+            filter: "recipient_user_id=eq." + userId,
+          },
+          async function (payload) {
+            const msg = payload.new;
+            if (!msg) return;
+            if (msg.user_id === userId) return;
+            if (msg.message_kind === "heart") return;
+            const sameRoomOpen =
+              String(currentRoomId) === String(msg.room_id) && isRoomPanelOpen();
+            const tabVisible = !document.hidden;
+            if (sameRoomOpen && tabVisible) return;
+
+            let roomTitle = "Comunidade";
+            try {
+              const { data: rm } = await supabase
+                .from("community_rooms")
+                .select("title")
+                .eq("id", msg.room_id)
+                .maybeSingle();
+              if (rm && rm.title) roomTitle = rm.title;
+            } catch (e) {
+              /* ignore */
+            }
+
+            const snippet =
+              (msg.content || "").slice(0, 140) +
+              ((msg.content || "").length > 140 ? "…" : "");
+
+            if (
+              typeof Notification !== "undefined" &&
+              Notification.permission === "granted"
+            ) {
+              try {
+                const iconHref =
+                  (window.location.origin || "") + "/assets/branding/icon-192.svg";
+                const n = new Notification("Mensagem para ti · " + roomTitle, {
+                  body: snippet,
+                  tag: "aura-comm-" + msg.id,
+                  icon: iconHref,
+                });
+                n.onclick = function () {
+                  try {
+                    window.focus();
+                    n.close();
+                  } catch (e) {
+                    /* ignore */
+                  }
+                  void (async function () {
+                    const { data: room } = await supabase
+                      .from("community_rooms")
+                      .select("slug")
+                      .eq("id", msg.room_id)
+                      .maybeSingle();
+                    if (!room || !room.slug) return;
+                    const safeSlug = String(room.slug).replace(/"/g, "");
+                    const card = document.querySelector(
+                      '.room-card[data-room-slug="' + safeSlug + '"]'
+                    );
+                    if (card && typeof window.__auraCommunityOpenRoom === "function") {
+                      window.__auraCommunityOpenRoom(card);
+                    }
+                  })();
+                };
+              } catch (e) {
+                console.warn("[Aura] Notification", e);
+              }
+            }
+
+            if (tabVisible && !sameRoomOpen) {
+              showToast(
+                "Alguém deixou uma mensagem para ti em «" +
+                  roomTitle +
+                  "» — abre a sala."
+              );
+            }
+          }
+        )
+        .subscribe(function (status) {
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+            console.warn("[Aura] recipient notifier realtime:", status);
+          }
+        });
+    });
+  }
+
+  window.addEventListener("pagehide", function () {
+    void stopRecipientNotifier();
+  });
+
   setCommunityEnterHandler(function (card) {
     void openRoom(card).catch(function (err) {
       console.error("[Aura] openRoom", err);
@@ -1212,6 +1326,26 @@ async function boot() {
   document.getElementById("btn-search")?.addEventListener("click", function () {
     showToast("Busca em breve");
   });
+
+  document.getElementById("btn-comm-notify")?.addEventListener("click", function () {
+    if (!("Notification" in window)) {
+      showToast("Este navegador não suporta notificações no sistema.");
+      return;
+    }
+    Notification.requestPermission().then(function (p) {
+      if (p === "granted") {
+        showToast(
+          "Ativado: aviso quando alguém te endereçar mensagem (campo «Enviar para» na sala)."
+        );
+      } else {
+        showToast(
+          "Sem permissão do sistema — continuamos a mostrar aviso na página na Comunidade."
+        );
+      }
+    });
+  });
+
+  startRecipientNotifier();
 
   void syncRoomsFromDb().catch(function (err) {
     console.warn("[Aura] syncRoomsFromDb", err);

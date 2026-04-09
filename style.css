@@ -2348,6 +2348,26 @@ a.btn-scan {
   font-weight: 700;
 }
 
+.reemb-affiliate-jump {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(122, 158, 126, .35);
+  background: rgba(122, 158, 126, .14);
+  color: var(--ink);
+  font-size: .8rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.reemb-affiliate-jump:hover,
+.reemb-affiliate-jump:focus-visible {
+  background: rgba(122, 158, 126, .24);
+}
+
 .reemb-section {
   margin-bottom: 24px;
   animation: fade-up .55s .1s var(--ease) both;
@@ -2591,4 +2611,24 @@ a.btn-scan {
 .reemb-footer__cta:focus-visible {
   transform: translateY(-1px);
   box-shadow: 0 12px 28px rgba(196,122,91,.4);
+}
+
+.refund__cashback-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .22);
+  border: 1px solid rgba(255, 255, 255, .35);
+  color: var(--white);
+  font-size: .74rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.refund__cashback-link:hover,
+.refund__cashback-link:focus-visible {
+  background: rgba(255, 255, 255, .32);
 }
