@@ -128,6 +128,12 @@ a.btn-header-icon {
   text-decoration: none;
 }
 
+button.btn-header-icon {
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+}
+
 .btn-header-icon {
   width: 44px;
   height: 44px;
