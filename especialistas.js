@@ -6,6 +6,12 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const PRICE_LABEL = 'R$ 49,90';
 const JITSI_BASE = 'https://meet.jit.si';
 
+const PAY_METHOD_LABELS = {
+  pix: 'Pix',
+  credit_card: 'cartão de crédito',
+  debit_card: 'cartão de débito',
+};
+
 function pad(n) {
   return String(n).padStart(2, '0');
 }
@@ -73,10 +79,11 @@ function openModal(backdrop, panel) {
   backdrop.setAttribute('aria-hidden', 'false');
 }
 
-function closeModal(backdrop, panel) {
+function closeModal(backdrop, panel, onClose) {
   backdrop.classList.remove('spec-modal-backdrop--open');
   panel.classList.remove('spec-modal--open');
   backdrop.setAttribute('aria-hidden', 'true');
+  if (typeof onClose === 'function') onClose();
 }
 
 function jitsiIframeUrl(roomSlug, displayName) {
@@ -104,7 +111,13 @@ async function main() {
   const modalBio = document.getElementById('spec-modal-bio');
   const dateInput = document.getElementById('spec-book-date');
   const slotsEl = document.getElementById('spec-slots');
-  const btnBook = document.getElementById('spec-btn-book');
+  const stepSchedule = document.getElementById('spec-step-schedule');
+  const stepPayment = document.getElementById('spec-step-payment');
+  const btnConfirmPay = document.getElementById('spec-btn-confirm-pay');
+  const btnBackSchedule = document.getElementById('spec-btn-back-schedule');
+  const btnFinalPay = document.getElementById('spec-btn-final-pay');
+  const paySummary = document.getElementById('spec-pay-summary');
+  const payOptions = document.querySelectorAll('.spec-pay-option');
   const bookStatus = document.getElementById('spec-book-status');
 
   const supabase = await getClient();
@@ -113,7 +126,33 @@ async function main() {
   let specialists = [];
   let selectedSpecialist = null;
   let pickedSlot = null;
+  let selectedPaymentMethod = null;
   let lastBookingRoom = null;
+
+  function showScheduleStep() {
+    if (stepSchedule) stepSchedule.hidden = false;
+    if (stepPayment) stepPayment.hidden = true;
+    selectedPaymentMethod = null;
+    payOptions.forEach((opt) => {
+      opt.classList.remove('spec-pay-option--selected');
+      opt.setAttribute('aria-checked', 'false');
+    });
+    if (btnFinalPay) btnFinalPay.disabled = true;
+  }
+
+  function showPaymentStep() {
+    if (stepSchedule) stepSchedule.hidden = true;
+    if (stepPayment) stepPayment.hidden = false;
+    if (paySummary && pickedSlot) {
+      paySummary.textContent = `${formatDateTimeLong(pickedSlot.toISOString())} · ${PRICE_LABEL}`;
+    }
+    bookStatus.textContent = '';
+  }
+
+  function resetBookingModal() {
+    showScheduleStep();
+    bookStatus.textContent = '';
+  }
 
   async function loadSpecialists() {
     const { data, error } = await supabase
@@ -205,7 +244,7 @@ async function main() {
     const slots = generateDaySlots(dateStr);
     slotsEl.innerHTML = '';
     pickedSlot = null;
-    btnBook.disabled = true;
+    if (btnConfirmPay) btnConfirmPay.disabled = true;
 
     slots.forEach((slot) => {
       const t = slot.dt.getTime();
@@ -220,7 +259,7 @@ async function main() {
         slotsEl.querySelectorAll('.spec-slot').forEach((x) => x.classList.remove('spec-slot--picked'));
         b.classList.add('spec-slot--picked');
         pickedSlot = slot.dt;
-        btnBook.disabled = false;
+        if (btnConfirmPay) btnConfirmPay.disabled = false;
       });
       slotsEl.appendChild(b);
     });
@@ -239,8 +278,7 @@ async function main() {
     modalSpec.textContent = s.specialty;
     modalBio.textContent = s.bio || 'Consulta de apoio com valor social para mães da comunidade.';
     bookStatus.textContent = '';
-    pickedSlot = null;
-    btnBook.disabled = true;
+    showScheduleStep();
 
     const today = new Date();
     dateInput.value = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
@@ -250,38 +288,83 @@ async function main() {
     renderSlots();
   }
 
-  dateInput.addEventListener('change', () => renderSlots());
+  dateInput.addEventListener('change', () => {
+    showScheduleStep();
+    renderSlots();
+  });
 
-  modalClose.addEventListener('click', () => closeModal(backdrop, panel));
+  modalClose.addEventListener('click', () => closeModal(backdrop, panel, resetBookingModal));
   backdrop.addEventListener('click', (e) => {
-    if (e.target === backdrop) closeModal(backdrop, panel);
+    if (e.target === backdrop) closeModal(backdrop, panel, resetBookingModal);
   });
 
-  btnBook.addEventListener('click', async () => {
-    if (!selectedSpecialist || !pickedSlot) return;
-    bookStatus.textContent = 'A confirmar…';
-    btnBook.disabled = true;
-    const iso = pickedSlot.toISOString();
-    const { data, error } = await supabase.rpc('create_consultation_booking', {
-      p_specialist_id: selectedSpecialist.id,
-      p_starts_at: iso,
+  if (btnConfirmPay) {
+    btnConfirmPay.addEventListener('click', () => {
+      if (!selectedSpecialist || !pickedSlot) return;
+      showPaymentStep();
     });
-    if (error) {
-      const msg =
-        error.message && error.message.includes('slot_taken')
-          ? 'Este horário acabou de ser reservado. Escolhe outro.'
-          : error.message || 'Não foi possível reservar.';
-      bookStatus.textContent = msg;
-      btnBook.disabled = false;
-      renderSlots();
-      return;
-    }
-    bookStatus.textContent = `Reserva confirmada. ${PRICE_LABEL} (simulação — integra pagamento quando estiveres pronta).`;
-    lastBookingRoom = data?.jitsi_room_slug || null;
-    await loadNextBooking();
-    btnBook.disabled = false;
-    closeModal(backdrop, panel);
+  }
+
+  if (btnBackSchedule) {
+    btnBackSchedule.addEventListener('click', () => {
+      showScheduleStep();
+      bookStatus.textContent = '';
+    });
+  }
+
+  payOptions.forEach((opt) => {
+    opt.addEventListener('click', () => {
+      const m = opt.getAttribute('data-method');
+      if (!m) return;
+      selectedPaymentMethod = m;
+      payOptions.forEach((o) => {
+        o.classList.remove('spec-pay-option--selected');
+        o.setAttribute('aria-checked', 'false');
+      });
+      opt.classList.add('spec-pay-option--selected');
+      opt.setAttribute('aria-checked', 'true');
+      if (btnFinalPay) btnFinalPay.disabled = false;
+    });
   });
+
+  if (btnFinalPay) {
+    btnFinalPay.addEventListener('click', async () => {
+      if (!selectedSpecialist || !pickedSlot || !selectedPaymentMethod) return;
+      bookStatus.textContent = 'A processar pagamento…';
+      btnFinalPay.disabled = true;
+      const iso = pickedSlot.toISOString();
+      const { data, error } = await supabase.rpc('create_consultation_booking', {
+        p_specialist_id: selectedSpecialist.id,
+        p_starts_at: iso,
+        p_payment_method: selectedPaymentMethod,
+      });
+      if (error) {
+        const raw = `${error.message || ''} ${error.details || ''} ${error.hint || ''}`;
+        let msg = 'Não foi possível concluir. Tenta outra vez.';
+        if (raw.includes('slot_taken')) {
+          msg = 'Este horário acabou de ser reservado. Escolhe outro.';
+        } else if (raw.includes('invalid_payment_method')) {
+          msg = 'Método de pagamento inválido.';
+        } else if (raw.includes('Could not find the function') || raw.includes('does not exist')) {
+          msg =
+            'Atualiza a base de dados: aplica a migração que adiciona o método de pagamento à função create_consultation_booking.';
+        }
+        bookStatus.textContent = msg;
+        btnFinalPay.disabled = false;
+        if (raw.includes('slot_taken')) {
+          showScheduleStep();
+          renderSlots();
+        }
+        return;
+      }
+      const label = PAY_METHOD_LABELS[selectedPaymentMethod] || selectedPaymentMethod;
+      bookStatus.textContent = `Pagamento registado (${label}). Consulta agendada — ${PRICE_LABEL}.`;
+      lastBookingRoom = data?.jitsi_room_slug || null;
+      await loadNextBooking();
+      btnFinalPay.disabled = false;
+      closeModal(backdrop, panel, resetBookingModal);
+    });
+  }
 
   function mountJitsi(roomSlug) {
     if (!jitsiMount || !roomSlug) return;

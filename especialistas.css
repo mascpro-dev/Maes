@@ -485,6 +485,100 @@
   padding-top: 8px;
 }
 
+.spec-step-payment {
+  animation: spec-fade-in 0.22s var(--ease) both;
+}
+
+@keyframes spec-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.spec-pay-summary {
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.72);
+  margin-bottom: 14px;
+  line-height: 1.45;
+}
+
+.spec-pay-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.spec-pay-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.spec-pay-option:hover {
+  border-color: rgba(229, 9, 20, 0.55);
+  background: rgba(229, 9, 20, 0.1);
+}
+
+.spec-pay-option--selected {
+  border-color: #e50914;
+  background: rgba(229, 9, 20, 0.22);
+  box-shadow: 0 0 0 1px rgba(229, 9, 20, 0.35);
+}
+
+.spec-pay-option__icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.35);
+  font-size: 0.95rem;
+  opacity: 0.85;
+}
+
+.spec-pay-option__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.spec-pay-option__title {
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+.spec-pay-option__sub {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+}
+
+.spec-btn--back {
+  width: 100%;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+
 .spec-legal {
   margin-top: 28px;
   padding: 0 18px 20px;

@@ -82,8 +82,8 @@
     </section>
 
     <p class="spec-legal">
-      Consulta de apoio; não substitui emergência. Pagamento real (cartão, Pix, etc.) será ligado à reserva numa fase
-      seguinte — por agora a confirmação simula o fluxo para testar agenda e vídeo.
+      Consulta de apoio; não substitui emergência. O carregamento do cartão ou a confirmação do Pix na operadora
+      liga-se a este fluxo quando integrares o gateway de pagamento.
     </p>
 
     <div class="spec-modal-backdrop" id="spec-modal-backdrop" aria-hidden="true"></div>
@@ -95,20 +95,62 @@
       </div>
       <div class="spec-modal__body">
         <p class="spec-modal__bio" id="spec-modal-bio"></p>
-        <div class="spec-field">
-          <label class="spec-field__label" for="spec-book-date">Dia</label>
-          <input type="date" id="spec-book-date" autocomplete="off" />
+
+        <div id="spec-step-schedule">
+          <div class="spec-field">
+            <label class="spec-field__label" for="spec-book-date">Dia</label>
+            <input type="date" id="spec-book-date" autocomplete="off" />
+          </div>
+          <div class="spec-field">
+            <span class="spec-field__label">Horário (30 min)</span>
+            <div class="spec-slots" id="spec-slots"></div>
+          </div>
+          <div class="spec-modal__foot">
+            <button type="button" class="spec-btn spec-btn--primary" id="spec-btn-confirm-pay" style="width: 100%"
+              disabled>
+              Confirmar pagamento
+            </button>
+          </div>
         </div>
-        <div class="spec-field">
-          <span class="spec-field__label">Horário (30 min)</span>
-          <div class="spec-slots" id="spec-slots"></div>
-        </div>
-        <div class="spec-modal__foot">
-          <button type="button" class="spec-btn spec-btn--primary" id="spec-btn-book" style="width: 100%" disabled>
-            Simular pagamento e confirmar — R$ 49,90
+
+        <div id="spec-step-payment" class="spec-step-payment" hidden>
+          <p class="spec-field__label" id="spec-pay-heading">Como queres pagar?</p>
+          <p class="spec-pay-summary" id="spec-pay-summary" aria-live="polite"></p>
+          <div class="spec-pay-grid" role="radiogroup" aria-labelledby="spec-pay-heading">
+            <button type="button" class="spec-pay-option" data-method="pix" role="radio" aria-checked="false">
+              <span class="spec-pay-option__icon" aria-hidden="true">◎</span>
+              <span class="spec-pay-option__text">
+                <span class="spec-pay-option__title">Pix</span>
+                <span class="spec-pay-option__sub">Aprovação rápida</span>
+              </span>
+            </button>
+            <button type="button" class="spec-pay-option" data-method="credit_card" role="radio" aria-checked="false">
+              <span class="spec-pay-option__icon" aria-hidden="true">▭</span>
+              <span class="spec-pay-option__text">
+                <span class="spec-pay-option__title">Cartão de crédito</span>
+                <span class="spec-pay-option__sub">Parcelamento conforme operadora</span>
+              </span>
+            </button>
+            <button type="button" class="spec-pay-option" data-method="debit_card" role="radio" aria-checked="false">
+              <span class="spec-pay-option__icon" aria-hidden="true">▬</span>
+              <span class="spec-pay-option__text">
+                <span class="spec-pay-option__title">Cartão de débito</span>
+                <span class="spec-pay-option__sub">Débito em conta</span>
+              </span>
+            </button>
+          </div>
+          <button type="button" class="spec-btn spec-btn--ghost spec-btn--back" id="spec-btn-back-schedule">
+            ← Alterar data e hora
           </button>
-          <p class="spec-status" id="spec-book-status" role="status"></p>
+          <div class="spec-modal__foot">
+            <button type="button" class="spec-btn spec-btn--primary" id="spec-btn-final-pay" style="width: 100%"
+              disabled>
+              Pagar e agendar — R$ 49,90
+            </button>
+          </div>
         </div>
+
+        <p class="spec-status" id="spec-book-status" role="status"></p>
       </div>
     </div>
     </main>
