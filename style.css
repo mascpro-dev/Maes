@@ -1201,6 +1201,29 @@ a.btn-scan {
   touch-action: manipulation;
 }
 
+/* Barra com 6 destinos (ex.: Especialistas): duas filas em telemóvel */
+@media (max-width: 959px) {
+  .bottom-nav.bottom-nav--six {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 6px;
+    column-gap: 2px;
+    padding-top: 8px;
+  }
+
+  .bottom-nav.bottom-nav--six .nav-btn {
+    flex: 1 1 28%;
+    max-width: 33.33%;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .bottom-nav.bottom-nav--six .nav-btn__long {
+    font-size: 0.52rem;
+    letter-spacing: 0.02em;
+  }
+}
+
 /* Logo temporária: visível só na sidebar desktop (≥960px) */
 .sidebar-brand {
   display: none;

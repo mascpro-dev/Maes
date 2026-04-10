@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="aura-auth-checking">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CONTA MÃE — Especialistas</title>
+  <meta name="description"
+    content="Médicos credenciados: consulta social, agendamento e videochamada na app." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap"
+    rel="stylesheet" />
+  <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" sizes="any" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#0b0b0c" />
+  <link rel="apple-touch-icon" href="assets/branding/logohorizontal.svg" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="CONTA MÃE" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="especialistas.css" />
+</head>
+
+<body>
+  <script src="supabase-config.js"></script>
+  <script src="auth.js"></script>
+  <script type="module" src="auth-session-guard.js"></script>
+
+  <div class="app-wrapper app-wrapper--especialistas">
+    <main class="spec-page-main">
+    <header class="spec-hero" role="banner">
+      <div class="spec-hero__inner">
+        <a href="index.html" class="spec-back">← Início</a>
+        <div class="spec-hero__logo">
+          <img src="assets/branding/logohorizontal.svg" alt="CONTA MÃE" width="160" height="30" decoding="async" />
+        </div>
+        <h1 class="spec-hero__title">Especialistas credenciados</h1>
+        <p class="spec-hero__sub">
+          Escolhe um profissional, marca o horário e faz a consulta por vídeo aqui mesmo — sem sair da app.
+        </p>
+        <div class="spec-price-pill" role="note">
+          Valor social <strong id="spec-price-strong">R$ 49,90</strong> por consulta
+        </div>
+        <p class="spec-split">
+          R$ 40,00 para o médico · 3% para quem te indicou (se aplicável) · restante para a plataforma
+        </p>
+        <p class="spec-hero__sub" id="spec-hero-status" style="margin-top: 12px; color: #f5a08c"></p>
+      </div>
+    </header>
+
+    <section class="spec-next" id="spec-next-booking" hidden aria-live="polite">
+      <p class="spec-next__label">Próxima consulta</p>
+      <p class="spec-next__title" id="spec-next-title"></p>
+      <p class="spec-next__time" id="spec-next-time"></p>
+      <p class="spec-next__room" id="spec-next-room"></p>
+    </section>
+
+    <section class="spec-row" aria-labelledby="spec-row-title">
+      <div class="spec-row__head">
+        <h2 class="spec-row__title" id="spec-row-title">Em destaque</h2>
+        <span class="spec-row__hint">Toque na capa</span>
+      </div>
+      <div class="spec-rail" id="spec-rail" role="list"></div>
+    </section>
+
+    <section class="spec-video-block" aria-labelledby="spec-video-heading">
+      <h2 class="spec-video-block__title" id="spec-video-heading">Videochamada gratuita</h2>
+      <p class="spec-video-block__text">
+        Usamos Jitsi Meet (sem custo para a comunidade). Depois de reservares, entra na sala com o botão abaixo.
+        A gravação profissional na nuvem pede integração própria (ex.: JaaS) — fala connosco quando quiseres ativar.
+      </p>
+      <div class="spec-jitsi-mount" id="spec-jitsi-mount" aria-label="Área da videochamada"></div>
+      <div class="spec-video-actions">
+        <button type="button" class="spec-btn spec-btn--primary" id="spec-btn-enter-video">
+          Entrar na sala da consulta
+        </button>
+        <button type="button" class="spec-btn spec-btn--ghost" id="spec-btn-leave-video" disabled>
+          Sair / fechar
+        </button>
+      </div>
+      <p class="spec-status" id="spec-video-status" role="status"></p>
+    </section>
+
+    <p class="spec-legal">
+      Consulta de apoio; não substitui emergência. Pagamento real (cartão, Pix, etc.) será ligado à reserva numa fase
+      seguinte — por agora a confirmação simula o fluxo para testar agenda e vídeo.
+    </p>
+
+    <div class="spec-modal-backdrop" id="spec-modal-backdrop" aria-hidden="true"></div>
+    <div class="spec-modal" id="spec-modal" role="dialog" aria-modal="true" aria-labelledby="spec-modal-title">
+      <div class="spec-modal__head" style="position: relative">
+        <button type="button" class="spec-modal__close" id="spec-modal-close" aria-label="Fechar">×</button>
+        <h3 class="spec-modal__title" id="spec-modal-title"></h3>
+        <p class="spec-modal__spec" id="spec-modal-spec"></p>
+      </div>
+      <div class="spec-modal__body">
+        <p class="spec-modal__bio" id="spec-modal-bio"></p>
+        <div class="spec-field">
+          <label class="spec-field__label" for="spec-book-date">Dia</label>
+          <input type="date" id="spec-book-date" autocomplete="off" />
+        </div>
+        <div class="spec-field">
+          <span class="spec-field__label">Horário (30 min)</span>
+          <div class="spec-slots" id="spec-slots"></div>
+        </div>
+        <div class="spec-modal__foot">
+          <button type="button" class="spec-btn spec-btn--primary" id="spec-btn-book" style="width: 100%" disabled>
+            Simular pagamento e confirmar — R$ 49,90
+          </button>
+          <p class="spec-status" id="spec-book-status" role="status"></p>
+        </div>
+      </div>
+    </div>
+    </main>
+
+    <nav class="bottom-nav bottom-nav--six" role="navigation" aria-label="Navegação principal">
+      <a href="index.html" class="sidebar-brand" aria-label="CONTA MÃE — início">
+        <span class="sidebar-brand__mark">
+          <img class="sidebar-brand__logo" src="assets/branding/logohorizontal.svg" alt="CONTA MÃE" width="200"
+            height="38" decoding="async" />
+        </span>
+      </a>
+      <a href="index.html" class="nav-btn" id="nav-home" aria-label="Home">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+        <span>Home</span>
+      </a>
+      <a href="agenda.html" class="nav-btn" id="nav-appointment" aria-label="Compromissos">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+        <span>Compromisso</span>
+      </a>
+      <a href="especialistas.html" class="nav-btn nav-btn--active" id="nav-specialists" aria-label="Especialistas"
+        aria-current="page">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4.5 12.5c0-3 2.5-5.5 5.5-6.5" />
+          <path d="M19.5 12.5c0-3-2.5-5.5-5.5-6.5" />
+          <path d="M8 12h8" />
+          <circle cx="12" cy="7" r="2" />
+          <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
+        </svg>
+        <span class="nav-btn__long">Especialistas</span>
+      </a>
+      <a href="community.html" class="nav-btn" id="nav-community" aria-label="Comunidade">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        <span>Comunidade</span>
+      </a>
+      <a href="diario-evolucao.html" class="nav-btn" id="nav-diary" aria-label="Diário">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+        </svg>
+        <span>Diário</span>
+      </a>
+      <a href="perfil.html" class="nav-btn" id="nav-profile" aria-label="Perfil">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+        <span>Perfil</span>
+      </a>
+    </nav>
+  </div>
+
+  <script type="module" src="especialistas.js"></script>
+  <script src="pwa.js"></script>
+</body>
+
+</html>
