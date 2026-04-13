@@ -47,12 +47,13 @@ a {
   color: inherit;
 }
 
-.explore-shell {
+/* Mesmo shell que as outras páginas (style.css .app-wrapper) + fundo Explorar */
+.app-wrapper.app-wrapper--explore.explore-shell {
   position: relative;
-  max-width: var(--ex-max);
+  max-width: var(--app-max-w, 430px);
   margin: 0 auto;
   min-height: 100dvh;
-  padding: 12px 18px 88px;
+  padding: 12px 18px 0;
   isolation: isolate;
 }
 
@@ -60,7 +61,7 @@ a {
 .explore-aurora {
   position: fixed;
   inset: 0;
-  max-width: var(--ex-max);
+  max-width: var(--app-max-w, 430px);
   margin: 0 auto;
   pointer-events: none;
   z-index: 0;
@@ -670,64 +671,9 @@ a {
   background: linear-gradient(135deg, #8a9bb0, #6a7a8c);
 }
 
-.explore-bottom-nav {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: min(100%, var(--ex-max));
-  max-width: 100%;
-  margin-left: auto;
-  margin-right: auto;
-  box-sizing: border-box;
-  transform: none;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  padding: 12px max(8px, env(safe-area-inset-left, 0px))
-    calc(12px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-right, 0px));
-  background: rgba(255, 255, 255, 0.78);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid rgba(235, 227, 214, 0.95);
-  z-index: 20;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  touch-action: manipulation;
-}
-
-.explore-nav-brand {
-  line-height: 0;
-  padding: 4px 2px;
-  flex-shrink: 0;
-}
-
-.explore-nav-brand img {
-  display: block;
-  max-width: 88px;
-  width: 100%;
-  height: auto;
-  object-fit: contain;
-}
-
-.explore-nav-link {
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-decoration: none;
-  color: var(--ex-ink-soft);
-  padding: 6px 8px;
-  border-radius: 12px;
-  transition: color 0.2s ease, background 0.2s ease;
-}
-
-.explore-nav-link--active {
-  color: var(--ex-sage);
-  background: rgba(122, 158, 126, 0.12);
-}
-
 .explore-toast {
   position: fixed;
-  bottom: 88px;
+  bottom: calc(var(--nav-h, 80px) + 52px);
   left: 50%;
   transform: translateX(-50%) translateY(12px);
   max-width: min(340px, 92vw);
@@ -741,7 +687,7 @@ a {
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
   opacity: 0;
   pointer-events: none;
-  z-index: 100;
+  z-index: 110;
   transition: opacity 0.35s ease, transform 0.35s var(--ex-ease);
 }
 

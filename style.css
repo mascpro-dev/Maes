@@ -496,7 +496,7 @@ button {
   filter: none;
 }
 
-@media (min-width: 960px) {
+@media (min-width: 768px) {
   .notif-panel__sheet {
     top: 72px;
     right: max(24px, calc((100vw - var(--layout-shell, 1240px)) / 2 + 12px));
@@ -1202,7 +1202,7 @@ a.btn-scan {
 }
 
 /* Barra com 6 destinos (ex.: Especialistas): duas filas em telemóvel */
-@media (max-width: 959px) {
+@media (max-width: 767px) {
   .bottom-nav.bottom-nav--six {
     flex-wrap: wrap;
     justify-content: center;
@@ -1224,7 +1224,7 @@ a.btn-scan {
   }
 }
 
-/* Logo temporária: visível só na sidebar desktop (≥960px) */
+/* Marca na barra: oculta (só ícones + rótulos) */
 .sidebar-brand {
   display: none;
   text-decoration: none;
@@ -1384,126 +1384,17 @@ a.btn-scan {
   }
 }
 
-/* ── Desktop (≥960px): layout largo + navegação lateral ─────── */
-@media (min-width: 960px) {
+/* ── Ecrãs largos (≥768px): shell centrado; menu inferior mantém-se fixo ─ */
+@media (min-width: 768px) {
   :root {
     --layout-shell: min(1240px, calc(100vw - 48px));
-    --layout-sidebar: 220px;
     --layout-gap: 24px;
   }
 
   .app-wrapper:has(> .bottom-nav) {
-    display: grid;
-    grid-template-columns: var(--layout-sidebar) minmax(0, 1fr);
-    width: 100%;
     max-width: var(--layout-shell);
-    margin: 0 auto;
-    min-height: 100dvh;
-    padding: 20px var(--layout-gap) 32px;
-    padding-bottom: 32px;
-    column-gap: var(--layout-gap);
-    row-gap: 0;
-    overflow-x: clip;
-    border-left: 1px solid rgba(196,122,91,.12);
-    border-right: 1px solid rgba(196,122,91,.12);
-    box-shadow: 0 0 80px rgba(45,42,38,.08);
-  }
-
-  .app-wrapper:not(.app-wrapper--diario):has(> .bottom-nav) {
-    grid-template-rows: auto auto 1fr;
-    grid-template-areas:
-      "nav topbar"
-      "nav mood"
-      "nav main";
-  }
-
-  .app-wrapper.app-wrapper--diario:has(> .bottom-nav) {
-    grid-template-rows: auto auto 1fr auto;
-    grid-template-areas:
-      "nav dhead"
-      "nav dweek"
-      "nav dmain"
-      "nav dreport";
-  }
-
-  .app-wrapper:not(.app-wrapper--diario):has(> .bottom-nav) .topbar {
-    grid-area: topbar;
-    padding-top: 8px;
-  }
-
-  .app-wrapper:not(.app-wrapper--diario):has(> .bottom-nav) .mood-strip {
-    grid-area: mood;
-  }
-
-  .app-wrapper:not(.app-wrapper--diario):has(> .bottom-nav) .bento-grid {
-    grid-area: main;
-    align-content: start;
-  }
-
-  .app-wrapper:has(> .bottom-nav) .bottom-nav {
-    grid-area: nav;
-    position: relative;
-    inset: auto;
-    left: auto;
-    bottom: auto;
-    transform: none;
-    width: 100%;
-    max-width: none;
-    height: auto;
-    min-height: calc(100dvh - 40px);
-    align-self: start;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: stretch;
-    gap: 6px;
-    padding: 24px 12px 28px;
-    padding-bottom: max(28px, env(safe-area-inset-bottom, 0px));
-    border-top: none;
-    border-right: 1px solid rgba(196,122,91,.2);
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
-    box-shadow: 4px 0 24px rgba(45,42,38,.06);
-  }
-
-  .sidebar-brand {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
-    padding: 12px 10px 18px;
-    margin: -4px 0 4px;
-    border-bottom: 1px solid rgba(196,122,91,.18);
-  }
-
-  .sidebar-brand:hover .sidebar-brand__logo {
-    opacity: 0.92;
-  }
-
-  .sidebar-brand:hover .sidebar-brand__text {
-    color: var(--terracotta-mid);
-  }
-
-  .app-wrapper:has(> .bottom-nav) .nav-btn {
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: 12px;
-    width: 100%;
-    max-width: none;
-    padding: 12px 14px 12px 18px;
-    font-size: .7rem;
-  }
-
-  .app-wrapper:has(> .bottom-nav) .nav-btn::before {
-    top: 50%;
-    left: 8px;
-    right: auto;
-    transform: translateY(-50%) scale(0);
-    width: 3px;
-    height: 20px;
-    border-radius: 2px;
-  }
-
-  .app-wrapper:has(> .bottom-nav) .nav-btn--active::before {
-    transform: translateY(-50%) scale(1);
+    margin-left: auto;
+    margin-right: auto;
   }
 
   .bento-grid {
@@ -1535,46 +1426,6 @@ a.btn-scan {
     align-self: stretch;
   }
 
-  .app-wrapper--diario .diario-header {
-    grid-area: dhead;
-  }
-
-  .app-wrapper--diario .diario-week {
-    grid-area: dweek;
-  }
-
-  .app-wrapper--diario .diario-main {
-    grid-area: dmain;
-    min-height: 280px;
-  }
-
-  .app-wrapper--diario .diario-report-bar {
-    grid-area: dreport;
-    position: relative;
-    inset: auto;
-    transform: none;
-    width: 100%;
-    max-width: none;
-    margin-top: 12px;
-    border-radius: 0 0 var(--radius-md) var(--radius-md);
-  }
-
-  .app-wrapper--diario {
-    padding-bottom: 32px;
-  }
-
-  .app-wrapper--diario .diario-fab-backdrop {
-    max-width: none;
-    left: 0;
-    right: 0;
-    transform: none;
-  }
-
-  .app-wrapper--diario .diario-fab-stack {
-    right: calc((100vw - var(--layout-shell)) / 2 + 20px);
-    bottom: 28px;
-  }
-
   .app-wrapper--reemb {
     max-width: min(720px, calc(100vw - 48px));
     margin: 0 auto;
@@ -1586,6 +1437,11 @@ a.btn-scan {
   }
 }
 
+/* Barra com 6 ícones (duas filas): mais espaço por baixo do conteúdo */
+.app-wrapper:has(> .bottom-nav.bottom-nav--six) {
+  padding-bottom: calc(var(--nav-h) + 56px);
+}
+
 /* ============================================================
    Diário de Evolução Clínica
    ============================================================ */
@@ -1593,6 +1449,11 @@ a.btn-scan {
 .app-wrapper--diario {
   /* Nav + faixa do relatório (fixos) + respiro ao rolar */
   padding-bottom: calc(var(--nav-h) + 104px);
+}
+
+/* Diário + barra com 6 ícones: nav mais alta (duas filas) */
+.app-wrapper--diario:has(> .bottom-nav.bottom-nav--six) {
+  padding-bottom: calc(var(--nav-h) + 104px + 52px);
 }
 
 .diario-header {

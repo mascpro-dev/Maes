@@ -1191,7 +1191,7 @@ button.btn-header-icon {
   line-height: 1.35;
 }
 
-/* Logo na sidebar desktop (igual style.css / index) */
+/* Marca na barra: oculta (menu inferior fixo, só ícones) */
 .sidebar-brand {
   display: none;
   text-decoration: none;
@@ -1243,10 +1243,32 @@ button.btn-header-icon {
   background: var(--cream-card);
   border-top: 1.5px solid var(--cream-deep);
   box-shadow: 0 -4px 24px rgba(45, 42, 38, 0.06);
-  z-index: 40;
+  z-index: 100;
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   touch-action: manipulation;
+}
+
+@media (max-width: 767px) {
+  .bottom-nav.bottom-nav--six {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 6px;
+    column-gap: 2px;
+    padding-top: 8px;
+  }
+
+  .bottom-nav.bottom-nav--six .nav-btn {
+    flex: 1 1 28%;
+    max-width: 33.33%;
+    padding-left: 4px;
+    padding-right: 4px;
+  }
+
+  .bottom-nav.bottom-nav--six .nav-btn__long {
+    font-size: 0.52rem;
+    letter-spacing: 0.02em;
+  }
 }
 
 .nav-btn {
@@ -1320,89 +1342,21 @@ button.nav-btn {
   transform: translateX(-50%) translateY(0);
 }
 
-/* ── Desktop (≥960px): shell largo + nav lateral + lista em grade ─ */
-@media (min-width: 960px) {
+/* ── Ecrãs largos (≥768px): shell centrado; menu inferior mantém-se fixo ─ */
+@media (min-width: 768px) {
   :root {
     --layout-shell: min(1200px, calc(100vw - 48px));
-    --layout-sidebar: 220px;
     --layout-gap: 24px;
   }
 
-  .app-shell:has(> .bottom-nav) {
-    display: grid;
-    grid-template-columns: var(--layout-sidebar) minmax(0, 1fr);
-    grid-template-rows: auto 1fr;
-    width: 100%;
+  .app-shell {
     max-width: var(--layout-shell);
-    min-height: 100dvh;
-    margin: 0 auto;
-    padding: 0 var(--layout-gap) 24px;
-    padding-bottom: max(24px, env(safe-area-inset-bottom, 0px));
-    column-gap: var(--layout-gap);
-    overflow-x: clip;
+    margin-left: auto;
+    margin-right: auto;
   }
 
-  .app-shell:has(> .bottom-nav) .comm-header {
-    grid-column: 2;
-    grid-row: 1;
-    padding-top: 20px;
-  }
-
-  .app-shell:has(> .bottom-nav) .comm-main {
-    grid-column: 2;
-    grid-row: 2;
-    min-height: 0;
-    overflow-y: auto;
-    padding-bottom: 16px;
-  }
-
-  .app-shell:has(> .bottom-nav) .bottom-nav {
-    grid-column: 1;
-    grid-row: 1 / -1;
-    position: relative;
-    inset: auto;
-    left: auto;
-    bottom: auto;
-    transform: none;
-    width: 100%;
-    max-width: none;
-    height: auto;
-    min-height: calc(100dvh - 24px);
-    align-self: start;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: stretch;
-    gap: 6px;
-    padding: 24px 10px 28px;
-    border-top: none;
-    border-right: 1.5px solid var(--cream-deep);
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
-    box-shadow: 4px 0 20px rgba(45, 42, 38, 0.06);
-  }
-
-  .app-shell:has(> .bottom-nav) .sidebar-brand {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0;
-    padding: 12px 10px 18px;
-    margin: -4px 0 4px;
-    border-bottom: 1px solid rgba(196, 122, 91, 0.18);
-  }
-
-  .app-shell:has(> .bottom-nav) .sidebar-brand:hover .sidebar-brand__logo {
-    opacity: 0.92;
-  }
-
-  .app-shell:has(> .bottom-nav) .nav-btn {
-    flex: 0 0 auto;
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: 10px;
-    width: 100%;
-    max-width: none;
-    padding: 12px 12px 12px 14px;
-    font-size: 0.68rem;
+  .app-shell:has(> .bottom-nav.bottom-nav--six) {
+    padding-bottom: calc(var(--nav-h) + 56px);
   }
 
   .room-list {
@@ -1423,9 +1377,5 @@ button.nav-btn {
     transform: translateX(-50%);
     border-radius: var(--radius-lg);
     box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
-  }
-
-  .toast {
-    bottom: 28px;
   }
 }

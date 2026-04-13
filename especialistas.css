@@ -588,25 +588,15 @@
   text-align: center;
 }
 
-@media (min-width: 960px) {
-  .app-wrapper--especialistas:has(> .bottom-nav) {
-    grid-template-rows: 1fr !important;
-    grid-template-areas: 'nav main' !important;
-  }
-
-  .app-wrapper--especialistas:has(> .bottom-nav) .spec-page-main {
-    grid-area: main;
-    min-height: 0;
-    max-height: calc(100dvh - 40px);
-    overflow-x: clip;
-    overflow-y: auto;
-    align-self: stretch;
-    padding-bottom: 8px;
-  }
-
+@media (min-width: 768px) {
   .app-wrapper--especialistas {
-    max-width: var(--layout-shell, 1240px);
-    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    max-width: var(--layout-shell, min(1240px, calc(100vw - 48px)));
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .app-wrapper--especialistas:has(> .bottom-nav.bottom-nav--six) {
+    padding-bottom: calc(var(--nav-h) + 56px);
   }
 
   .spec-modal {
