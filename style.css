@@ -1807,7 +1807,7 @@ a.btn-scan {
   box-shadow: var(--shadow-lg);
 }
 
-/* Rodapé relatório */
+/* Rodapé relatório — alinhado ao topo da barra de navegação (altura real) */
 .diario-report-bar {
   position: fixed;
   bottom: var(--nav-h);
@@ -1822,6 +1822,20 @@ a.btn-scan {
   border-top: 1px solid rgba(122,158,126,.22);
   z-index: 150;
   box-shadow: 0 -6px 24px rgba(45,42,38,.06);
+}
+
+/*
+ * Com bottom-nav--six em ≤767px a nav faz wrap (2 filas) e fica mais alta que --nav-h.
+ * Sem este offset, "Gerar relatório" fica por cima do menu.
+ */
+@media (max-width: 767px) {
+  .app-wrapper--diario:has(> .bottom-nav.bottom-nav--six) .diario-report-bar {
+    bottom: calc(var(--nav-h) + 58px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .app-wrapper--diario:has(> .bottom-nav.bottom-nav--six) .diario-fab-stack {
+    bottom: calc(var(--nav-h) + 58px + 86px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 .diario-report-btn {
@@ -2527,6 +2541,43 @@ a.btn-scan {
 .reemb-affiliate__partner-link:hover,
 .reemb-affiliate__partner-link:focus-visible {
   text-decoration: underline;
+}
+
+.reemb-affiliate__footer-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-top: 10px;
+  justify-content: flex-start;
+}
+
+.reemb-affiliate__install-btn {
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: inherit;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--sage-mid);
+  background: var(--cream-card);
+  color: var(--sage-mid);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.reemb-affiliate__install-btn:hover:not(:disabled),
+.reemb-affiliate__install-btn:focus-visible:not(:disabled) {
+  background: rgba(122, 158, 126, 0.15);
+}
+
+.reemb-affiliate__install-btn:disabled {
+  opacity: 0.92;
+  cursor: default;
+}
+
+.reemb-affiliate__install-btn--done {
+  border-color: rgba(122, 158, 126, 0.45);
+  color: var(--ink-light);
 }
 
 .reemb-analysis-note {

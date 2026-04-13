@@ -536,3 +536,36 @@ function getDefaultBaseUrl() {
   }
   await loadRefundsFromSupabase();
 })();
+
+(function setupInstallAppButton() {
+  const btn = document.getElementById('btn-reemb-install-app');
+  if (!btn) return;
+  if (window.matchMedia('(display-mode: standalone)').matches) {
+    btn.textContent = 'App instalada';
+    btn.disabled = true;
+    btn.classList.add('reemb-affiliate__install-btn--done');
+    return;
+  }
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    btn.setAttribute('data-install-ready', 'true');
+  });
+  btn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      return;
+    }
+    const ua = navigator.userAgent || '';
+    const isIOS =
+      /iphone|ipad|ipod/i.test(ua) ||
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const msg = isIOS
+      ? 'No iPhone ou iPad: em Safari, toca em Partilhar e escolhe «Adicionar ao ecrã principal».'
+      : 'No Chrome (telemóvel ou computador): menu (⋮) → «Instalar app» ou «Adicionar à página inicial». Se não aparecer, usa um marcador ao site — continua a funcionar bem.';
+    window.alert(msg);
+  });
+})();
