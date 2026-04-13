@@ -541,7 +541,7 @@ function getDefaultBaseUrl() {
   const btn = document.getElementById('btn-reemb-install-app');
   if (!btn) return;
   if (window.matchMedia('(display-mode: standalone)').matches) {
-    btn.textContent = 'App instalada';
+    btn.textContent = 'Instalar App';
     btn.disabled = true;
     btn.classList.add('reemb-affiliate__install-btn--done');
     return;
