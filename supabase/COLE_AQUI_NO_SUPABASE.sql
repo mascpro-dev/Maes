@@ -22,7 +22,7 @@
 --   Sim, em geral é seguro: o script usa "IF NOT EXISTS" e "ADD COLUMN IF NOT EXISTS".
 --
 -- VALORES VÁLIDOS DO CAMPO diagnostico (igual ao formulário HTML):
---   tea | tdah | down | pc | rara | investigacao
+--   tea | tdah | down | pc | rara | investigacao | mae_solo
 --
 -- NOTA: O ficheiro em supabase/migrations/ tem o mesmo conteúdo SQL (para quem usa
 --       Supabase CLI). Para ti, basta este ficheiro no SQL Editor.
@@ -70,7 +70,7 @@ ALTER TABLE public.profiles
   ADD CONSTRAINT profiles_diagnostico_check CHECK (
     diagnostico IS NULL
     OR diagnostico = ANY (
-      ARRAY['tea', 'tdah', 'down', 'pc', 'rara', 'investigacao']::text[]
+      ARRAY['tea', 'tdah', 'down', 'pc', 'rara', 'investigacao', 'mae_solo']::text[]
     )
   );
 

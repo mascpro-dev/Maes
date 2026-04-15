@@ -46,7 +46,7 @@ ALTER TABLE public.profiles
   ADD CONSTRAINT profiles_diagnostico_check CHECK (
     diagnostico IS NULL
     OR diagnostico = ANY (
-      ARRAY['tea', 'tdah', 'down', 'pc', 'rara', 'investigacao']::text[]
+      ARRAY['tea', 'tdah', 'down', 'pc', 'rara', 'investigacao', 'mae_solo']::text[]
     )
   );
 

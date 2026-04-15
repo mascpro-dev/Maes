@@ -10,6 +10,7 @@ const DIAG_LABELS = {
   pc: 'Paralisia cerebral',
   rara: 'Doença rara',
   investigacao: 'Em investigação',
+  mae_solo: 'Mãe solo (atípica)',
 };
 
 const DONUT_R = 46;

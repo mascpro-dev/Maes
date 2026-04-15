@@ -11,6 +11,7 @@ const DX_LABEL = {
   pc: "Paralisia cerebral",
   rara: "Condição rara",
   investigacao: "Em investigação",
+  mae_solo: "Mãe solo (atípica)",
 };
 
 function isUuid(s) {

@@ -10,6 +10,7 @@
     pc: "Paralisia cerebral",
     rara: "Condição rara",
     investigacao: "Em investigação",
+    mae_solo: "Mãe solo (atípica)",
   };
 
   const ONLINE_MS = 3 * 60 * 1000;
