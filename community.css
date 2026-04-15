@@ -515,6 +515,7 @@ button.btn-header-icon {
 .room-panel {
   position: fixed;
   inset: 0;
+  /* Acima da .bottom-nav (z-index 100) para o chat / “Enviar para” / input não ficarem tapados */
   z-index: 50;
   max-width: var(--app-max-w);
   margin: 0 auto;
@@ -524,6 +525,10 @@ button.btn-header-icon {
   flex-direction: column;
   background: var(--stage-bg);
   color: rgba(255, 255, 255, 0.92);
+}
+
+.room-panel:not(.hidden) {
+  z-index: 120;
 }
 
 .room-panel__header {
@@ -1015,7 +1020,7 @@ button.btn-header-icon {
   display: flex;
   flex-direction: column-reverse;
   gap: 10px;
-  z-index: 55;
+  z-index: 125;
   pointer-events: none;
 }
 
@@ -1333,7 +1338,7 @@ button.nav-btn {
   box-shadow: var(--shadow-md);
   opacity: 0;
   pointer-events: none;
-  z-index: 100;
+  z-index: 140;
   transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
 }
 

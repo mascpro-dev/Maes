@@ -8,9 +8,42 @@ const JITSI_BASE = 'https://meet.jit.si';
 
 const PAY_METHOD_LABELS = {
   pix: 'Pix',
-  credit_card: 'cartão de crédito',
-  debit_card: 'cartão de débito',
+  credit_card: 'cartão de crédito (1x)',
 };
+
+function mpCreatePreferenceUrl() {
+  const base = (window.AURA_SUPABASE_URL || '').replace(/\/$/, '');
+  if (!base) return '';
+  return `${base}/functions/v1/mercadopago-create-preference`;
+}
+
+async function createMercadoPagoPreference(supabase, payload) {
+  const url = mpCreatePreferenceUrl();
+  if (!url) throw new Error('missing_supabase_url');
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  if (!token) throw new Error('not_authenticated');
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      apikey: window.AURA_SUPABASE_ANON_KEY || '',
+    },
+    body: JSON.stringify(payload),
+  });
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(json.error || 'mp_preference_failed');
+    err.detail = json.detail || json;
+    throw err;
+  }
+  if (!json.init_point) throw new Error('no_init_point');
+  return json;
+}
 
 function pad(n) {
   return String(n).padStart(2, '0');
@@ -119,9 +152,14 @@ async function main() {
   const paySummary = document.getElementById('spec-pay-summary');
   const payOptions = document.querySelectorAll('.spec-pay-option');
   const bookStatus = document.getElementById('spec-book-status');
+  const priceCta = document.getElementById('spec-price-cta');
 
   const supabase = await getClient();
   if (!supabase || !rail) return;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const mpReturn = urlParams.get('mp');
+  const mpIntentId = urlParams.get('intent');
 
   let specialists = [];
   let selectedSpecialist = null;
@@ -192,7 +230,9 @@ async function main() {
       btn.addEventListener('click', () => openSpecialistModal(s));
       rail.appendChild(btn);
     });
-    if (heroStatus) heroStatus.textContent = '';
+    if (heroStatus && !urlParams.get('mp')) {
+      heroStatus.textContent = '';
+    }
   }
 
   async function loadNextBooking() {
@@ -206,17 +246,38 @@ async function main() {
 
     if (error || !rows?.length) {
       nextBlock.hidden = true;
+      if (nextBlock) delete nextBlock.dataset.roomSlug;
+      if (nextRoom) nextRoom.innerHTML = '';
       return;
     }
 
     const row = rows[0];
     const spec = specialists.find((x) => x.id === row.specialist_id);
     const name = spec?.display_name || 'Especialista';
+    const slug = row.jitsi_room_slug;
     nextBlock.hidden = false;
     nextTitle.textContent = name;
     nextTime.textContent = formatDateTimeLong(row.starts_at);
-    nextRoom.textContent = `Sala de vídeo: ${row.jitsi_room_slug}`;
-    lastBookingRoom = row.jitsi_room_slug;
+    nextBlock.dataset.roomSlug = slug || '';
+    lastBookingRoom = slug;
+
+    if (nextRoom) {
+      nextRoom.innerHTML = '';
+      const wrap = document.createElement('div');
+      wrap.className = 'spec-next__room-wrap';
+      const link = document.createElement('a');
+      link.href = `${JITSI_BASE}/${encodeURIComponent(slug)}`;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.className = 'spec-next__jitsi-link';
+      link.textContent = 'Entrar na videochamada (Jitsi)';
+      const slugEl = document.createElement('span');
+      slugEl.className = 'spec-next__room-slug';
+      slugEl.textContent = slug;
+      wrap.appendChild(link);
+      wrap.appendChild(slugEl);
+      nextRoom.appendChild(wrap);
+    }
   }
 
   async function refreshBookedSet(specId, dateStr) {
@@ -330,39 +391,39 @@ async function main() {
   if (btnFinalPay) {
     btnFinalPay.addEventListener('click', async () => {
       if (!selectedSpecialist || !pickedSlot || !selectedPaymentMethod) return;
-      bookStatus.textContent = 'A processar pagamento…';
+      bookStatus.textContent = 'A abrir o Mercado Pago…';
       btnFinalPay.disabled = true;
       const iso = pickedSlot.toISOString();
-      const { data, error } = await supabase.rpc('create_consultation_booking', {
-        p_specialist_id: selectedSpecialist.id,
-        p_starts_at: iso,
-        p_payment_method: selectedPaymentMethod,
-      });
-      if (error) {
-        const raw = `${error.message || ''} ${error.details || ''} ${error.hint || ''}`;
-        let msg = 'Não foi possível concluir. Tenta outra vez.';
-        if (raw.includes('slot_taken')) {
-          msg = 'Este horário acabou de ser reservado. Escolhe outro.';
-        } else if (raw.includes('invalid_payment_method')) {
-          msg = 'Método de pagamento inválido.';
-        } else if (raw.includes('Could not find the function') || raw.includes('does not exist')) {
+      try {
+        const out = await createMercadoPagoPreference(supabase, {
+          specialist_id: selectedSpecialist.id,
+          starts_at: iso,
+          payment_method: selectedPaymentMethod,
+        });
+        window.location.href = out.init_point;
+      } catch (e) {
+        const raw = `${e?.message || ''} ${e?.detail ? JSON.stringify(e.detail) : ''}`;
+        let msg = 'Não foi possível abrir o pagamento. Verifica a rede ou configuração.';
+        if (raw.includes('missing_app_public_url_or_origin')) {
           msg =
-            'Atualiza a base de dados: aplica a migração que adiciona o método de pagamento à função create_consultation_booking.';
+            'Define APP_PUBLIC_URL nas secrets da função (URL https do site) ou abre a app a partir do domínio público.';
+        } else if (raw.includes('server_misconfigured') || raw.includes('misconfigured')) {
+          msg =
+            'Mercado Pago ainda não configurado: adiciona MERCADOPAGO_ACCESS_TOKEN nas secrets da Edge Function.';
+        } else if (raw.includes('intent_create_failed')) {
+          msg = 'Não foi possível preparar o checkout. Aplica a migração consultation_checkout_intents no Supabase.';
         }
         bookStatus.textContent = msg;
         btnFinalPay.disabled = false;
-        if (raw.includes('slot_taken')) {
-          showScheduleStep();
-          renderSlots();
-        }
-        return;
       }
-      const label = PAY_METHOD_LABELS[selectedPaymentMethod] || selectedPaymentMethod;
-      bookStatus.textContent = `Pagamento registado (${label}). Consulta agendada — ${PRICE_LABEL}.`;
-      lastBookingRoom = data?.jitsi_room_slug || null;
-      await loadNextBooking();
-      btnFinalPay.disabled = false;
-      closeModal(backdrop, panel, resetBookingModal);
+    });
+  }
+
+  if (priceCta && rail) {
+    priceCta.addEventListener('click', () => {
+      rail.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      rail.classList.add('spec-rail--pulse');
+      window.setTimeout(() => rail.classList.remove('spec-rail--pulse'), 1200);
     });
   }
 
@@ -382,7 +443,10 @@ async function main() {
   }
 
   btnEnterVideo.addEventListener('click', () => {
-    const room = lastBookingRoom || (nextRoom && nextRoom.textContent.replace(/^Sala de vídeo:\s*/i, '').trim());
+    const room =
+      lastBookingRoom ||
+      (nextBlock && nextBlock.dataset && nextBlock.dataset.roomSlug ? nextBlock.dataset.roomSlug : '') ||
+      '';
     if (!room) {
       if (videoStatus) videoStatus.textContent = 'Marca primeiro uma consulta para receberes o nome da sala.';
       return;
@@ -398,6 +462,51 @@ async function main() {
   });
 
   await loadSpecialists();
+
+  if (mpReturn === 'success' && mpIntentId && heroStatus) {
+    heroStatus.textContent = 'A confirmar o pagamento no Mercado Pago…';
+    let completed = false;
+    for (let i = 0; i < 45; i++) {
+      const { data } = await supabase
+        .from('consultation_checkout_intents')
+        .select('status')
+        .eq('id', mpIntentId)
+        .maybeSingle();
+      if (data?.status === 'completed') {
+        completed = true;
+        break;
+      }
+      if (data?.status === 'failed') break;
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+    try {
+      history.replaceState({}, '', window.location.pathname || 'especialistas.html');
+    } catch (err) {
+      /* ignore */
+    }
+    if (completed) {
+      heroStatus.textContent =
+        'Pagamento confirmado. A tua consulta está agendada — usa o link da próxima consulta para entrar na videochamada.';
+    } else {
+      heroStatus.textContent =
+        'A confirmação pode demorar um instante. Atualiza a página; se o pagamento falhou, volta a marcar um horário.';
+    }
+  } else if (mpReturn === 'failure' && heroStatus) {
+    try {
+      history.replaceState({}, '', window.location.pathname || 'especialistas.html');
+    } catch (err) {
+      /* ignore */
+    }
+    heroStatus.textContent = 'Pagamento não concluído no Mercado Pago. Podes tentar de novo.';
+  } else if (mpReturn === 'pending' && heroStatus) {
+    try {
+      history.replaceState({}, '', window.location.pathname || 'especialistas.html');
+    } catch (err) {
+      /* ignore */
+    }
+    heroStatus.textContent = 'Pagamento pendente ou em análise. Volta daqui a pouco.';
+  }
+
   await loadNextBooking();
 }
 

@@ -41,9 +41,10 @@
         <p class="spec-hero__sub">
           Escolhe um profissional, marca o horário e faz a consulta por vídeo aqui mesmo — sem sair da app.
         </p>
-        <div class="spec-price-pill" role="note">
+        <button type="button" class="spec-price-pill spec-price-pill--btn" id="spec-price-cta"
+          aria-label="Ver especialistas e marcar consulta a 49,90 reais">
           Valor social <strong id="spec-price-strong">R$ 49,90</strong> por consulta
-        </div>
+        </button>
         <p class="spec-hero__sub" id="spec-hero-status" style="margin-top: 12px; color: #f5a08c"></p>
       </div>
     </header>
@@ -82,8 +83,8 @@
     </section>
 
     <p class="spec-legal">
-      Consulta de apoio; não substitui emergência. O carregamento do cartão ou a confirmação do Pix na operadora
-      liga-se a este fluxo quando integrares o gateway de pagamento.
+      Consulta de apoio; não substitui emergência. O pagamento é processado pelo Mercado Pago (Pix ou cartão de
+      crédito 1x) na conta da organização.
     </p>
 
     <div class="spec-modal-backdrop" id="spec-modal-backdrop" aria-hidden="true"></div>
@@ -128,14 +129,7 @@
               <span class="spec-pay-option__icon" aria-hidden="true">▭</span>
               <span class="spec-pay-option__text">
                 <span class="spec-pay-option__title">Cartão de crédito</span>
-                <span class="spec-pay-option__sub">Parcelamento conforme operadora</span>
-              </span>
-            </button>
-            <button type="button" class="spec-pay-option" data-method="debit_card" role="radio" aria-checked="false">
-              <span class="spec-pay-option__icon" aria-hidden="true">▬</span>
-              <span class="spec-pay-option__text">
-                <span class="spec-pay-option__title">Cartão de débito</span>
-                <span class="spec-pay-option__sub">Débito em conta</span>
+                <span class="spec-pay-option__sub">1x à vista (Checkout Mercado Pago)</span>
               </span>
             </button>
           </div>
@@ -145,7 +139,7 @@
           <div class="spec-modal__foot">
             <button type="button" class="spec-btn spec-btn--primary" id="spec-btn-final-pay" style="width: 100%"
               disabled>
-              Pagar e agendar — R$ 49,90
+              Ir pagar no Mercado Pago — R$ 49,90
             </button>
           </div>
         </div>
