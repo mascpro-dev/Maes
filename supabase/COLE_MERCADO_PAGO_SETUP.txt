@@ -1,35 +1,38 @@
-================================================================================
-Aura — Mercado Pago (Checkout Pro: Pix + cartão crédito 1x)
-================================================================================
-
-1) SQL
-   - Aplica a migração: supabase/migrations/20260410190000_mercado_pago_checkout_intents.sql
-
-2) Mercado Pago (conta da organização)
-   - https://www.mercadopago.com.br/developers/panel/credentials
-   - Copia o Access Token de PRODUÇÃO (ou de teste para sandbox).
-
-3) Supabase → Project Settings → Edge Functions → Secrets
-   - MERCADOPAGO_ACCESS_TOKEN = token do passo 2
-   - APP_PUBLIC_URL = URL pública do site com https, ex.: https://seudominio.com
-     (usada nas back_urls se o browser não enviar Origin; deve coincidir com o domínio
-     onde a app está hospedada)
-
-4) Deploy das funções (CLI no projeto)
-   supabase functions deploy mercadopago-create-preference
-   supabase functions deploy mercadopago-webhook
-
-5) Mercado Pago → Webhooks / notificações IPN (recomendado validar assinatura depois)
-   - URL: https://<PROJECT_REF>.supabase.co/functions/v1/mercadopago-webhook
-   - A preferência já envia notification_url para esse endpoint; confirma no painel MP
-     que as notificações estão a chegar após um pagamento de teste.
-
-6) Fluxo
-   - A mãe escolhe horário + Pix ou crédito 1x → redireciona para o Checkout Pro do MP.
-   - Após pagamento aprovado, o webhook chama finalize_consultation_checkout_intent e
-     cria a linha em consultation_bookings (sala Jitsi incluída).
-   - O valor R$ 49,90 cai na conta Mercado Pago configurada com esse Access Token.
-
-7) Testes
-   - Usa cartões e contas de teste MP em modo sandbox se o token for de teste.
-   - Em ficheiro local (file://), Origin pode falhar: define APP_PUBLIC_URL.
+-- NÃO É MIGRAÇÃO: isto é só documentação. Para criar tabelas/funções, cola o ficheiro
+-- supabase/migrations/20260410190000_mercado_pago_checkout_intents.sql (não este .txt).
+--
+-- =============================================================================
+-- Aura — Mercado Pago (Checkout Pro: Pix + cartão crédito 1x)
+-- =============================================================================
+--
+-- 1) SQL
+--    - Aplica a migração: supabase/migrations/20260410190000_mercado_pago_checkout_intents.sql
+--
+-- 2) Mercado Pago (conta da organização)
+--    - https://www.mercadopago.com.br/developers/panel/credentials
+--    - Copia o Access Token de PRODUÇÃO (ou de teste para sandbox).
+--
+-- 3) Supabase → Project Settings → Edge Functions → Secrets
+--    - MERCADOPAGO_ACCESS_TOKEN = token do passo 2
+--    - APP_PUBLIC_URL = URL pública do site com https, ex.: https://seudominio.com
+--      (usada nas back_urls se o browser não enviar Origin; deve coincidir com o domínio
+--      onde a app está hospedada)
+--
+-- 4) Deploy das funções (CLI no projeto)
+--    supabase functions deploy mercadopago-create-preference
+--    supabase functions deploy mercadopago-webhook
+--
+-- 5) Mercado Pago → Webhooks / notificações IPN (recomendado validar assinatura depois)
+--    - URL: https://<PROJECT_REF>.supabase.co/functions/v1/mercadopago-webhook
+--    - A preferência já envia notification_url para esse endpoint; confirma no painel MP
+--      que as notificações estão a chegar após um pagamento de teste.
+--
+-- 6) Fluxo
+--    - A mãe escolhe horário + Pix ou crédito 1x → redireciona para o Checkout Pro do MP.
+--    - Após pagamento aprovado, o webhook chama finalize_consultation_checkout_intent e
+--      cria a linha em consultation_bookings (sala Jitsi incluída).
+--    - O valor R$ 49,90 cai na conta Mercado Pago configurada com esse Access Token.
+--
+-- 7) Testes
+--    - Usa cartões e contas de teste MP em modo sandbox se o token for de teste.
+--    - Em ficheiro local (file://), Origin pode falhar: define APP_PUBLIC_URL.
