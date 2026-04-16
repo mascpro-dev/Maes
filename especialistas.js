@@ -26,19 +26,47 @@ async function createMercadoPagoPreference(supabase, payload) {
   const token = session?.access_token;
   if (!token) throw new Error('not_authenticated');
 
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-      apikey: window.AURA_SUPABASE_ANON_KEY || '',
-    },
-    body: JSON.stringify(payload),
-  });
-  const json = await res.json().catch(() => ({}));
+  const site =
+    (typeof window.AURA_APP_PUBLIC_URL === 'string' && window.AURA_APP_PUBLIC_URL.trim()) ||
+    (typeof window !== 'undefined' && window.location?.origin && /^https?:\/\//i.test(window.location.origin)
+      ? window.location.origin
+      : '');
+
+  const headers = {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    apikey: window.AURA_SUPABASE_ANON_KEY || '',
+  };
+  if (site) {
+    headers['X-Public-Site-Url'] = site.replace(/\/$/, '');
+  }
+
+  let res;
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      mode: 'cors',
+      headers,
+      body: JSON.stringify(payload),
+    });
+  } catch (netErr) {
+    const err = new Error('network');
+    err.detail =
+      'Não houve ligação ao servidor (função não deployada, CORS ou offline). Corre: supabase functions deploy mercadopago-create-preference';
+    err.cause = netErr;
+    throw err;
+  }
+
+  const ct = res.headers.get('content-type') || '';
+  const json = ct.includes('application/json') ? await res.json().catch(() => ({})) : {};
+
   if (!res.ok) {
-    const err = new Error(json.error || 'mp_preference_failed');
-    err.detail = json.detail || json;
+    const err = new Error(json.error || `http_${res.status}`);
+    err.detail = json.detail ?? json;
+    err.hint = json.hint;
+    if (res.status === 404) {
+      err.hint = (err.hint || '') + ' Deploy da Edge Function mercadopago-create-preference em falta.';
+    }
     throw err;
   }
   if (!json.init_point) throw new Error('no_init_point');
@@ -402,18 +430,37 @@ async function main() {
         });
         window.location.href = out.init_point;
       } catch (e) {
-        const raw = `${e?.message || ''} ${e?.detail ? JSON.stringify(e.detail) : ''}`;
-        let msg = 'Não foi possível abrir o pagamento. Verifica a rede ou configuração.';
+        const d = e?.detail;
+        const detailStr =
+          typeof d === 'string'
+            ? d
+            : d && typeof d === 'object'
+              ? JSON.stringify(d).slice(0, 420)
+              : '';
+        const hint = e?.hint ? String(e.hint).slice(0, 280) : '';
+        let msg = 'Não foi possível abrir o pagamento.';
+        const parts = [msg];
+        if (e?.message === 'network' && e.detail) parts.push(e.detail);
+        if (detailStr) parts.push(detailStr);
+        if (hint) parts.push(hint);
+        const raw = `${e?.message || ''} ${detailStr} ${hint}`;
         if (raw.includes('missing_app_public_url_or_origin')) {
-          msg =
-            'Define APP_PUBLIC_URL nas secrets da função (URL https do site) ou abre a app a partir do domínio público.';
-        } else if (raw.includes('server_misconfigured') || raw.includes('misconfigured')) {
-          msg =
-            'Mercado Pago ainda não configurado: adiciona MERCADOPAGO_ACCESS_TOKEN nas secrets da Edge Function.';
+          parts.length = 1;
+          parts.push(
+            'Define o secret APP_PUBLIC_URL no Supabase (ex.: https://maes-pi.vercel.app) ou confirma que abres a app em HTTPS.'
+          );
+        } else if (raw.includes('server_misconfigured')) {
+          parts.length = 1;
+          parts.push('Configura MERCADOPAGO_ACCESS_TOKEN nas secrets da Edge Function.');
         } else if (raw.includes('intent_create_failed')) {
-          msg = 'Não foi possível preparar o checkout. Aplica a migração consultation_checkout_intents no Supabase.';
+          parts.length = 1;
+          parts.push(
+            'Falha ao criar intenção: aplica a migração 20260410190000 e confirma que o teu utilizador tem linha em profiles.'
+          );
+        } else if (raw.includes('mercadopago_error') || raw.includes('http_')) {
+          parts.push('Token Mercado Pago inválido ou MP a rejeitar o pedido — vê o painel MP.');
         }
-        bookStatus.textContent = msg;
+        bookStatus.textContent = parts.filter(Boolean).join(' ');
         btnFinalPay.disabled = false;
       }
     });

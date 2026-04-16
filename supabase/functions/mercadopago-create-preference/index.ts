@@ -5,22 +5,36 @@
  */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 
-const corsHeaders: Record<string, string> = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+function corsHeadersFor(req: Request): Record<string, string> {
+  const origin = req.headers.get('Origin') || req.headers.get('origin');
+  const allow = origin && origin.startsWith('http') ? origin : '*';
+  return {
+    'Access-Control-Allow-Origin': allow,
+    'Access-Control-Allow-Headers':
+      'authorization, x-client-info, apikey, content-type, x-public-site-url',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+}
 
-function json(status: number, body: unknown) {
+function json(req: Request, status: number, body: unknown) {
+  const h = corsHeadersFor(req);
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...h, 'Content-Type': 'application/json' },
   });
 }
 
+/** URLs de retorno: secret APP_PUBLIC_URL, cabeçalho X-Public-Site-Url (app), Origin ou Referer */
 function publicBaseUrl(req: Request): string {
   const env = Deno.env.get('APP_PUBLIC_URL')?.trim().replace(/\/$/, '');
   if (env) return env;
-  const origin = req.headers.get('origin') || req.headers.get('referer');
+
+  const fromHeader = req.headers.get('X-Public-Site-Url')?.trim().replace(/\/$/, '');
+  if (fromHeader && /^https:\/\/.+/i.test(fromHeader)) {
+    return fromHeader;
+  }
+
+  const origin = req.headers.get('Origin') || req.headers.get('origin');
   if (origin) {
     try {
       return new URL(origin).origin;
@@ -28,16 +42,26 @@ function publicBaseUrl(req: Request): string {
       /* ignore */
     }
   }
+
+  const referer = req.headers.get('Referer') || req.headers.get('referer');
+  if (referer) {
+    try {
+      return new URL(referer).origin;
+    } catch {
+      /* ignore */
+    }
+  }
+
   return '';
 }
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeadersFor(req) });
   }
 
   if (req.method !== 'POST') {
-    return json(405, { error: 'method_not_allowed' });
+    return json(req, 405, { error: 'method_not_allowed' });
   }
 
   const accessToken = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN')?.trim();
@@ -46,13 +70,13 @@ Deno.serve(async (req) => {
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY')?.trim();
 
   if (!accessToken || !supabaseUrl || !serviceKey) {
-    return json(503, { error: 'server_misconfigured' });
+    return json(req, 503, { error: 'server_misconfigured' });
   }
 
   const authHeader = req.headers.get('Authorization') || '';
   const jwt = authHeader.replace(/^Bearer\s+/i, '').trim();
   if (!jwt) {
-    return json(401, { error: 'missing_authorization' });
+    return json(req, 401, { error: 'missing_authorization' });
   }
 
   const userClient = createClient(supabaseUrl, anonKey || serviceKey, {
@@ -64,7 +88,7 @@ Deno.serve(async (req) => {
     error: userErr,
   } = await userClient.auth.getUser(jwt);
   if (userErr || !user?.id) {
-    return json(401, { error: 'invalid_session' });
+    return json(req, 401, { error: 'invalid_session' });
   }
 
   let body: {
@@ -75,7 +99,7 @@ Deno.serve(async (req) => {
   try {
     body = await req.json();
   } catch {
-    return json(400, { error: 'invalid_json' });
+    return json(req, 400, { error: 'invalid_json' });
   }
 
   const specialistId = body.specialist_id?.trim();
@@ -83,13 +107,24 @@ Deno.serve(async (req) => {
   const paymentMethod = body.payment_method?.trim();
 
   if (!specialistId || !startsAt) {
-    return json(400, { error: 'missing_fields' });
+    return json(req, 400, { error: 'missing_fields' });
   }
   if (paymentMethod !== 'pix' && paymentMethod !== 'credit_card') {
-    return json(400, { error: 'invalid_payment_method' });
+    return json(req, 400, { error: 'invalid_payment_method' });
   }
 
   const admin = createClient(supabaseUrl, serviceKey);
+
+  let payerEmail = user.email?.trim() || '';
+  if (!payerEmail) {
+    const { data: authData, error: authLookupErr } = await admin.auth.admin.getUserById(user.id);
+    if (!authLookupErr) {
+      payerEmail = authData?.user?.email?.trim() || '';
+    }
+  }
+  if (!payerEmail) {
+    payerEmail = `comprador+${user.id.replace(/-/g, '').slice(0, 12)}@mercadopago.com.br`;
+  }
 
   const { data: intent, error: insErr } = await admin
     .from('consultation_checkout_intents')
@@ -105,14 +140,23 @@ Deno.serve(async (req) => {
 
   if (insErr || !intent?.id) {
     console.error('[mp-preference] insert intent', insErr);
-    return json(500, { error: 'intent_create_failed', detail: insErr?.message });
+    return json(req, 500, {
+      error: 'intent_create_failed',
+      detail: insErr?.message || String(insErr),
+      hint:
+        'Confirma que a migração 20260410190000 foi aplicada e que existe linha em profiles com o mesmo id do login.',
+    });
   }
 
   const intentId = intent.id as string;
   const base = publicBaseUrl(req);
   if (!base) {
     await admin.from('consultation_checkout_intents').update({ status: 'failed' }).eq('id', intentId);
-    return json(503, { error: 'missing_app_public_url_or_origin' });
+    return json(req, 503, {
+      error: 'missing_app_public_url_or_origin',
+      detail:
+        'Define o secret APP_PUBLIC_URL (ex.: https://maes-pi.vercel.app) ou envia o cabeçalho X-Public-Site-Url a partir da app.',
+    });
   }
 
   const successUrl = `${base}/especialistas.html?mp=success&intent=${encodeURIComponent(intentId)}`;
@@ -132,7 +176,7 @@ Deno.serve(async (req) => {
         unit_price: 49.9,
       },
     ],
-    payer: { email: user.email || undefined },
+    payer: { email: payerEmail },
     external_reference: intentId,
     back_urls: {
       success: successUrl,
@@ -146,7 +190,7 @@ Deno.serve(async (req) => {
       default_installments: 1,
       excluded_payment_types: [{ id: 'debit_card' }, { id: 'ticket' }],
     },
-    statement_descriptor: 'CONTA MAE',
+    statement_descriptor: 'CONTAMAE',
     binary_mode: false,
   };
 
@@ -164,7 +208,7 @@ Deno.serve(async (req) => {
   if (!mpRes.ok) {
     console.error('[mp-preference] MP error', mpRes.status, mpJson);
     await admin.from('consultation_checkout_intents').update({ status: 'failed' }).eq('id', intentId);
-    return json(502, { error: 'mercadopago_error', status: mpRes.status, detail: mpJson });
+    return json(req, 502, { error: 'mercadopago_error', status: mpRes.status, detail: mpJson });
   }
 
   const prefId = mpJson.id as string | undefined;
@@ -178,10 +222,10 @@ Deno.serve(async (req) => {
   const initPoint = (mpJson.init_point as string) || (mpJson.sandbox_init_point as string);
   if (!initPoint) {
     await admin.from('consultation_checkout_intents').update({ status: 'failed' }).eq('id', intentId);
-    return json(502, { error: 'no_init_point', detail: mpJson });
+    return json(req, 502, { error: 'no_init_point', detail: mpJson });
   }
 
-  return json(200, {
+  return json(req, 200, {
     init_point: initPoint,
     intent_id: intentId,
     preference_id: prefId ?? null,
