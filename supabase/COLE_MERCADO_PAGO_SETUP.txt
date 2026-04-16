@@ -1,38 +1,56 @@
--- NÃO É MIGRAÇÃO: isto é só documentação. Para criar tabelas/funções, cola o ficheiro
--- supabase/migrations/20260410190000_mercado_pago_checkout_intents.sql (não este .txt).
+-- NÃO colar isto no SQL Editor como migração. Para SQL de tabelas usa:
+-- supabase/migrations/20260410190000_mercado_pago_checkout_intents.sql
 --
 -- =============================================================================
--- Aura — Mercado Pago (Checkout Pro: Pix + cartão crédito 1x)
+-- MERCADO PAGO — forma simples (o botão “Ir pagar…” depende disto)
 -- =============================================================================
 --
--- 1) SQL
---    - Aplica a migração: supabase/migrations/20260410190000_mercado_pago_checkout_intents.sql
+-- O botão na app já fica ativo quando escolhes Pix ou cartão. O que “liberta”
+-- o pagamento de verdade é o servidor (Supabase) falar com o Mercado Pago.
 --
--- 2) Mercado Pago (conta da organização)
---    - https://www.mercadopago.com.br/developers/panel/credentials
---    - Copia o Access Token de PRODUÇÃO (ou de teste para sandbox).
+-- PASSO A PASSO (ordem sugerida)
 --
--- 3) Supabase → Project Settings → Edge Functions → Secrets
---    - MERCADOPAGO_ACCESS_TOKEN = token do passo 2
---    - APP_PUBLIC_URL = URL pública do site com https, ex.: https://seudominio.com
---      (usada nas back_urls se o browser não enviar Origin; deve coincidir com o domínio
---      onde a app está hospedada)
+-- A) SQL no Supabase (SQL Editor → New query)
+--    Cola e executa SÓ o ficheiro:
+--    supabase/migrations/20260410190000_mercado_pago_checkout_intents.sql
 --
--- 4) Deploy das funções (CLI no projeto)
+-- B) Credenciais Mercado Pago (conta onde queres receber o dinheiro)
+--    1. Abre: https://www.mercadopago.com.br/developers/panel/app
+--    2. Credenciais de produção (ou “Teste” para experimentar sem cobrar).
+--    3. Copia o **Access Token** (começa por APP_USR-… ou TEST-…).
+--    Não precisas da “Public Key” nesta integração: o checkout abre no site
+--    do Mercado Pago; o token secreto vai só no Supabase (passo C).
+--
+-- C) Secrets no Supabase (liga o MP ao teu projeto)
+--    1. Supabase Dashboard → teu projeto → **Project Settings** → **Edge Functions** → **Secrets**
+--    2. Adiciona:
+--       Nome: MERCADOPAGO_ACCESS_TOKEN     Valor: (cola o Access Token do passo B)
+--       Nome: APP_PUBLIC_URL               Valor: https://maes-pi.vercel.app
+--       (troca o URL se o teu site for outro; tem de ser https e sem barra no fim)
+--
+-- D) Publicar as funções (no PC, na pasta do projeto, com Supabase CLI instalada e login feito)
+--    supabase link --project-ref ahjhjzdmkkrcgbuxmhww
 --    supabase functions deploy mercadopago-create-preference
 --    supabase functions deploy mercadopago-webhook
+--    (Se o project-ref for outro, usa o que está em Settings → API → Project URL)
 --
--- 5) Mercado Pago → Webhooks / notificações IPN (recomendado validar assinatura depois)
---    - URL: https://<PROJECT_REF>.supabase.co/functions/v1/mercadopago-webhook
---    - A preferência já envia notification_url para esse endpoint; confirma no painel MP
---      que as notificações estão a chegar após um pagamento de teste.
+-- E) Opcional no código (Vercel / domínio fixo)
+--    Em supabase-config.js podes preencher:
+--    window.AURA_APP_PUBLIC_URL = 'https://maes-pi.vercel.app';
+--    Isto reforça o domínio enviado ao servidor no pagamento.
 --
--- 6) Fluxo
---    - A mãe escolhe horário + Pix ou crédito 1x → redireciona para o Checkout Pro do MP.
---    - Após pagamento aprovado, o webhook chama finalize_consultation_checkout_intent e
---      cria a linha em consultation_bookings (sala Jitsi incluída).
---    - O valor R$ 49,90 cai na conta Mercado Pago configurada com esse Access Token.
+-- F) Webhook (para a consulta aparecer logo após pagar)
+--    A preferência já manda notificações para:
+--    https://ahjhjzdmkkrcgbuxmhww.supabase.co/functions/v1/mercadopago-webhook
+--    No painel MP, em Webhooks, podes confirmar que recebes eventos (útil em produção).
 --
--- 7) Testes
---    - Usa cartões e contas de teste MP em modo sandbox se o token for de teste.
---    - Em ficheiro local (file://), Origin pode falhar: define APP_PUBLIC_URL.
+-- Se algo falhar, a mensagem vermelha na app tenta dizer o motivo (token, URL,
+-- migração em falta, função sem deploy, etc.).
+--
+-- =============================================================================
+-- Detalhe técnico (referência)
+-- =============================================================================
+--
+-- - O valor R$ 49,90 está fixo na Edge Function (unit_price 49.9 BRL).
+-- - Pix + cartão crédito 1x; débito e boleto “ticket” excluídos na preferência.
+-- - Dinheiro cai na conta Mercado Pago do mesmo Access Token.

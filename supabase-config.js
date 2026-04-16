@@ -7,4 +7,4 @@ window.AURA_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOi
  * Usado no pagamento Mercado Pago (cabeçalho X-Public-Site-Url) se quiseres forçar o domínio.
  * Em HTTPS, a app também envia window.location.origin automaticamente.
  */
-window.AURA_APP_PUBLIC_URL = '';
+window.AURA_APP_PUBLIC_URL = 'https://maes-pi.vercel.app';
