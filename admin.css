@@ -192,7 +192,8 @@ body.admin-page {
 .admin-field input[type='text'],
 .admin-field input[type='url'],
 .admin-field input[type='number'],
-.admin-field textarea {
+.admin-field textarea,
+.admin-field select {
   width: 100%;
   max-width: 100%;
   padding: 10px 12px;
@@ -206,6 +207,22 @@ body.admin-page {
 
 .admin-field textarea {
   min-height: 88px;
+  resize: vertical;
+}
+
+.admin-textarea--tall {
+  min-height: 220px;
+  width: 100%;
+  max-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--sage-light);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  background: var(--white);
+  color: var(--ink);
+  box-sizing: border-box;
   resize: vertical;
 }
 

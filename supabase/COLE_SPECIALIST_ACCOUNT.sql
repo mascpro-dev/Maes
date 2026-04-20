@@ -1,0 +1,22 @@
+-- =============================================================================
+-- Liga um utilizador Auth (login na app) ao registo public.specialists
+-- Depois de aplicares a migração 20260410210000_specialist_calendar_admin_rpcs.sql
+-- =============================================================================
+--
+-- Opção A — Painel admin (recomendado): em admin.html → secção Especialistas,
+-- "Ligar conta do médico à agenda": escolhe o médico e cola o UUID do user.
+--
+-- Opção B — SQL Editor (postgres / service role), substitui os UUIDs:
+--
+-- INSERT INTO public.specialist_accounts (user_id, specialist_id)
+-- VALUES (
+--   'UUID_DO_UTILIZADOR_AUTH'::uuid,
+--   'UUID_DO_REGISTO_SPECIALISTS'::uuid
+-- )
+-- ON CONFLICT (user_id) DO UPDATE SET specialist_id = EXCLUDED.specialist_id;
+--
+-- Um specialists só pode ter UMA conta ligada (constraint unique em specialist_id).
+-- Um utilizador só pode estar ligado a UM specialists (PK user_id).
+--
+-- Depois: Perfil → aparece "Agenda de consultas (médico)" → fecha/reabre slots.
+-- =============================================================================

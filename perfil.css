@@ -3,6 +3,27 @@
    Paleta: tokens Aura (style.css)
    ============================================================ */
 
+.perfil-terms-body {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--ink);
+  max-width: 100%;
+}
+
+.perfil-terms-meta {
+  font-size: 0.82rem;
+  color: var(--ink-mid);
+  margin-bottom: 12px;
+}
+
+.perfil-terms-error {
+  margin-top: 12px;
+  font-size: 0.875rem;
+  color: var(--terracotta, #e2725b);
+}
+
 /* Evita cortar o grelha; o .app-wrapper global usa overflow:hidden */
 .app-wrapper--perfil-dash {
   max-width: none;

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="aura-auth-checking">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CONTA MÃE — Agenda do especialista</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Serif+Display:ital@0;1&display=swap"
+    rel="stylesheet" />
+  <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" sizes="any" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="especialistas.css" />
+  <link rel="stylesheet" href="especialista-agenda.css" />
+</head>
+
+<body class="specialist-agenda-page">
+  <script src="supabase-config.js"></script>
+  <script src="auth.js"></script>
+  <script type="module" src="auth-session-guard.js"></script>
+
+  <div class="esp-agenda-wrap">
+    <header class="esp-agenda-head">
+      <a href="perfil.html" class="esp-agenda-back">← Perfil</a>
+      <h1 class="esp-agenda-title">Agenda de consultas</h1>
+      <p class="esp-agenda-sub" id="esp-agenda-spec-line"></p>
+    </header>
+
+    <div id="esp-agenda-denied" class="esp-agenda-banner" hidden></div>
+
+    <div id="esp-agenda-app" hidden>
+      <p class="esp-agenda-help">
+        Horários <strong>livres</strong> aparecem a verde — toca para <strong>fechar</strong> ao público. Horários
+        <strong>fechados por ti</strong> (laranja) — toca para <strong>reabrir</strong>. Horários com
+        <strong>reserva paga</strong> não podem ser alterados aqui.
+      </p>
+      <div class="esp-agenda-controls">
+        <label for="esp-agenda-date">Dia</label>
+        <input type="date" id="esp-agenda-date" />
+      </div>
+      <div class="esp-agenda-slots spec-slots esp-slots" id="esp-agenda-slots" role="group"
+        aria-label="Horários do dia"></div>
+      <p class="esp-agenda-status" id="esp-agenda-status" role="status"></p>
+    </div>
+  </div>
+
+  <script type="module" src="especialista-agenda.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,109 @@
+/* Página agenda médico — fora do .app-wrapper flex do style.css */
+body.specialist-agenda-page {
+  display: block;
+  overflow-x: hidden;
+}
+
+.esp-agenda-wrap {
+  width: 100%;
+  max-width: min(430px, 100%);
+  margin: 0 auto;
+  padding: 20px max(16px, env(safe-area-inset-left, 0px)) 48px
+    max(16px, env(safe-area-inset-right, 0px));
+  min-height: 100dvh;
+  box-sizing: border-box;
+}
+
+.esp-agenda-head {
+  margin-bottom: 16px;
+}
+
+.esp-agenda-back {
+  display: inline-block;
+  font-size: 0.9rem;
+  color: var(--ink-mid, #5a5550);
+  text-decoration: none;
+  margin-bottom: 8px;
+}
+
+.esp-agenda-back:hover {
+  color: var(--ink);
+}
+
+.esp-agenda-title {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.5rem;
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.esp-agenda-sub {
+  margin-top: 6px;
+  font-size: 0.9rem;
+  color: var(--ink-mid);
+}
+
+.esp-agenda-help {
+  font-size: 0.82rem;
+  color: var(--ink-mid);
+  line-height: 1.45;
+  margin-bottom: 14px;
+}
+
+.esp-agenda-controls {
+  margin-bottom: 12px;
+}
+
+.esp-agenda-controls label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--ink-mid);
+  margin-bottom: 6px;
+}
+
+.esp-agenda-controls input[type='date'] {
+  width: 100%;
+  max-width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--sage-light);
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  background: var(--white);
+  color: var(--ink);
+  box-sizing: border-box;
+}
+
+.esp-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.esp-slot--blocked {
+  background: rgba(226, 114, 91, 0.22) !important;
+  border-color: var(--terracotta-light, #f5c4b8) !important;
+  color: var(--ink) !important;
+}
+
+.esp-slot--booked {
+  opacity: 0.55;
+  cursor: not-allowed !important;
+  text-decoration: line-through;
+}
+
+.esp-agenda-status {
+  margin-top: 14px;
+  font-size: 0.85rem;
+  min-height: 1.2em;
+}
+
+.esp-agenda-banner {
+  padding: 14px 16px;
+  border-radius: var(--radius-md, 16px);
+  background: var(--terracotta-pale, #fdf0ec);
+  border: 1px solid var(--terracotta-light, #f5c4b8);
+  color: var(--ink);
+  font-size: 0.9rem;
+}

@@ -28,7 +28,7 @@
       <header class="admin-top">
         <div>
           <h1>Painel admin</h1>
-          <p class="admin-top__sub">Especialistas, reservas e checkouts Mercado Pago</p>
+          <p class="admin-top__sub">Especialistas, reservas, cadastros e termos legais</p>
         </div>
         <div class="admin-top__actions">
           <a href="perfil.html" class="admin-btn">← Perfil</a>
@@ -44,6 +44,7 @@
           aria-selected="true">Especialistas</button>
         <button type="button" class="admin-tab" data-tab="book" role="tab" aria-selected="false">Reservas</button>
         <button type="button" class="admin-tab" data-tab="chk" role="tab" aria-selected="false">Checkouts MP</button>
+        <button type="button" class="admin-tab" data-tab="reg" role="tab" aria-selected="false">Cadastros</button>
       </nav>
 
       <section id="panel-spec" class="admin-panel" role="tabpanel">
@@ -79,6 +80,29 @@
           <div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px">
             <button type="button" class="admin-btn admin-btn--primary" id="adm-spec-save">Guardar</button>
             <button type="button" class="admin-btn" id="adm-spec-clear">Limpar formulário</button>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <h2>Ligar conta do médico à agenda</h2>
+          <p class="admin-muted" style="margin-bottom: 12px">
+            O médico usa o <strong>mesmo login</strong> que na app (Auth). Cola aqui o UUID do utilizador (Supabase
+            Dashboard → Authentication → Users) e escolhe o registo do especialista.
+          </p>
+          <div class="admin-form-grid">
+            <div class="admin-field" style="grid-column: 1 / -1">
+              <label for="adm-link-spec">Especialista</label>
+              <select id="adm-link-spec"></select>
+            </div>
+            <div class="admin-field" style="grid-column: 1 / -1">
+              <label for="adm-link-user">UUID do utilizador (Auth)</label>
+              <input type="text" id="adm-link-user" maxlength="80" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                autocomplete="off" />
+            </div>
+          </div>
+          <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+            <button type="button" class="admin-btn admin-btn--primary" id="adm-link-save">Guardar ligação</button>
+            <span class="admin-muted" id="adm-link-hint" style="margin: 0"></span>
           </div>
         </div>
 
@@ -140,6 +164,110 @@
               <tbody id="adm-chk-tbody"></tbody>
             </table>
           </div>
+        </div>
+      </section>
+
+      <section id="panel-reg" class="admin-panel" role="tabpanel" hidden>
+        <div class="admin-card">
+          <h2>Termos e condições (visíveis no perfil de todas)</h2>
+          <p class="admin-muted" style="margin-bottom: 12px">
+            O texto aparece em <strong>Perfil → Termos e condições</strong> para qualquer utilizadora com sessão
+            iniciada.
+          </p>
+          <div class="admin-field" style="margin-bottom: 12px">
+            <label for="adm-terms-title">Título</label>
+            <input type="text" id="adm-terms-title" maxlength="200" />
+          </div>
+          <div class="admin-field">
+            <label for="adm-terms-body">Texto completo</label>
+            <textarea id="adm-terms-body" class="admin-textarea--tall" maxlength="120000"
+              placeholder="Escreve aqui os termos, política de privacidade ou avisos legais…"></textarea>
+          </div>
+          <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+            <button type="button" class="admin-btn admin-btn--primary" id="adm-terms-save">Guardar termos</button>
+            <span class="admin-muted" id="adm-terms-hint"></span>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <h2>Mães — perfis (utilizadoras)</h2>
+          <p class="admin-muted" style="margin-bottom: 12px">
+            Pesquisa por nome ou e-mail. Para <strong>médicos credenciados</strong>, continua a usar a aba
+            <strong>Especialistas</strong>.
+          </p>
+          <div class="admin-form-grid" style="margin-bottom: 12px; align-items: end">
+            <div class="admin-field" style="grid-column: 1 / -1">
+              <label for="adm-mother-q">Pesquisar</label>
+              <input type="search" id="adm-mother-q" maxlength="120" placeholder="Nome ou e-mail…" />
+            </div>
+          </div>
+          <div style="margin-bottom: 12px">
+            <button type="button" class="admin-btn admin-btn--primary" id="adm-mother-search">Listar / pesquisar</button>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>E-mail</th>
+                  <th>Termos aceites</th>
+                  <th>Atualizado</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="adm-mothers-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="admin-card" id="adm-mother-editor" hidden>
+          <h2>Editar perfil da mãe</h2>
+          <input type="hidden" id="adm-m-id" value="" />
+          <p class="admin-muted" id="adm-m-id-hint" style="margin-bottom: 12px"></p>
+          <div class="admin-form-grid">
+            <div class="admin-field" style="grid-column: 1 / -1">
+              <label for="adm-m-name">Nome completo</label>
+              <input type="text" id="adm-m-name" maxlength="120" />
+            </div>
+            <div class="admin-field" style="grid-column: 1 / -1">
+              <label for="adm-m-email">E-mail (perfil)</label>
+              <input type="email" id="adm-m-email" maxlength="200" />
+            </div>
+            <div class="admin-field">
+              <label for="adm-m-phone">Telefone</label>
+              <input type="text" id="adm-m-phone" maxlength="40" />
+            </div>
+            <div class="admin-field">
+              <label for="adm-m-city">Cidade</label>
+              <input type="text" id="adm-m-city" maxlength="120" />
+            </div>
+            <div class="admin-field">
+              <label for="adm-m-state">UF</label>
+              <input type="text" id="adm-m-state" maxlength="4" />
+            </div>
+            <div class="admin-field" style="grid-column: 1 / -1">
+              <label for="adm-m-bio">Bio</label>
+              <textarea id="adm-m-bio" maxlength="600" rows="3"></textarea>
+            </div>
+            <div class="admin-field admin-field--check" style="grid-column: 1 / -1">
+              <input type="checkbox" id="adm-m-clear-terms" />
+              <label for="adm-m-clear-terms">Limpar data de aceitação dos termos (obriga a reaceitar se o fluxo
+                existir)</label>
+            </div>
+          </div>
+          <div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px">
+            <button type="button" class="admin-btn admin-btn--primary" id="adm-m-save">Guardar alterações</button>
+            <button type="button" class="admin-btn" id="adm-m-cancel">Cancelar</button>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <h2>Médicos</h2>
+          <p class="admin-muted">
+            Os dados públicos de cada médico (nome, especialidade, foto, ativo) são editados na aba
+            <strong>Especialistas</strong>. A ligação da conta Auth à agenda está na secção «Ligar conta do médico».
+          </p>
+          <button type="button" class="admin-btn" id="adm-goto-spec">Ir para Especialistas</button>
         </div>
       </section>
     </div>

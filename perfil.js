@@ -49,6 +49,77 @@ function toast(msg) {
   else alert(msg);
 }
 
+async function loadPublicTerms(supabase) {
+  const bodyEl = document.getElementById('perfil-terms-body');
+  const meta = document.getElementById('perfil-terms-updated');
+  const errEl = document.getElementById('perfil-terms-error');
+  const head = document.getElementById('perfil-terms-heading');
+  if (!bodyEl) return;
+  if (errEl) {
+    errEl.hidden = true;
+    errEl.textContent = '';
+  }
+  const { data, error } = await supabase
+    .from('app_public_legal')
+    .select('title,body,updated_at')
+    .eq('slug', 'terms')
+    .maybeSingle();
+  if (error) {
+    if (errEl) {
+      errEl.hidden = false;
+      errEl.textContent =
+        error.message ||
+        'Não foi possível carregar os termos. Aplica a migração 20260410220000_admin_profiles_public_terms.sql no Supabase.';
+    }
+    bodyEl.textContent = '';
+    return;
+  }
+  if (head && data?.title) head.textContent = data.title;
+  bodyEl.textContent = data?.body || '';
+  if (meta) {
+    if (data?.updated_at) {
+      meta.hidden = false;
+      meta.textContent =
+        'Última atualização: ' +
+        new Date(data.updated_at).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+    } else {
+      meta.hidden = true;
+    }
+  }
+}
+
+function applyPerfilRoute(supabase) {
+  const hash = (window.location.hash || '').toLowerCase();
+  const isTerms = hash === '#termos';
+  const content = document.getElementById('perfil-content');
+  const termsPanel = document.getElementById('perfil-terms-panel');
+  const title = document.querySelector('.perfil-dash__title');
+  const completion = document.querySelector('.perfil-completion');
+  const linkDados = document.getElementById('perfil-sidebar-dados');
+  const linkTermos = document.getElementById('perfil-sidebar-termos');
+  if (!content || !termsPanel) return;
+  if (isTerms) {
+    content.hidden = true;
+    termsPanel.hidden = false;
+    if (title) title.textContent = 'Termos e condições';
+    if (completion) completion.hidden = true;
+    linkDados?.classList.remove('perfil-sidebar__link--active');
+    linkDados?.removeAttribute('aria-current');
+    linkTermos?.classList.add('perfil-sidebar__link--active');
+    linkTermos?.setAttribute('aria-current', 'page');
+    if (supabase) loadPublicTerms(supabase);
+  } else {
+    content.hidden = false;
+    termsPanel.hidden = true;
+    if (title) title.textContent = 'Editar perfil';
+    if (completion) completion.hidden = false;
+    linkTermos?.classList.remove('perfil-sidebar__link--active');
+    linkTermos?.removeAttribute('aria-current');
+    linkDados?.classList.add('perfil-sidebar__link--active');
+    linkDados?.setAttribute('aria-current', 'page');
+  }
+}
+
 const AVATAR_BUCKET = 'avatars';
 const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
 
@@ -376,6 +447,18 @@ function renderProfile(profile, children) {
   };
 
   renderProfile(merged, children || []);
+  applyPerfilRoute(supabase);
+  window.addEventListener('hashchange', () => applyPerfilRoute(supabase));
+
+  try {
+    const { data: linkedSpecId, error: linkErr } = await supabase.rpc('my_specialist_id');
+    if (!linkErr && linkedSpecId) {
+      const agendaLink = document.getElementById('perfil-link-esp-agenda');
+      if (agendaLink) agendaLink.hidden = false;
+    }
+  } catch {
+    /* migração de médico opcional */
+  }
 
   if (new URLSearchParams(window.location.search).get('completar') === 'rede') {
     toast(
