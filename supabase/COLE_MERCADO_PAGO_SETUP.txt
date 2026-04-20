@@ -37,8 +37,8 @@
 --       supabase\deploy-mp-functions.cmd
 --    Opção 2 — PowerShell na pasta MaesAtipicas:
 --       npx supabase login
---       npx supabase functions deploy mercadopago-create-preference --project-ref ahjhjzdmkkrcgbuxmhww
---       npx supabase functions deploy mercadopago-webhook --project-ref ahjhjzdmkkrcgbuxmhww
+--       npx supabase functions deploy mercadopago-create-preference --project-ref ahjhjzdmkkrcgbuxmhww --no-verify-jwt
+--       npx supabase functions deploy mercadopago-webhook --project-ref ahjhjzdmkkrcgbuxmhww --no-verify-jwt
 --    (Se o project-ref for outro, vê em Supabase → Settings → API → URL do projeto)
 --
 -- E) Opcional no código (Vercel / domínio fixo)
@@ -55,9 +55,13 @@
 -- migração em falta, função sem deploy, etc.).
 --
 -- Erro UNAUTHORIZED_UNSUPPORTED_TOKEN_ALGORITHM (JWT / ES256):
--- O config.toml deste repo já tem verify_jwt = false em mercadopago-create-preference
--- para o gateway não bloquear o token; a função valida o JWT à mão. Volta a fazer
--- deploy da função depois de alterar o config (deploy-mp-functions.cmd).
+-- O gateway do projeto ainda está a validar o JWT antes da função. Solução:
+--   1) Volta a publicar com a flag (obrigatório): deploy-mp-functions.cmd
+--      (usa --no-verify-jwt nas duas funções), OU na linha de comando os dois
+--      deploy com --no-verify-jwt como no passo D acima.
+--   2) No Dashboard: Edge Functions → cada função → desliga "Verify JWT" se existir.
+-- O config.toml do repo também tem verify_jwt = false; a função valida o utilizador
+-- com getUser() no código.
 --
 -- =============================================================================
 -- Detalhe técnico (referência)

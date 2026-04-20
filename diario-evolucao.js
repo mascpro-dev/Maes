@@ -258,6 +258,103 @@ function aggregateEntryRows(rows) {
   return byDay;
 }
 
+/* ----- Medicação: horários planeados, registo só no dia (localStorage) ----- */
+const MED_STORAGE_KEY = 'aura-medicacao-v1';
+const DEFAULT_MED_SCHEDULE = ['08:00', '14:00', '20:00'];
+const MED_ON_TIME_MINUTES = 45;
+
+function loadMedStore() {
+  try {
+    const raw = localStorage.getItem(MED_STORAGE_KEY);
+    if (!raw) return { schedule: [...DEFAULT_MED_SCHEDULE], days: {} };
+    const p = JSON.parse(raw);
+    if (!p || typeof p !== 'object') return { schedule: [...DEFAULT_MED_SCHEDULE], days: {} };
+    if (!Array.isArray(p.schedule) || p.schedule.length === 0) p.schedule = [...DEFAULT_MED_SCHEDULE];
+    if (!p.days || typeof p.days !== 'object') p.days = {};
+    return p;
+  } catch {
+    return { schedule: [...DEFAULT_MED_SCHEDULE], days: {} };
+  }
+}
+
+function saveMedStore(store) {
+  localStorage.setItem(MED_STORAGE_KEY, JSON.stringify(store));
+}
+
+function normalizeHHMM(str) {
+  if (!str || typeof str !== 'string') return null;
+  const t = str.trim();
+  const m = t.match(/^(\d{1,2}):(\d{2})$/);
+  if (!m) return null;
+  const h = Math.min(23, Math.max(0, parseInt(m[1], 10)));
+  const min = Math.min(59, Math.max(0, parseInt(m[2], 10)));
+  return `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+}
+
+function parseScheduleTextarea(text) {
+  const parts = String(text || '')
+    .split(/[,\n;]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const out = [];
+  for (const p of parts) {
+    const n = normalizeHHMM(p);
+    if (n && !out.includes(n)) out.push(n);
+  }
+  return out.length ? out.sort((a, b) => a.localeCompare(b)) : [...DEFAULT_MED_SCHEDULE];
+}
+
+function compareDateKeyToToday(dateKey) {
+  const today = dateKeyLocal(new Date());
+  if (dateKey < today) return -1;
+  if (dateKey > today) return 1;
+  return 0;
+}
+
+function getNowHHMM() {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+function timeDiffMinutes(planned, actual) {
+  const a = timeToMinutesSafe(actual);
+  const p = timeToMinutesSafe(planned);
+  if (a == null || p == null) return null;
+  return Math.abs(a - p);
+}
+
+function timeToMinutesSafe(hhmm) {
+  if (!hhmm || typeof hhmm !== 'string') return null;
+  const n = normalizeHHMM(hhmm);
+  if (!n) return null;
+  const [h, m] = n.split(':').map((x) => parseInt(x, 10));
+  return h * 60 + m;
+}
+
+function isMedOnTime(planned, actual) {
+  const d = timeDiffMinutes(planned, actual);
+  if (d == null) return null;
+  return d <= MED_ON_TIME_MINUTES;
+}
+
+function setMedSlotDay(dateKey, slot, rec) {
+  const store = loadMedStore();
+  if (!store.days[dateKey]) store.days[dateKey] = {};
+  if (rec == null) {
+    delete store.days[dateKey][slot];
+  } else {
+    store.days[dateKey][slot] = rec;
+  }
+  if (Object.keys(store.days[dateKey] || {}).length === 0) {
+    delete store.days[dateKey];
+  }
+  saveMedStore(store);
+}
+
+function scheduleToTextarea(sched) {
+  return (sched && sched.length ? sched : DEFAULT_MED_SCHEDULE).join(', ');
+}
+
 async function main() {
   if (!window.__auraAuthReady) {
     console.warn('[Aura] diario: falta auth-session-guard.js');
@@ -311,6 +408,8 @@ async function main() {
   const audioPreview = document.getElementById('diario-audio-preview');
   const audioCancel = document.getElementById('diario-audio-cancel');
   const audioSave = document.getElementById('diario-audio-save');
+  const medBody = document.getElementById('diario-med-body');
+  const medSub = document.getElementById('diario-med-sub');
 
   if (!strip || !labelEl) return;
 
@@ -414,6 +513,203 @@ async function main() {
     renderXAxisLabels(xLabels, pm, WEEKDAYS);
   }
 
+  function slotNameForInput(slot) {
+    return String(slot).replace(/:/g, '-');
+  }
+
+  function renderMedicationPanel() {
+    if (!medBody) return;
+    const dateKey = selectedDateKey();
+    const cmp = compareDateKeyToToday(dateKey);
+    const store = loadMedStore();
+    const schedule = store.schedule && store.schedule.length ? store.schedule : [...DEFAULT_MED_SCHEDULE];
+    const day = store.days[dateKey] || {};
+
+    if (medSub) {
+      if (cmp < 0) {
+        medSub.innerHTML =
+          'Dia <strong>passado</strong> — só podes <strong>consultar</strong> o que foi gravado. Não é possível alterar.';
+      } else if (cmp > 0) {
+        medSub.innerHTML =
+          'Dia <strong>futuro</strong> — o registo de medicação <strong>só é possível nesse próprio dia</strong> (hoje em relação a esse dia).';
+      } else {
+        medSub.innerHTML =
+          'Para <strong>hoje</strong>: em cada horário planeado, indica se deu o remédio e a que horas. “No horário” = ±' +
+          MED_ON_TIME_MINUTES +
+          ' min em relação ao planeado.';
+      }
+    }
+
+    if (cmp > 0) {
+      medBody.innerHTML =
+        '<p class="diario-med__notice diario-med__notice--future" role="status">Neste dia ainda não podes assinalar a medicação. Abre esta página nesse dia para registar se deu e a que horas.</p>';
+      return;
+    }
+
+    if (cmp < 0) {
+      const items = schedule.map((slot) => {
+        const rec = day[slot];
+        if (rec == null) {
+          return `<li class="diario-med__li"><span>Planeado <strong>${escapeHtml(slot)}</strong></span><span class="diario-med__badge diario-med__badge--none">Sem registo</span></li>`;
+        }
+        if (rec.given === false) {
+          return `<li class="diario-med__li"><span>Planeado <strong>${escapeHtml(slot)}</strong></span><span class="diario-med__badge diario-med__badge--miss">Não deu</span></li>`;
+        }
+        if (rec.given === true && rec.at) {
+          const n = normalizeHHMM(rec.at);
+          const on = n != null ? isMedOnTime(slot, n) : null;
+          const badge =
+            on === true
+              ? `<span class="diario-med__badge diario-med__badge--ok">No horário (±${MED_ON_TIME_MINUTES} min)</span>`
+              : on === false
+                ? '<span class="diario-med__badge diario-med__badge--late">Fora do horário</span>'
+                : '<span class="diario-med__badge diario-med__badge--none">—</span>';
+          return `<li class="diario-med__li"><span>Planeado <strong>${escapeHtml(
+            slot
+          )}</strong> — dado às <strong>${escapeHtml(n || rec.at)}</strong></span>${badge}</li>`;
+        }
+        return `<li class="diario-med__li"><span>Planeado <strong>${escapeHtml(slot)}</strong></span><span class="diario-med__badge diario-med__badge--none">Incompleto</span></li>`;
+      });
+      medBody.innerHTML = `<p class="diario-med__notice diario-med__notice--past" role="status">Registo do dia (só leitura).</p><ul class="diario-med__list-past" aria-label="Medicação registada naquele dia">${items.join('')}</ul>`;
+      return;
+    }
+
+    const detailsHtml = `<details class="diario-med__details"><summary>Definir horários planeados (todos os dias)</summary>
+<p class="diario-med__sched-hint">Separa com vírgula ou linha. Ex.: 08:00, 14:00, 20:00 (24 h).</p>
+<textarea class="diario-med__sched-input" id="diario-med-sched-ta" rows="2" aria-label="Lista de horários de medicação">${escapeHtml(
+      scheduleToTextarea(schedule)
+    )}</textarea>
+<button type="button" class="diario-med__sched-save" id="diario-med-sched-btn">Guardar horários</button>
+</details>`;
+
+    const rows = schedule
+      .map((slot) => {
+        const rec = day[slot];
+        let state = 'pending';
+        if (rec && rec.given === true) state = 'gave';
+        else if (rec && rec.given === false) state = 'skip';
+        const atNorm = rec && rec.at ? normalizeHHMM(rec.at) : '';
+        const atValue = atNorm || (state === 'gave' ? getNowHHMM() : '');
+        const sn = slotNameForInput(slot);
+        return `<div class="diario-med__row" data-med-slot="${escapeHtml(slot)}">
+  <div class="diario-med__row-head">
+    <span class="diario-med__planned">Horário planeado: <strong>${escapeHtml(slot)}</strong></span>
+  </div>
+  <div class="diario-med__occ" style="display:flex;flex-direction:column;gap:8px;">
+    <span class="diario-med__at-label" style="margin:0">Registo</span>
+    <div style="display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center">
+      <label class="diario-med__check"><input type="radio" class="diario-med__occ-inp" name="med-occ-${sn}" value="pending" ${
+        state === 'pending' ? 'checked' : ''
+      } data-slot="${escapeHtml(slot)}" /> Ainda por registar</label>
+      <label class="diario-med__check"><input type="radio" class="diario-med__occ-inp" name="med-occ-${sn}" value="gave" ${
+        state === 'gave' ? 'checked' : ''
+      } data-slot="${escapeHtml(slot)}" /> Deu o remédio</label>
+      <label class="diario-med__check"><input type="radio" class="diario-med__occ-inp" name="med-occ-${sn}" value="skip" ${
+        state === 'skip' ? 'checked' : ''
+      } data-slot="${escapeHtml(slot)}" /> Não deu</label>
+    </div>
+    <div class="diario-med__at-wrap" style="margin-top:4px">
+      <span class="diario-med__at-label">Horário em que foi dado</span>
+      <input type="time" class="diario-med__at" data-slot="${escapeHtml(slot)}" value="${atValue || ''}" ${
+        state === 'gave' ? '' : 'disabled'
+      } step="60" />
+    </div>
+  </div>
+</div>`;
+      })
+      .join('');
+
+    medBody.innerHTML = detailsHtml + rows;
+
+    const ta = medBody.querySelector('#diario-med-sched-ta');
+    const schedBtn = medBody.querySelector('#diario-med-sched-btn');
+    if (schedBtn && ta) {
+      schedBtn.addEventListener('click', () => {
+        const next = parseScheduleTextarea(ta.value);
+        const s = loadMedStore();
+        s.schedule = next;
+        saveMedStore(s);
+        showToast('Horários de medicação atualizados.');
+        renderMedicationPanel();
+      });
+    }
+
+    const dk = dateKey;
+
+    function getMedRowBySlot(root, slot) {
+      if (!root) return null;
+      for (const n of root.querySelectorAll('.diario-med__row')) {
+        if (n.getAttribute('data-med-slot') === slot) return n;
+      }
+      return null;
+    }
+
+    const saveRowState = (slot) => {
+      const row = getMedRowBySlot(medBody, slot);
+      if (!row) return;
+      const occ = row.querySelector(`input[name="med-occ-${slotNameForInput(slot)}"]:checked`);
+      const tInp = row.querySelector('input[type="time"].diario-med__at');
+      const v = occ && occ.value;
+      if (v === 'pending' || !v) {
+        setMedSlotDay(dk, slot, null);
+        if (tInp) {
+          tInp.disabled = true;
+          tInp.value = '';
+        }
+        return;
+      }
+      if (v === 'skip') {
+        setMedSlotDay(dk, slot, { given: false, at: null });
+        if (tInp) {
+          tInp.disabled = true;
+          tInp.value = '';
+        }
+        return;
+      }
+      if (v === 'gave') {
+        const rawT = tInp && tInp.value;
+        const at = normalizeHHMM(rawT) || getNowHHMM();
+        if (tInp) {
+          tInp.value = at;
+          tInp.disabled = false;
+        }
+        setMedSlotDay(dk, slot, { given: true, at });
+      }
+    };
+
+    medBody.querySelectorAll('.diario-med__occ-inp').forEach((inp) => {
+      inp.addEventListener('change', (e) => {
+        const sl = (e.target && e.target.getAttribute('data-slot')) || '';
+        if (!sl) return;
+        const row = getMedRowBySlot(medBody, sl);
+        const tInp = row && row.querySelector('input[type="time"].diario-med__at');
+        const v = (e.target && e.target.value) || 'pending';
+        if (v === 'gave') {
+          if (tInp) {
+            tInp.disabled = false;
+            if (!tInp.value) tInp.value = getNowHHMM();
+          }
+        } else {
+          if (tInp) {
+            tInp.disabled = true;
+            tInp.value = '';
+          }
+        }
+        saveRowState(sl);
+        renderMedicationPanel();
+      });
+    });
+
+    medBody.querySelectorAll('.diario-med__at').forEach((tInp) => {
+      tInp.addEventListener('change', (e) => {
+        const sl = e.target.getAttribute('data-slot') || '';
+        if (!sl) return;
+        saveRowState(sl);
+        renderMedicationPanel();
+      });
+    });
+  }
+
   async function persistTextToCloud(kind, dateKey, body) {
     if (!supabase || !userId) return { ok: false };
     const { error } = await supabase.from(DIARY_TABLE).insert({
@@ -509,6 +805,7 @@ async function main() {
     }
     await refreshWeekEntriesFromDb();
     drawChart();
+    renderMedicationPanel();
   }
 
   btnPrev.addEventListener('click', async () => {
@@ -883,10 +1180,48 @@ async function main() {
       );
     });
 
+    const medStoreR = loadMedStore();
+    const medSchedR = medStoreR.schedule && medStoreR.schedule.length ? medStoreR.schedule : [...DEFAULT_MED_SCHEDULE];
+    const medRowsHtml = [];
+    for (let i = 0; i < 7; i++) {
+      const dkR = dateKeyLocal(addDays(weekStart, i));
+      for (const slotR of medSchedR) {
+        const recM = (medStoreR.days[dkR] || {})[slotR];
+        if (recM == null) {
+          medRowsHtml.push(
+            `<tr><td>${escapeHtml(dkR)}</td><td>Planeado ${escapeHtml(slotR)}</td><td>—</td><td>—</td><td>Sem registo</td></tr>`
+          );
+        } else if (recM.given === false) {
+          medRowsHtml.push(
+            `<tr><td>${escapeHtml(dkR)}</td><td>Planeado ${escapeHtml(slotR)}</td><td>Não deu</td><td>—</td><td>—</td></tr>`
+          );
+        } else if (recM.given === true && recM.at) {
+          const nAt = normalizeHHMM(recM.at);
+          const onM = nAt != null ? isMedOnTime(slotR, nAt) : null;
+          const sinal =
+            onM === true
+              ? `No horário (±${MED_ON_TIME_MINUTES} min)`
+              : onM === false
+                ? 'Fora do horário'
+                : '—';
+          medRowsHtml.push(
+            `<tr><td>${escapeHtml(dkR)}</td><td>Planeado ${escapeHtml(
+              slotR
+            )}</td><td>Deu</td><td>${escapeHtml(nAt || recM.at)}</td><td>${escapeHtml(sinal)}</td></tr>`
+          );
+        } else {
+          medRowsHtml.push(
+            `<tr><td>${escapeHtml(dkR)}</td><td>Planeado ${escapeHtml(slotR)}</td><td>—</td><td>—</td><td>Incompleto</td></tr>`
+          );
+        }
+      }
+    }
+
     const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"/><title>Relatório — Diário clínico</title>
 <style>
 body{font-family:system-ui,sans-serif;padding:24px;color:#2d2a26;max-width:800px;margin:0 auto;}
 h1{font-size:1.25rem;margin:0 0 8px;}
+h2{font-size:1.05rem;margin:28px 0 8px;}
 p.meta{color:#5a5550;font-size:.9rem;margin:0 0 20px;}
 table{width:100%;border-collapse:collapse;font-size:.85rem;}
 th,td{border:1px solid #ede4d4;padding:8px;text-align:left;vertical-align:top;}
@@ -895,11 +1230,17 @@ th{background:#e8f2e9;}
 </style></head><body>
 <h1>Diário de evolução clínica</h1>
 <p class="meta">Semana: ${escapeHtml(rangeLabel)} · Aura</p>
+<h2>Marcos, crises e notas</h2>
 <table>
 <thead><tr><th>Data</th><th>Tipo</th><th>Forma</th><th>Conteúdo / nota</th><th>Registado</th></tr></thead>
 <tbody>${rowsHtml.length ? rowsHtml.join('') : '<tr><td colspan="5">Nenhum registo nesta semana.</td></tr>'}</tbody>
 </table>
-<p style="margin-top:20px;font-size:.8rem;color:#a09a92;">Documento gerado para partilha com profissionais de saúde. Confirme os dados antes de enviar.</p>
+<h2>Medicação (horários planeados)</h2>
+<table>
+<thead><tr><th>Data</th><th>Horário planeado</th><th>Ocorrência</th><th>Horário dado</th><th>Alinhamento</th></tr></thead>
+<tbody>${medRowsHtml.length ? medRowsHtml.join('') : '<tr><td colspan="5">Nenhum horário planeado ou registo local.</td></tr>'}</tbody>
+</table>
+<p style="margin-top:20px;font-size:.8rem;color:#a09a92;">Documento gerado para partilha com profissionais de saúde. Confirme os dados antes de enviar. Medicação: registo feito no dispositivo (no horário = ±${MED_ON_TIME_MINUTES} min do planeado).</p>
 </body></html>`;
 
     w.document.open();

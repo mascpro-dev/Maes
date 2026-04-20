@@ -53,7 +53,15 @@ async function createMercadoPagoPreference(supabase, payload) {
 
     if (notFound) {
       err.detail =
-        'A função mercadopago-create-preference não está publicada neste projeto Supabase. SQL e secrets não chegam para isto: é preciso fazer deploy (no PC, na pasta do projeto): npx supabase login && npx supabase functions deploy mercadopago-create-preference --project-ref ahjhjzdmkkrcgbuxmhww && npx supabase functions deploy mercadopago-webhook --project-ref ahjhjzdmkkrcgbuxmhww — ou corre o ficheiro supabase/deploy-mp-functions.cmd';
+        'A função mercadopago-create-preference não está publicada neste projeto Supabase. SQL e secrets não chegam para isto: é preciso fazer deploy (no PC, na pasta do projeto): npx supabase login && npx supabase functions deploy mercadopago-create-preference --project-ref ahjhjzdmkkrcgbuxmhww --no-verify-jwt && npx supabase functions deploy mercadopago-webhook --project-ref ahjhjzdmkkrcgbuxmhww --no-verify-jwt — ou corre o ficheiro supabase/deploy-mp-functions.cmd';
+    }
+
+    const jwtAlgoBlock = /UNAUTHORIZED_UNSUPPORTED_TOKEN_ALGORITHM|JWT algorithm ES256/i.test(
+      `${error.message || ''} ${JSON.stringify(bodyJson || {})}`
+    );
+    if (jwtAlgoBlock) {
+      err.detail =
+        'O Supabase ainda está a verificar o JWT na entrada da função (incompatível com ES256). Publica de novo com: supabase\\deploy-mp-functions.cmd (inclui --no-verify-jwt) ou, no terminal na pasta MaesAtipicas: npx supabase functions deploy mercadopago-create-preference --project-ref ahjhjzdmkkrcgbuxmhww --no-verify-jwt';
     }
     throw err;
   }
@@ -449,6 +457,11 @@ async function main() {
           parts.length = 1;
           parts.push(
             'Falha ao criar intenção: aplica a migração 20260410190000 e confirma que o teu utilizador tem linha em profiles.'
+          );
+        } else if (raw.includes('UNAUTHORIZED_UNSUPPORTED_TOKEN_ALGORITHM') || raw.includes('ES256')) {
+          parts.length = 1;
+          parts.push(
+            'O projeto Supabase precisa de republicar a função com JWT desligado no gateway. Corre supabase\\deploy-mp-functions.cmd ou: npx supabase functions deploy mercadopago-create-preference --project-ref ahjhjzdmkkrcgbuxmhww --no-verify-jwt'
           );
         } else if (raw.includes('mercadopago_error') || raw.includes('http_')) {
           parts.push('Token Mercado Pago inválido ou MP a rejeitar o pedido — vê o painel MP.');

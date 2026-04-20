@@ -8,10 +8,11 @@ echo.
 
 cd /d "%~dp0.."
 
-npx supabase functions deploy mercadopago-create-preference --project-ref ahjhjzdmkkrcgbuxmhww
+rem --no-verify-jwt: gateway deixa de validar o JWT (Auth usa ES256); a função valida sessão com getUser().
+npx supabase functions deploy mercadopago-create-preference --project-ref ahjhjzdmkkrcgbuxmhww --no-verify-jwt
 if errorlevel 1 goto :err
 
-npx supabase functions deploy mercadopago-webhook --project-ref ahjhjzdmkkrcgbuxmhww
+npx supabase functions deploy mercadopago-webhook --project-ref ahjhjzdmkkrcgbuxmhww --no-verify-jwt
 if errorlevel 1 goto :err
 
 echo.
