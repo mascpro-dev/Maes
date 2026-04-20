@@ -48,6 +48,9 @@ COMMENT ON FUNCTION public.is_aura_admin IS
 -- Especialistas: leitura pública (ativos) OU admin vê tudo; escrita só admin
 -- -----------------------------------------------------------------------------
 DROP POLICY IF EXISTS "specialists_select_active" ON public.specialists;
+DROP POLICY IF EXISTS "specialists_select_visible" ON public.specialists;
+DROP POLICY IF EXISTS "specialists_insert_admin" ON public.specialists;
+DROP POLICY IF EXISTS "specialists_update_admin" ON public.specialists;
 
 CREATE POLICY "specialists_select_visible"
   ON public.specialists FOR SELECT
@@ -75,11 +78,13 @@ CREATE POLICY "consultation_bookings_select_own"
   TO authenticated
   USING (mother_id = auth.uid());
 
+DROP POLICY IF EXISTS "consultation_bookings_select_admin" ON public.consultation_bookings;
 CREATE POLICY "consultation_bookings_select_admin"
   ON public.consultation_bookings FOR SELECT
   TO authenticated
   USING (public.is_aura_admin());
 
+DROP POLICY IF EXISTS "consultation_bookings_update_admin" ON public.consultation_bookings;
 CREATE POLICY "consultation_bookings_update_admin"
   ON public.consultation_bookings FOR UPDATE
   TO authenticated
@@ -93,6 +98,7 @@ CREATE POLICY "checkout_intents_select_own"
   TO authenticated
   USING (mother_id = auth.uid());
 
+DROP POLICY IF EXISTS "checkout_intents_select_admin" ON public.consultation_checkout_intents;
 CREATE POLICY "checkout_intents_select_admin"
   ON public.consultation_checkout_intents FOR SELECT
   TO authenticated
