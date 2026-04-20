@@ -440,11 +440,8 @@ async function main() {
         const hint = e?.hint ? String(e.hint).slice(0, 280) : '';
         let msg = 'Não foi possível abrir o pagamento.';
         const parts = [msg];
-        if (e?.message === 'network' && e.detail) {
-          parts.push(typeof e.detail === 'string' ? e.detail : detailStr);
-        } else if (detailStr) {
-          parts.push(detailStr);
-        }
+        if (e?.message === 'network' && e.detail) parts.push(e.detail);
+        if (detailStr) parts.push(detailStr);
         if (hint) parts.push(hint);
         const raw = `${e?.message || ''} ${detailStr} ${hint}`;
         if (raw.includes('missing_app_public_url_or_origin')) {
