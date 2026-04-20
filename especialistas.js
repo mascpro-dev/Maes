@@ -105,14 +105,29 @@ function combineLocalDateAndSlot(dateStr, hour, minute) {
   return new Date(y, m - 1, d, hour, minute, 0, 0);
 }
 
-/** Gera slots 08:00–17:30 de 30 em 30 min (horário comercial simplificado) */
-function generateDaySlots(dateStr) {
+/**
+ * Horário comercial simplificado: 08:00–17:30.
+ * 30 min: slots de meia em meia hora (último início 17:00).
+ * 60 min: só horas cheias, último início 16:00 (termina às 17:00).
+ */
+function generateDaySlots(dateStr, durationMinutes = 30) {
   const slots = [];
+  const minLead = 10 * 60 * 1000;
+  const nowLimit = new Date(Date.now() + minLead);
+  const useHourly = Number(durationMinutes) === 60;
+  if (useHourly) {
+    for (let h = 8; h <= 16; h++) {
+      const dt = combineLocalDateAndSlot(dateStr, h, 0);
+      if (dt <= nowLimit) continue;
+      slots.push({ hour: h, minute: 0, dt });
+    }
+    return slots;
+  }
   for (let h = 8; h <= 17; h++) {
     for (const mm of [0, 30]) {
       if (h === 17 && mm === 30) break;
       const dt = combineLocalDateAndSlot(dateStr, h, mm);
-      if (dt <= new Date(Date.now() + 10 * 60 * 1000)) continue;
+      if (dt <= nowLimit) continue;
       slots.push({ hour: h, minute: mm, dt });
     }
   }
@@ -211,7 +226,8 @@ async function main() {
     if (stepSchedule) stepSchedule.hidden = true;
     if (stepPayment) stepPayment.hidden = false;
     if (paySummary && pickedSlot) {
-      paySummary.textContent = `${formatDateTimeLong(pickedSlot.toISOString())} · ${PRICE_LABEL}`;
+      const dm = Number(selectedSpecialist?.consultation_duration_minutes) === 60 ? 60 : 30;
+      paySummary.textContent = `${formatDateTimeLong(pickedSlot.toISOString())} · ${dm} min · ${PRICE_LABEL}`;
     }
     bookStatus.textContent = '';
   }
@@ -224,7 +240,7 @@ async function main() {
   async function loadSpecialists() {
     const { data, error } = await supabase
       .from('specialists')
-      .select('id, display_name, specialty, bio, photo_url, sort_order')
+      .select('id, display_name, specialty, bio, photo_url, sort_order, consultation_duration_minutes')
       .order('sort_order', { ascending: true });
     if (error) {
       if (heroStatus) {
@@ -331,7 +347,8 @@ async function main() {
     if (!selectedSpecialist || !dateInput.value) return;
     const dateStr = dateInput.value;
     const booked = await refreshBookedSet(selectedSpecialist.id, dateStr);
-    const slots = generateDaySlots(dateStr);
+    const slotDur = Number(selectedSpecialist.consultation_duration_minutes) === 60 ? 60 : 30;
+    const slots = generateDaySlots(dateStr, slotDur);
     slotsEl.innerHTML = '';
     pickedSlot = null;
     if (btnConfirmPay) btnConfirmPay.disabled = true;

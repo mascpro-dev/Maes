@@ -1,5 +1,5 @@
 /**
- * especialista-agenda.html — médico credenciado fecha/reabre slots (30 min).
+ * especialista-agenda.html — médico credenciado fecha/reabre slots (30 ou 60 min conforme o especialista).
  * Requer migração 20260410210000 + ligação em admin (admin_link_specialist_account).
  */
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm';
@@ -20,16 +20,40 @@ function combineLocalDateAndSlot(dateStr, hour, minute) {
   return new Date(y, m - 1, d, hour, minute, 0, 0);
 }
 
-function generateDaySlots(dateStr) {
+/** Grelha 30 em 30 (08–17:30) ou só horas cheias 08–16 para consultas de 60 min. */
+function generateDaySlots(dateStr, slotMinutes = 30) {
   const slots = [];
+  if (Number(slotMinutes) === 60) {
+    for (let h = 8; h <= 16; h++) {
+      slots.push({ hour: h, minute: 0, dt: combineLocalDateAndSlot(dateStr, h, 0) });
+    }
+    return slots;
+  }
   for (let h = 8; h <= 17; h++) {
     for (const mm of [0, 30]) {
       if (h === 17 && mm === 30) break;
-      const dt = combineLocalDateAndSlot(dateStr, h, mm);
-      slots.push({ hour: h, minute: mm, dt });
+      slots.push({ hour: h, minute: mm, dt: combineLocalDateAndSlot(dateStr, h, mm) });
     }
   }
   return slots;
+}
+
+function bookingOverlapsSlot(bookingStartMs, bookingDurMin, slotStartMs, slotDurMin) {
+  const bd = Number(bookingDurMin) || 30;
+  const sd = Number(slotDurMin) || 30;
+  const bEnd = bookingStartMs + bd * 60 * 1000;
+  const sEnd = slotStartMs + sd * 60 * 1000;
+  return bookingStartMs < sEnd && bEnd > slotStartMs;
+}
+
+function slotBlockedByAnyBooking(rows, slotStartMs, slotDurMin) {
+  for (const r of rows) {
+    if (!r?.starts_at) continue;
+    const st = new Date(r.starts_at).getTime();
+    const dm = Number(r.duration_minutes) || 30;
+    if (bookingOverlapsSlot(st, dm, slotStartMs, slotDurMin)) return true;
+  }
+  return false;
 }
 
 function formatSlotLabel(dt) {
@@ -122,7 +146,7 @@ async function main() {
 
   const { data: specRow, error: specErr } = await sb
     .from('specialists')
-    .select('display_name, specialty')
+    .select('display_name, specialty, consultation_duration_minutes')
     .eq('id', specialistId)
     .maybeSingle();
 
@@ -138,8 +162,10 @@ async function main() {
 
   denied.hidden = true;
   app.hidden = false;
+  const consultSlotMin = Number(specRow.consultation_duration_minutes) === 60 ? 60 : 30;
+
   if (specLine) {
-    specLine.textContent = `${specRow.display_name || 'Especialista'} · ${specRow.specialty || ''}`;
+    specLine.textContent = `${specRow.display_name || 'Especialista'} · ${specRow.specialty || ''} · marcação ${consultSlotMin} min`;
   }
 
   const today = new Date();
@@ -151,7 +177,7 @@ async function main() {
     const [bookRes, blockRes] = await Promise.all([
       sb
         .from('consultation_bookings')
-        .select('starts_at,status')
+        .select('starts_at,status,duration_minutes')
         .eq('specialist_id', specialistId)
         .in('status', ['pending_payment', 'confirmed'])
         .gte('starts_at', from)
@@ -167,15 +193,12 @@ async function main() {
     if (bookRes.error) throw bookRes.error;
     if (blockRes.error) throw blockRes.error;
 
-    const booked = new Set();
-    (bookRes.data || []).forEach((r) => {
-      if (r.starts_at) booked.add(new Date(r.starts_at).getTime());
-    });
+    const bookingRows = bookRes.data || [];
     const blocked = new Set();
     (blockRes.data || []).forEach((r) => {
       if (r.starts_at) blocked.add(new Date(r.starts_at).getTime());
     });
-    return { booked, blocked };
+    return { bookingRows, blocked };
   }
 
   async function renderDay() {
@@ -183,18 +206,18 @@ async function main() {
     if (!dateStr || !slotsEl) return;
     statusEl.textContent = '';
     slotsEl.innerHTML = '';
-    let booked;
+    let bookingRows;
     let blocked;
     try {
       const sets = await loadDaySets(dateStr);
-      booked = sets.booked;
+      bookingRows = sets.bookingRows;
       blocked = sets.blocked;
     } catch (e) {
       statusEl.textContent = e.message || String(e);
       return;
     }
 
-    const slots = generateDaySlots(dateStr);
+    const slots = generateDaySlots(dateStr, consultSlotMin);
     const now = Date.now();
 
     slots.forEach((slot) => {
@@ -212,7 +235,7 @@ async function main() {
         return;
       }
 
-      if (booked.has(t)) {
+      if (slotBlockedByAnyBooking(bookingRows, t, consultSlotMin)) {
         b.disabled = true;
         b.classList.add('esp-slot--booked');
         b.title = 'Reserva confirmada ou em pagamento — não podes alterar aqui';
@@ -220,18 +243,28 @@ async function main() {
         return;
       }
 
-      if (blocked.has(t)) {
+      const tHalf = t + 30 * 60 * 1000;
+      const doctorClosedThisSlot =
+        consultSlotMin === 60 ? blocked.has(t) || blocked.has(tHalf) : blocked.has(t);
+
+      if (doctorClosedThisSlot) {
         b.classList.add('esp-slot--blocked');
-        b.title = 'Fechado por ti — toca para reabrir';
+        b.title =
+          consultSlotMin === 60
+            ? 'Hora fechada por ti — toca para reabrir os dois intervalos de 30 min'
+            : 'Fechado por ti — toca para reabrir';
         b.addEventListener('click', async () => {
           statusEl.textContent = 'A atualizar…';
           b.disabled = true;
-          const iso = slot.dt.toISOString();
-          const { error } = await sb
-            .from('specialist_calendar_blocks')
-            .delete()
-            .eq('specialist_id', specialistId)
-            .eq('starts_at', iso);
+          const iso0 = slot.dt.toISOString();
+          const iso1 = new Date(tHalf).toISOString();
+          let q = sb.from('specialist_calendar_blocks').delete().eq('specialist_id', specialistId);
+          if (consultSlotMin === 60) {
+            q = q.in('starts_at', [iso0, iso1]);
+          } else {
+            q = q.eq('starts_at', iso0);
+          }
+          const { error } = await q;
           b.disabled = false;
           if (error) {
             statusEl.textContent = error.message || String(error);
@@ -240,7 +273,7 @@ async function main() {
           statusEl.textContent = 'Horário reaberto ao público.';
           await notifyCalendarSlotChange(sb, {
             action: 'unblock',
-            startsAtIso: iso,
+            startsAtIso: iso0,
             specialistId,
             specialistName: specRow.display_name,
           });
@@ -250,15 +283,22 @@ async function main() {
         return;
       }
 
-      b.title = 'Disponível — toca para fechar ao público';
+      b.title =
+        consultSlotMin === 60
+          ? 'Disponível — toca para fechar esta hora ao público (2 × 30 min)'
+          : 'Disponível — toca para fechar ao público';
       b.addEventListener('click', async () => {
         statusEl.textContent = 'A atualizar…';
         b.disabled = true;
-        const iso = slot.dt.toISOString();
-        const { error } = await sb.from('specialist_calendar_blocks').insert({
-          specialist_id: specialistId,
-          starts_at: iso,
-        });
+        const iso0 = slot.dt.toISOString();
+        const rows =
+          consultSlotMin === 60
+            ? [
+                { specialist_id: specialistId, starts_at: iso0 },
+                { specialist_id: specialistId, starts_at: new Date(tHalf).toISOString() },
+              ]
+            : [{ specialist_id: specialistId, starts_at: iso0 }];
+        const { error } = await sb.from('specialist_calendar_blocks').insert(rows);
         b.disabled = false;
         if (error) {
           statusEl.textContent = error.message || String(error);
@@ -267,7 +307,7 @@ async function main() {
         statusEl.textContent = 'Horário fechado ao público.';
         await notifyCalendarSlotChange(sb, {
           action: 'block',
-          startsAtIso: iso,
+          startsAtIso: iso0,
           specialistId,
           specialistName: specRow.display_name,
         });

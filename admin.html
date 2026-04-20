@@ -76,6 +76,17 @@
               <input type="checkbox" id="adm-spec-active" checked />
               <label for="adm-spec-active">Ativo (visível na app)</label>
             </div>
+            <fieldset class="admin-field admin-field--fieldset" style="grid-column: 1 / -1">
+              <legend class="admin-field-legend">Duração da consulta na marcação</legend>
+              <label class="admin-radio">
+                <input type="radio" name="adm-spec-duration" id="adm-spec-dur-30" value="30" checked />
+                30 minutos (slots de meia em meia hora)
+              </label>
+              <label class="admin-radio">
+                <input type="radio" name="adm-spec-duration" id="adm-spec-dur-60" value="60" />
+                60 minutos (só horas cheias)
+              </label>
+            </fieldset>
           </div>
           <div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px">
             <button type="button" class="admin-btn admin-btn--primary" id="adm-spec-save">Guardar</button>
@@ -115,6 +126,7 @@
                   <th>Ordem</th>
                   <th>Nome</th>
                   <th>Especialidade</th>
+                  <th>Consulta</th>
                   <th>Ativo</th>
                   <th></th>
                 </tr>
@@ -237,6 +249,19 @@
                 <input type="radio" name="adm-m-account-type" value="medic" />
                 Médico — agenda (depois de ligar o utilizador ao especialista)
               </label>
+            </fieldset>
+            <fieldset class="admin-field admin-field--fieldset" id="adm-m-consult-dur-wrap" style="grid-column: 1 / -1"
+              hidden>
+              <legend class="admin-field-legend">Duração da consulta (especialista ligado a este utilizador)</legend>
+              <label class="admin-radio">
+                <input type="radio" name="adm-m-consult-dur" value="30" checked />
+                30 minutos
+              </label>
+              <label class="admin-radio">
+                <input type="radio" name="adm-m-consult-dur" value="60" />
+                60 minutos
+              </label>
+              <p class="admin-muted" id="adm-m-consult-dur-hint" style="margin: 8px 0 0"></p>
             </fieldset>
             <div class="admin-field" style="grid-column: 1 / -1">
               <label for="adm-m-name">Nome completo</label>

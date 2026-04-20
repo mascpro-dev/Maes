@@ -45,6 +45,8 @@ function clearSpecForm(root) {
   root.querySelector('#adm-spec-photo').value = '';
   root.querySelector('#adm-spec-sort').value = '0';
   root.querySelector('#adm-spec-active').checked = true;
+  const d30 = root.querySelector('#adm-spec-dur-30');
+  if (d30) d30.checked = true;
 }
 
 async function loadSpecialists(sb) {
@@ -58,10 +60,12 @@ function renderSpecialists(rows, tbody, specNameById) {
   rows.forEach((r) => {
     specNameById.set(r.id, r.display_name || r.id);
     const tr = document.createElement('tr');
+    const dur = Number(r.consultation_duration_minutes) === 60 ? '60 min' : '30 min';
     tr.innerHTML = `
       <td>${r.sort_order ?? 0}</td>
       <td>${escapeHtml(r.display_name || '')}</td>
       <td>${escapeHtml(r.specialty || '')}</td>
+      <td>${escapeHtml(dur)}</td>
       <td>${r.active ? 'sim' : 'não'}</td>
       <td class="btn-cell"><button type="button" class="admin-btn" data-edit="${r.id}">Editar</button></td>
     `;
@@ -225,6 +229,58 @@ async function main() {
   const tbodyChk = document.getElementById('adm-chk-tbody');
   const tbodyMothers = document.getElementById('adm-mothers-tbody');
   let regDataLoaded = false;
+  const durWrap = document.getElementById('adm-m-consult-dur-wrap');
+  const durHint = document.getElementById('adm-m-consult-dur-hint');
+
+  async function refreshMedicDurationPanel(userId) {
+    if (!durWrap || !durHint || !userId) return;
+    const isMedic = document.querySelector('input[name="adm-m-account-type"]:checked')?.value === 'medic';
+    if (!isMedic) {
+      durWrap.hidden = true;
+      delete durWrap.dataset.specialistId;
+      durHint.textContent = '';
+      return;
+    }
+    durWrap.hidden = false;
+    try {
+      const { data: sum, error } = await sb.rpc('admin_get_linked_specialist_summary', {
+        p_user_id: userId,
+      });
+      if (error) {
+        durHint.textContent = (error.message || String(error)).slice(0, 220);
+        delete durWrap.dataset.specialistId;
+        return;
+      }
+      const sid = sum?.specialist_id;
+      if (!sid) {
+        delete durWrap.dataset.specialistId;
+        durHint.textContent =
+          'Sem ligação a especialista: na aba Especialistas, em «Ligar conta do médico», liga este UUID ao registo do médico.';
+        document.querySelectorAll('input[name="adm-m-consult-dur"]').forEach((inp) => {
+          inp.checked = inp.value === '30';
+        });
+        return;
+      }
+      durWrap.dataset.specialistId = sid;
+      const d = Number(sum.consultation_duration_minutes) === 60 ? '60' : '30';
+      document.querySelectorAll('input[name="adm-m-consult-dur"]').forEach((inp) => {
+        inp.checked = inp.value === d;
+      });
+      durHint.textContent =
+        'Aplica-se à marcação pública deste médico (também podes editar na aba Especialistas).';
+    } catch (e) {
+      durHint.textContent = e.message || String(e);
+      delete durWrap.dataset.specialistId;
+    }
+  }
+
+  document.querySelectorAll('input[name="adm-m-account-type"]').forEach((inp) => {
+    inp.addEventListener('change', async () => {
+      const uid = document.getElementById('adm-m-id')?.value?.trim();
+      if (!uid) return;
+      await refreshMedicDurationPanel(uid);
+    });
+  });
 
   function fillLinkSpecialistSelect(specs) {
     const sel = document.getElementById('adm-link-spec');
@@ -323,6 +379,10 @@ async function main() {
     document.getElementById('adm-spec-photo').value = row.photo_url || '';
     document.getElementById('adm-spec-sort').value = String(row.sort_order ?? 0);
     document.getElementById('adm-spec-active').checked = !!row.active;
+    const durMin = Number(row.consultation_duration_minutes) === 60 ? '60' : '30';
+    document.querySelectorAll('input[name="adm-spec-duration"]').forEach((inp) => {
+      inp.checked = inp.value === durMin;
+    });
     tabSwitch(document, 'spec');
     setStatus(statusEl, 'Formulário preenchido — altera e guarda.', false);
   });
@@ -334,6 +394,8 @@ async function main() {
 
   document.getElementById('adm-spec-save').addEventListener('click', async () => {
     const id = document.getElementById('adm-spec-id').value.trim();
+    const durRadio = document.querySelector('input[name="adm-spec-duration"]:checked');
+    const consultation_duration_minutes = durRadio?.value === '60' ? 60 : 30;
     const payload = {
       display_name: document.getElementById('adm-spec-name').value.trim(),
       specialty: document.getElementById('adm-spec-specialty').value.trim(),
@@ -341,6 +403,7 @@ async function main() {
       photo_url: document.getElementById('adm-spec-photo').value.trim() || null,
       sort_order: parseInt(document.getElementById('adm-spec-sort').value, 10) || 0,
       active: document.getElementById('adm-spec-active').checked,
+      consultation_duration_minutes,
     };
     if (!payload.display_name || !payload.specialty) {
       setStatus(statusEl, 'Nome e especialidade são obrigatórios.', true);
@@ -454,6 +517,7 @@ async function main() {
         editor.hidden = false;
         editor.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
+      await refreshMedicDurationPanel(row.id);
       setStatus(statusEl, 'Edita os campos e guarda.', false);
     } catch (e) {
       setStatus(statusEl, e.message || String(e), true);
@@ -497,6 +561,14 @@ async function main() {
         if (cErr && !/function|schema|not exist/i.test(String(cErr.message || ''))) {
           console.warn('[admin] clear specialist link:', cErr.message);
         }
+      } else if (accountType === 'medic' && durWrap?.dataset?.specialistId) {
+        const dm =
+          document.querySelector('input[name="adm-m-consult-dur"]:checked')?.value === '60' ? 60 : 30;
+        const { error: spErr } = await sb
+          .from('specialists')
+          .update({ consultation_duration_minutes: dm })
+          .eq('id', durWrap.dataset.specialistId);
+        if (spErr) console.warn('[admin] consultation_duration_minutes:', spErr.message);
       }
       document.getElementById('adm-mother-editor').hidden = true;
       const q = document.getElementById('adm-mother-q')?.value || '';
