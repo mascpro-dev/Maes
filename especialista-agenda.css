@@ -50,6 +50,11 @@ body.specialist-agenda-page {
   margin-bottom: 14px;
 }
 
+.esp-agenda-help--muted {
+  opacity: 0.85;
+  margin-top: -6px;
+}
+
 .esp-agenda-controls {
   margin-bottom: 12px;
 }

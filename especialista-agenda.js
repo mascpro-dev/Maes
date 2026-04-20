@@ -36,6 +36,23 @@ function formatSlotLabel(dt) {
   return dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 }
 
+/** Notifica equipa (Resend) — falha em silêncio se a função não estiver deployada ou sem secrets. */
+async function notifyCalendarSlotChange(sb, { action, startsAtIso, specialistId, specialistName }) {
+  try {
+    const { error } = await sb.functions.invoke('notify-calendar-slot-change', {
+      body: {
+        action,
+        starts_at: startsAtIso,
+        specialist_id: specialistId,
+        specialist_display_name: specialistName || '',
+      },
+    });
+    if (error) console.warn('[esp-agenda] notify:', error.message || error);
+  } catch (e) {
+    console.warn('[esp-agenda] notify:', e?.message || e);
+  }
+}
+
 async function getClient() {
   if (window.__auraAuthReady) {
     const ok = await window.__auraAuthReady;
@@ -195,6 +212,12 @@ async function main() {
             return;
           }
           statusEl.textContent = 'Horário reaberto ao público.';
+          await notifyCalendarSlotChange(sb, {
+            action: 'unblock',
+            startsAtIso: iso,
+            specialistId,
+            specialistName: specRow.display_name,
+          });
           await renderDay();
         });
         slotsEl.appendChild(b);
@@ -216,6 +239,12 @@ async function main() {
           return;
         }
         statusEl.textContent = 'Horário fechado ao público.';
+        await notifyCalendarSlotChange(sb, {
+          action: 'block',
+          startsAtIso: iso,
+          specialistId,
+          specialistName: specRow.display_name,
+        });
         await renderDay();
       });
       slotsEl.appendChild(b);
