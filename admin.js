@@ -133,7 +133,7 @@ async function loadMothers(sb, qRaw) {
     .slice(0, 80);
   let qb = sb
     .from('profiles')
-    .select('id,email,full_name,phone,terms_accepted_at,updated_at')
+    .select('id,email,full_name,phone,account_type,terms_accepted_at,updated_at')
     .order('updated_at', { ascending: false })
     .limit(250);
   if (q.length) {
@@ -148,16 +148,18 @@ function renderMothers(rows, tbody) {
   tbody.innerHTML = '';
   if (!rows.length) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td colspan="5" class="admin-muted">Nenhum perfil encontrado.</td>`;
+    tr.innerHTML = `<td colspan="6" class="admin-muted">Nenhum perfil encontrado.</td>`;
     tbody.appendChild(tr);
     return;
   }
   rows.forEach((r) => {
     const tr = document.createElement('tr');
     const ta = r.terms_accepted_at ? fmtDate(r.terms_accepted_at) : '—';
+    const tipo = r.account_type === 'medic' ? 'Médico' : 'Mãe';
     tr.innerHTML = `
       <td>${escapeHtml(r.full_name || '—')}</td>
       <td>${escapeHtml(r.email || '—')}</td>
+      <td>${escapeHtml(tipo)}</td>
       <td>${escapeHtml(ta)}</td>
       <td>${escapeHtml(fmtDate(r.updated_at))}</td>
       <td class="btn-cell"><button type="button" class="admin-btn" data-edit-mother="${r.id}">Editar</button></td>
@@ -430,13 +432,17 @@ async function main() {
     try {
       const { data: row, error } = await sb
         .from('profiles')
-        .select('id,email,full_name,phone,cidade,estado,bio,terms_accepted_at')
+        .select('id,email,full_name,phone,cidade,estado,bio,account_type,terms_accepted_at')
         .eq('id', id)
         .maybeSingle();
       if (error) throw error;
       if (!row) return;
       document.getElementById('adm-m-id').value = row.id;
       document.getElementById('adm-m-id-hint').textContent = `ID: ${row.id}`;
+      const at = row.account_type === 'medic' ? 'medic' : 'mother';
+      document.querySelectorAll('input[name="adm-m-account-type"]').forEach((inp) => {
+        inp.checked = inp.value === at;
+      });
       document.getElementById('adm-m-name').value = row.full_name || '';
       document.getElementById('adm-m-email').value = row.email || '';
       document.getElementById('adm-m-phone').value = row.phone || '';
@@ -468,6 +474,8 @@ async function main() {
       setStatus(statusEl, 'Nome completo é obrigatório.', true);
       return;
     }
+    const accountType =
+      document.querySelector('input[name="adm-m-account-type"]:checked')?.value === 'medic' ? 'medic' : 'mother';
     const payload = {
       full_name,
       email: document.getElementById('adm-m-email')?.value?.trim() || null,
@@ -475,6 +483,7 @@ async function main() {
       cidade: document.getElementById('adm-m-city')?.value?.trim() || null,
       estado: document.getElementById('adm-m-state')?.value?.trim().toUpperCase().slice(0, 2) || null,
       bio: document.getElementById('adm-m-bio')?.value?.trim() || null,
+      account_type: accountType,
     };
     if (document.getElementById('adm-m-clear-terms')?.checked) {
       payload.terms_accepted_at = null;
@@ -483,11 +492,21 @@ async function main() {
     try {
       const { error } = await sb.from('profiles').update(payload).eq('id', id);
       if (error) throw error;
+      if (accountType === 'mother') {
+        const { error: cErr } = await sb.rpc('admin_clear_specialist_link', { p_user_id: id });
+        if (cErr && !/function|schema|not exist/i.test(String(cErr.message || ''))) {
+          console.warn('[admin] clear specialist link:', cErr.message);
+        }
+      }
       document.getElementById('adm-mother-editor').hidden = true;
       const q = document.getElementById('adm-mother-q')?.value || '';
       const rows = await loadMothers(sb, q);
       renderMothers(rows, tbodyMothers);
-      setStatus(statusEl, 'Perfil atualizado.', false);
+      let msg = 'Perfil atualizado.';
+      if (accountType === 'medic') {
+        msg += ' Para agenda: liga o utilizador ao especialista (aba Especialistas).';
+      }
+      setStatus(statusEl, msg, false);
     } catch (e) {
       setStatus(statusEl, e.message || String(e), true);
     }

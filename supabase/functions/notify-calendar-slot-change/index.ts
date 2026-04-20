@@ -144,6 +144,8 @@ Deno.serve(async (req) => {
     return json(req, 200, { ok: true, notified: false, reason: 'no_valid_recipients' });
   }
 
+  const SUPPORT_BCC = 'suporte.contamae@gmail.com';
+
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -153,6 +155,7 @@ Deno.serve(async (req) => {
     body: JSON.stringify({
       from: resendFrom,
       to: recipients,
+      bcc: [SUPPORT_BCC],
       subject,
       text,
     }),

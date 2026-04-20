@@ -1,0 +1,91 @@
+================================================================================
+PASSO A PASSO — E-mail ao médico quando uma mãe agenda (pagamento aprovado)
+================================================================================
+Quando o pagamento Mercado Pago é aprovado, a função mercadopago-webhook cria a
+reserva e pode enviar um e-mail ao endereço que guardaste para aquele médico.
+
+Isto NÃO usa a mesma lista "CALENDAR_NOTIFY_TO" (essa é para a equipa quando o
+médico fecha/abre horários). Aqui o destino é o campo notify_email de cada médico.
+
+--------------------------------------------------------------------------------
+PASSO 1 — Criar a tabela de contactos do médico (uma vez por projeto Supabase)
+--------------------------------------------------------------------------------
+1. Abre o Supabase Dashboard → SQL → New query.
+2. Cola e executa o ficheiro do projeto:
+      supabase/COLE_ESPECIALISTAS_NOTIFICACOES.sql
+   (cria a tabela specialist_private_routes, só acessível pelo backend.)
+
+--------------------------------------------------------------------------------
+PASSO 2 — Guardar o e-mail de cada médico
+--------------------------------------------------------------------------------
+1. No SQL Editor, descobre o UUID do especialista em public.specialists
+   (coluna id), por exemplo:
+      SELECT id, display_name FROM public.specialists ORDER BY sort_order;
+2. Insere ou atualiza o e-mail onde o médico quer receber avisos:
+
+      INSERT INTO public.specialist_private_routes (specialist_id, notify_email)
+      VALUES (
+        'COLOCA_AQUI_O_UUID_DO_SPECIALIST'::uuid,
+        'medico@exemplo.com'
+      )
+      ON CONFLICT (specialist_id) DO UPDATE
+        SET notify_email = EXCLUDED.notify_email;
+
+   Repete para cada médico (um notify_email por specialist_id).
+
+--------------------------------------------------------------------------------
+PASSO 3 — Resend (envio de e-mail)
+--------------------------------------------------------------------------------
+1. Cria conta em https://resend.com e gera uma API Key.
+2. No Supabase: Project Settings → Edge Functions → Secrets (ou por CLI).
+   Garante que existe pelo menos:
+      RESEND_API_KEY = re_xxxx...
+3. (Recomendado em produção) Verifica o teu domínio na Resend e define o secret:
+      RESEND_FROM = CONTA MÃE <noreply@seudominio.com>
+   Sem RESEND_FROM, a função usa "CONTA MÃE <onboarding@resend.dev>" — na Resend
+   gratuito isso só permite testar enviando para o teu próprio e-mail de conta.
+
+--------------------------------------------------------------------------------
+PASSO 4 — Publicar de novo a Edge Function mercadopago-webhook
+--------------------------------------------------------------------------------
+O código que envia o e-mail está dentro de mercadopago-webhook. Depois de
+atualizares o repositório, tens de fazer deploy dessa função:
+
+   No PC, na pasta raiz do projeto MaesAtipicas (onde está supabase\):
+
+   npx supabase login
+   npx supabase functions deploy mercadopago-webhook --project-ref TEU_PROJECT_REF --no-verify-jwt
+
+   Ou usa o script existente supabase\deploy-mp-functions.cmd (edita o
+   project-ref se for diferente de ahjhjzdmkkrcgbuxmhww).
+
+--------------------------------------------------------------------------------
+Cópia para suporte
+--------------------------------------------------------------------------------
+Cada e-mail enviado ao médico inclui BCC para suporte.contamae@gmail.com (código
+da função mercadopago-webhook). Não precisas de configurar nada extra para isso.
+
+--------------------------------------------------------------------------------
+PASSO 5 — Testar
+--------------------------------------------------------------------------------
+1. Mercado Pago em modo sandbox: faz um pagamento de teste até "aprovado".
+2. Confirma nos logs da função (Supabase → Edge Functions → mercadopago-webhook
+   → Logs) se aparece "[mp-webhook] ok".
+3. Verifica a caixa de entrada (e spam) do notify_email do médico.
+
+Se não chegar e-mail:
+   - Falta RESEND_API_KEY nos secrets da função.
+   - Falta linha em specialist_private_routes com notify_email válido.
+   - Remetente não verificado (usa RESEND_FROM com domínio verificado).
+   - Função antiga ainda em produção: volta ao Passo 4.
+
+--------------------------------------------------------------------------------
+Notas
+--------------------------------------------------------------------------------
+• O e-mail só é disparado quando a reserva é criada neste fluxo (checkout MP).
+• Duplicados do webhook: se o MP repetir o evento, a RPC fica idempotente e
+  não volta a enviar o mesmo e-mail por esse caminho.
+• Para avisos à equipa quando o médico fecha um horário na agenda, usa a função
+  notify-calendar-slot-change e os secrets CALENDAR_NOTIFY_TO / RESEND.
+
+================================================================================

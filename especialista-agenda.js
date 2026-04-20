@@ -84,6 +84,32 @@ async function main() {
     return;
   }
 
+  const {
+    data: { session },
+  } = await sb.auth.getSession();
+  if (!session?.user?.id) {
+    if (denied) {
+      denied.hidden = false;
+      denied.textContent = 'Sessão inválida. Entra de novo.';
+    }
+    return;
+  }
+
+  const { data: profRow, error: profErr } = await sb
+    .from('profiles')
+    .select('account_type')
+    .eq('id', session.user.id)
+    .maybeSingle();
+
+  if (!profErr && profRow?.account_type === 'mother') {
+    if (denied) {
+      denied.hidden = false;
+      denied.innerHTML =
+        'Esta conta está definida como <strong>Mãe</strong>. Só contas <strong>Médico</strong> (marcadas no painel admin) podem usar esta agenda.';
+    }
+    return;
+  }
+
   const { data: specialistId, error: sidErr } = await sb.rpc('my_specialist_id');
   if (sidErr || !specialistId) {
     if (denied) {

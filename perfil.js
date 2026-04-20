@@ -305,11 +305,15 @@ function renderProfile(profile, children) {
   const displayPhone = document.getElementById('perfil-display-phone');
   const displayCity = document.getElementById('perfil-display-city');
   const displayState = document.getElementById('perfil-display-state');
+  const displayAcct = document.getElementById('perfil-display-account-type');
   if (displayName) displayName.textContent = nome;
   if (displayEmail) displayEmail.textContent = email || '—';
   if (displayPhone) displayPhone.textContent = phone || '—';
   if (displayCity) displayCity.textContent = city || '—';
   if (displayState) displayState.textContent = state || '—';
+  if (displayAcct) {
+    displayAcct.textContent = profile?.account_type === 'medic' ? 'Médico' : 'Mãe';
+  }
 
   const inName = document.getElementById('perfil-input-name');
   const inEmail = document.getElementById('perfil-input-email');
@@ -428,7 +432,7 @@ function renderProfile(profile, children) {
   const [{ data: profile, error: pErr }, { data: children, error: cErr }] = await Promise.all([
     supabase
       .from('profiles')
-      .select('full_name, email, phone, cidade, estado, avatar_url, bio')
+      .select('full_name, email, phone, cidade, estado, avatar_url, bio, account_type')
       .eq('id', uid)
       .maybeSingle(),
     supabase
@@ -452,12 +456,24 @@ function renderProfile(profile, children) {
 
   try {
     const { data: linkedSpecId, error: linkErr } = await supabase.rpc('my_specialist_id');
-    if (!linkErr && linkedSpecId) {
-      const agendaLink = document.getElementById('perfil-link-esp-agenda');
-      if (agendaLink) agendaLink.hidden = false;
+    const isMedic = merged.account_type === 'medic';
+    const agendaLink = document.getElementById('perfil-link-esp-agenda');
+    const banner = document.getElementById('perfil-medic-link-hint');
+    if (agendaLink) {
+      agendaLink.hidden = !(isMedic && !linkErr && linkedSpecId);
+    }
+    if (banner) {
+      if (isMedic && !linkErr && !linkedSpecId) {
+        banner.hidden = false;
+        banner.textContent =
+          'A tua conta está como médico, mas falta a ligação ao registo de especialista na base de dados. Pede à equipa (painel admin → Especialistas → ligar conta).';
+      } else {
+        banner.hidden = true;
+        banner.textContent = '';
+      }
     }
   } catch {
-    /* migração de médico opcional */
+    /* migração opcional */
   }
 
   if (new URLSearchParams(window.location.search).get('completar') === 'rede') {

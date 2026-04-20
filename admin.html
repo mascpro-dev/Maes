@@ -171,7 +171,7 @@
         <div class="admin-card">
           <h2>Termos e condições (visíveis no perfil de todas)</h2>
           <p class="admin-muted" style="margin-bottom: 12px">
-            O texto aparece em <strong>Perfil → Termos e condições</strong> para qualquer utilizadora com sessão
+            O texto aparece em <strong>Perfil → Termos e condições</strong> para qualquer utilizador com sessão
             iniciada.
           </p>
           <div class="admin-field" style="margin-bottom: 12px">
@@ -190,10 +190,11 @@
         </div>
 
         <div class="admin-card">
-          <h2>Mães — perfis (utilizadoras)</h2>
+          <h2>Utilizadores — perfis (mãe ou médico)</h2>
           <p class="admin-muted" style="margin-bottom: 12px">
-            Pesquisa por nome ou e-mail. Para <strong>médicos credenciados</strong>, continua a usar a aba
-            <strong>Especialistas</strong>.
+            Pesquisa por nome ou e-mail. Define o <strong>tipo de conta</strong> (Mãe / Médico): a app mostra a
+            <strong>agenda do médico</strong> só a quem está como Médico e ligado a um especialista. Ficha pública
+            do médico continua na aba <strong>Especialistas</strong>.
           </p>
           <div class="admin-form-grid" style="margin-bottom: 12px; align-items: end">
             <div class="admin-field" style="grid-column: 1 / -1">
@@ -210,6 +211,7 @@
                 <tr>
                   <th>Nome</th>
                   <th>E-mail</th>
+                  <th>Tipo</th>
                   <th>Termos aceites</th>
                   <th>Atualizado</th>
                   <th></th>
@@ -221,10 +223,21 @@
         </div>
 
         <div class="admin-card" id="adm-mother-editor" hidden>
-          <h2>Editar perfil da mãe</h2>
+          <h2>Editar utilizador</h2>
           <input type="hidden" id="adm-m-id" value="" />
           <p class="admin-muted" id="adm-m-id-hint" style="margin-bottom: 12px"></p>
           <div class="admin-form-grid">
+            <fieldset class="admin-field admin-field--fieldset" style="grid-column: 1 / -1">
+              <legend class="admin-field-legend">Tipo de conta na app</legend>
+              <label class="admin-radio">
+                <input type="radio" name="adm-m-account-type" value="mother" checked />
+                Mãe — comunidade, reservas como utente
+              </label>
+              <label class="admin-radio">
+                <input type="radio" name="adm-m-account-type" value="medic" />
+                Médico — agenda (depois de ligar o utilizador ao especialista)
+              </label>
+            </fieldset>
             <div class="admin-field" style="grid-column: 1 / -1">
               <label for="adm-m-name">Nome completo</label>
               <input type="text" id="adm-m-name" maxlength="120" />

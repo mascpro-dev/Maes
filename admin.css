@@ -236,6 +236,35 @@ body.admin-page {
   margin-bottom: 0;
 }
 
+.admin-field--fieldset {
+  border: 1px solid var(--sage-light);
+  border-radius: 12px;
+  padding: 12px 14px 14px;
+  margin: 0;
+}
+
+.admin-field-legend {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-mid);
+  padding: 0 6px;
+}
+
+.admin-radio {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: var(--ink);
+  margin-top: 8px;
+  cursor: pointer;
+}
+
+.admin-radio input {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
 .admin-table-wrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;

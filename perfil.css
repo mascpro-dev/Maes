@@ -24,6 +24,17 @@
   color: var(--terracotta, #e2725b);
 }
 
+.perfil-medic-banner {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md, 16px);
+  background: rgba(135, 169, 107, 0.14);
+  border: 1px solid rgba(135, 169, 107, 0.35);
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
 /* Evita cortar o grelha; o .app-wrapper global usa overflow:hidden */
 .app-wrapper--perfil-dash {
   max-width: none;
