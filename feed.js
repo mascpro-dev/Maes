@@ -117,6 +117,63 @@ function rpcFunctionMissing(err) {
   );
 }
 
+function formatSupabaseErr(err) {
+  if (!err) return "Erro desconhecido.";
+  const parts = [err.message, err.details, err.hint].filter(Boolean);
+  return parts.join(" — ") || String(err);
+}
+
+/**
+ * Se o RPC list_feed_posts no projeto ainda for antigo (sem contagens), calcula no cliente.
+ */
+async function augmentPostsWithInteractionCounts(rows) {
+  if (!rows?.length) return rows;
+  const r0 = rows[0];
+  if (
+    r0 &&
+    typeof r0.like_count === "number" &&
+    typeof r0.comment_count === "number" &&
+    typeof r0.liked_by_me === "boolean"
+  ) {
+    return rows;
+  }
+
+  const ids = rows.map((r) => r.id).filter(Boolean);
+  if (!ids.length) return rows;
+
+  const [{ data: likes, error: eL }, { data: comments, error: eC }] = await Promise.all([
+    supabase.from("feed_post_likes").select("post_id,user_id").in("post_id", ids),
+    supabase.from("feed_post_comments").select("post_id").in("post_id", ids),
+  ]);
+  if (eL || eC) {
+    console.warn("[feed] Não foi possível ler curtidas/comentários (tabelas ou RLS):", eL || eC);
+    return rows.map((p) => ({
+      ...p,
+      like_count: typeof p.like_count === "number" ? p.like_count : 0,
+      comment_count: typeof p.comment_count === "number" ? p.comment_count : 0,
+      liked_by_me: !!p.liked_by_me,
+    }));
+  }
+
+  const likeAgg = {};
+  for (const l of likes || []) {
+    if (!likeAgg[l.post_id]) likeAgg[l.post_id] = { n: 0, me: false };
+    likeAgg[l.post_id].n += 1;
+    if (l.user_id === userId) likeAgg[l.post_id].me = true;
+  }
+  const comAgg = {};
+  for (const c of comments || []) {
+    comAgg[c.post_id] = (comAgg[c.post_id] || 0) + 1;
+  }
+
+  return rows.map((p) => ({
+    ...p,
+    like_count: typeof p.like_count === "number" ? p.like_count : likeAgg[p.id]?.n ?? 0,
+    comment_count: typeof p.comment_count === "number" ? p.comment_count : comAgg[p.id] ?? 0,
+    liked_by_me: typeof p.liked_by_me === "boolean" ? p.liked_by_me : !!likeAgg[p.id]?.me,
+  }));
+}
+
 async function fillCommentsForPost(postId) {
   const box = el.list?.querySelector(`[data-feed-comments="${postId}"]`);
   if (!box || box.dataset.loaded === "1") return;
@@ -186,7 +243,7 @@ function render(posts) {
     .join("");
 }
 
-/** Submete comentário (RPC e fallback) */
+/** Submete comentário: REST primeiro (mais fiável), depois RPC. */
 async function sendCommentForPost(postId) {
   const form = el.list?.querySelector(`[data-comment-form="${postId}"]`);
   const input = form?.querySelector?.(".feed-post__comment-input");
@@ -195,21 +252,27 @@ async function sendCommentForPost(postId) {
   const btn = form?.querySelector?.("[data-comment-send]");
   if (btn) btn.disabled = true;
 
-  let { error } = await supabase.rpc("add_feed_post_comment", {
-    p_post_id: postId,
-    p_content: text,
+  let r = await supabase.from("feed_post_comments").insert({
+    post_id: postId,
+    author_id: userId,
+    content: text,
   });
-  if (error && rpcFunctionMissing(error)) {
-    const r = await supabase.from("feed_post_comments").insert({
-      post_id: postId,
-      author_id: userId,
-      content: text,
+  let error = r.error;
+  if (error) {
+    console.warn("[feed] insert comentário (REST):", error);
+    const rpc = await supabase.rpc("add_feed_post_comment", {
+      p_post_id: postId,
+      p_content: text,
     });
-    error = r.error;
+    error = rpc.error;
+    if (error) console.warn("[feed] add_feed_post_comment (RPC):", error);
   }
   if (btn) btn.disabled = false;
   if (error) {
-    setStatus(error.message || "Não foi possível comentar. Aplica o SQL (curtidas/comentários + COLE_FEED_INTERACTION_RPCS).");
+    setStatus(
+      formatSupabaseErr(error) +
+        " — Confirma no Supabase: tabelas feed_post_comments + COLE_FEED_INTERACTION_RPCS.sql."
+    );
     return;
   }
   if (input) input.value = "";
@@ -222,34 +285,46 @@ async function sendCommentForPost(postId) {
   await loadFeed();
 }
 
-/** Curtir / descurtir (RPC e fallback) */
+/** Curtir / descurtir: REST primeiro, depois RPC (evita falha quando só uma das vias está aplicada). */
 async function toggleLike(postId) {
   if (!postId) return;
   const likeBtn = el.list?.querySelector(`[data-like-post="${postId}"]`);
   if (likeBtn) likeBtn.disabled = true;
-  const { error } = await supabase.rpc("toggle_feed_post_like", { p_post_id: postId });
-  let err = error;
-  if (err && rpcFunctionMissing(err)) {
-    const post = lastPosts.find((x) => x.id === postId);
-    const liked = !!post?.liked_by_me;
-    if (liked) {
-      const r = await supabase
-        .from("feed_post_likes")
-        .delete()
-        .eq("post_id", postId)
-        .eq("user_id", userId);
-      err = r.error;
-    } else {
-      const r = await supabase.from("feed_post_likes").insert({
-        post_id: postId,
-        user_id: userId,
-      });
-      err = r.error;
-    }
+
+  const post = lastPosts.find((x) => x.id === postId);
+  const liked = !!post?.liked_by_me;
+
+  let err = null;
+  if (liked) {
+    const r = await supabase
+      .from("feed_post_likes")
+      .delete()
+      .eq("post_id", postId)
+      .eq("user_id", userId);
+    err = r.error;
+  } else {
+    const r = await supabase.from("feed_post_likes").insert({
+      post_id: postId,
+      user_id: userId,
+    });
+    err = r.error;
+    if (err?.code === "23505") err = null;
   }
-  if (likeBtn) likeBtn.disabled = false;
+
   if (err) {
-    setStatus(err.message || "Curtir indisponível. Executa COLE_FEED_LIKES_COMMENTS e COLE_FEED_INTERACTION_RPCS no Supabase.");
+    console.warn("[feed] toggle like (REST):", err);
+    const rpc = await supabase.rpc("toggle_feed_post_like", { p_post_id: postId });
+    err = rpc.error;
+    if (err) console.warn("[feed] toggle_feed_post_like (RPC):", err);
+  }
+
+  if (likeBtn) likeBtn.disabled = false;
+
+  if (err) {
+    setStatus(
+      formatSupabaseErr(err) +
+        " — No Supabase: executa COLE_FEED_LIKES_COMMENTS.sql (tabelas + list_feed_posts) e COLE_FEED_INTERACTION_RPCS.sql."
+    );
     return;
   }
   await loadFeed();
@@ -334,13 +409,14 @@ async function loadFeed() {
     setStatus(
       error.message?.includes("list_feed_posts") || error.code === "PGRST202"
         ? "Atualiza o feed: executa supabase/COLE_FEED_LIKES_COMMENTS.sql (e RPC de interação se ainda não aplicou)."
-        : (error.message || "Ative a migration de Feed no Supabase.")
+        : formatSupabaseErr(error)
     );
     return;
   }
+  const rows = await augmentPostsWithInteractionCounts(data || []);
   await loadMentionList();
-  render(data || []);
-  await primeSingleComments(data || []);
+  render(rows);
+  await primeSingleComments(rows);
 }
 
 async function createPost() {

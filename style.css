@@ -1698,272 +1698,61 @@ a.btn-scan {
   max-height: 200px;
 }
 
-/* Medicação (diário) */
-.diario-med-card {
-  background: var(--white);
-  border-radius: var(--radius-lg);
-  border: 1px solid rgba(122, 158, 126, 0.22);
-  box-shadow: var(--shadow-md);
-  padding: 18px 18px 16px;
-  margin-top: 14px;
+.diario-chart__legend--triple {
+  flex-wrap: wrap;
+  gap: 10px 18px;
 }
 
-.diario-med-card__head {
-  margin-bottom: 14px;
+.diario-chart__dot--medicacao {
+  background: #5b7eb8;
 }
 
-.diario-med-body {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.diario-kind--triple {
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.diario-med__notice {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--ink-mid);
+.diario-kind--triple .diario-kind__btn {
+  font-size: 0.76rem;
+  padding: 10px 8px;
+}
+
+.diario-kind__opt--med input:checked + .diario-kind__btn {
+  border-color: #5b7eb8;
+  background: rgba(91, 126, 184, 0.12);
+  color: var(--ink);
+}
+
+.diario-sheet__input {
+  width: 100%;
   padding: 12px 14px;
   border-radius: var(--radius-sm);
-  background: var(--cream-card);
-  border: 1px solid var(--cream-deep);
-  line-height: 1.45;
-}
-
-.diario-med__notice--future {
-  border-color: rgba(196, 122, 91, 0.35);
-  color: var(--ink-mid);
-}
-
-.diario-med__notice--past {
-  border-color: rgba(122, 158, 126, 0.35);
-}
-
-.diario-med__details {
-  font-size: 0.8rem;
-  color: var(--ink-mid);
-  border: 1px solid var(--cream-deep);
-  border-radius: var(--radius-sm);
-  padding: 8px 10px;
-  background: var(--cream-card);
-}
-
-.diario-med__details summary {
-  cursor: pointer;
-  font-weight: 600;
-  color: var(--ink);
-  list-style: none;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.diario-med__details summary::-webkit-details-marker {
-  display: none;
-}
-
-.diario-med__details[open] summary {
-  margin-bottom: 8px;
-}
-
-.diario-med__sched-hint {
-  font-size: 0.74rem;
-  color: var(--ink-light);
-  margin-bottom: 8px;
-  line-height: 1.4;
-}
-
-.diario-med__sched-input {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
   border: 1.5px solid var(--cream-deep);
   font-family: var(--font-sans);
-  font-size: 0.85rem;
-  background: var(--white);
+  font-size: 0.9rem;
   color: var(--ink);
-  resize: vertical;
-  min-height: 60px;
+  background: var(--cream-card);
+  margin-bottom: 12px;
 }
 
-.diario-med__sched-input:focus {
+.diario-sheet__input:focus {
   outline: none;
   border-color: var(--sage);
+  background: var(--white);
 }
 
-.diario-med__sched-save {
-  margin-top: 10px;
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  border: 1.5px solid var(--sage);
-  background: var(--sage-pale);
-  color: var(--ink);
-  font-size: 0.82rem;
-  font-weight: 700;
-  font-family: var(--font-sans);
-  cursor: pointer;
-  transition: all var(--dur) var(--ease);
-}
-
-.diario-med__sched-save:hover,
-.diario-med__sched-save:focus-visible {
-  background: var(--sage-light);
-}
-
-.diario-med__row {
-  padding: 14px 14px 12px;
-  border-radius: var(--radius-md);
-  border: 1.5px solid var(--cream-deep);
-  background: var(--cream-card);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.diario-med__row-head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.diario-med__planned {
-  font-size: 0.8rem;
-  color: var(--ink-mid);
-}
-
-.diario-med__planned strong {
-  color: var(--ink);
+.diario-sheet__input--time {
+  max-width: 200px;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
-.diario-med__badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.diario-audio-meta {
+  margin-bottom: 12px;
 }
 
-.diario-med__badge--ok {
-  background: var(--sage-pale);
-  color: #3d5a40;
-  border: 1px solid rgba(122, 158, 126, 0.5);
-}
-
-.diario-med__badge--late,
-.diario-med__badge--miss {
-  background: #fdf0e8;
-  color: #7a3d28;
-  border: 1px solid rgba(196, 122, 91, 0.4);
-}
-
-.diario-med__badge--none {
-  background: var(--cream-deep);
-  color: var(--ink-mid);
-  border: 1px solid var(--cream-deep);
-}
-
-.diario-med__row-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-@media (min-width: 400px) {
-  .diario-med__row-controls {
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-}
-
-.diario-med__check {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.86rem;
-  font-weight: 600;
-  color: var(--ink);
-  cursor: pointer;
-  user-select: none;
-}
-
-.diario-med__check input {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--sage);
-}
-
-.diario-med__at-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-  min-width: 0;
-}
-
-.diario-med__at-label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink-light);
-}
-
-.diario-med__at {
-  width: 100%;
-  max-width: 200px;
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  border: 1.5px solid var(--cream-deep);
-  font-family: var(--font-sans);
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--ink);
-  background: var(--white);
-}
-
-.diario-med__at:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.diario-med__at:focus {
-  outline: none;
-  border-color: var(--sage);
-}
-
-.diario-med__row--readonly .diario-med__at {
-  background: var(--cream-card);
-  border-color: var(--cream-deep);
-}
-
-.diario-med__list-past {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.diario-med__li {
-  font-size: 0.85rem;
-  color: var(--ink-mid);
-  padding: 10px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--white);
-  border: 1px solid var(--cream-deep);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+.diario-audio-meta .diario-sheet__label:first-child {
+  margin-top: 0;
 }
 
 /* FAB + menu */

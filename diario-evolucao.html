@@ -70,16 +70,20 @@
       <section class="diario-chart-card" aria-labelledby="diario-chart-heading">
         <div class="diario-chart-card__head">
           <h2 id="diario-chart-heading" class="diario-chart-card__title">Visão da semana</h2>
-          <p class="diario-chart-card__sub">Marcos alcançados e crises registradas (contagem por dia)</p>
+          <p class="diario-chart-card__sub">Marcos, crises e doses de medicação registadas (contagem por dia)</p>
         </div>
-        <div class="diario-chart__legend" role="list">
+        <div class="diario-chart__legend diario-chart__legend--triple" role="list">
           <span class="diario-chart__legend-item" role="listitem">
             <span class="diario-chart__dot diario-chart__dot--marcos" aria-hidden="true"></span>
-            Marcos alcançados
+            Marcos
           </span>
           <span class="diario-chart__legend-item" role="listitem">
             <span class="diario-chart__dot diario-chart__dot--crises" aria-hidden="true"></span>
             Crises
+          </span>
+          <span class="diario-chart__legend-item" role="listitem">
+            <span class="diario-chart__dot diario-chart__dot--medicacao" aria-hidden="true"></span>
+            Medicação
           </span>
         </div>
         <div class="diario-chart__plot">
@@ -94,6 +98,10 @@
                 <stop offset="0%" stop-color="#c47a5b" stop-opacity="0.14" />
                 <stop offset="100%" stop-color="#c47a5b" stop-opacity="0" />
               </linearGradient>
+              <linearGradient id="diario-fill-medicacao" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#5b7eb8" stop-opacity="0.16" />
+                <stop offset="100%" stop-color="#5b7eb8" stop-opacity="0" />
+              </linearGradient>
             </defs>
             <g class="diario-chart__grid" stroke="rgba(45,42,38,.08)" stroke-width="1">
               <line x1="36" y1="28" x2="304" y2="28" />
@@ -105,27 +113,19 @@
             <g id="diario-y-labels" class="diario-chart__y-labels"></g>
             <path id="diario-area-marcos" fill="url(#diario-fill-marcos)" />
             <path id="diario-area-crises" fill="url(#diario-fill-crises)" />
+            <path id="diario-area-medicacao" fill="url(#diario-fill-medicacao)" />
             <path id="diario-line-marcos" fill="none" stroke="#7a9e7e" stroke-width="2" stroke-linecap="round"
               stroke-linejoin="round" />
             <path id="diario-line-crises" fill="none" stroke="#c47a5b" stroke-width="2" stroke-linecap="round"
               stroke-linejoin="round" />
+            <path id="diario-line-medicacao" fill="none" stroke="#5b7eb8" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" />
             <g id="diario-dots-marcos" fill="#7a9e7e" />
             <g id="diario-dots-crises" fill="#c47a5b" />
+            <g id="diario-dots-medicacao" fill="#5b7eb8" />
             <g id="diario-x-labels" class="diario-chart__x-labels"></g>
           </svg>
         </div>
-      </section>
-
-      <!-- Medicação: registo só no dia atual; dias passados só leitura -->
-      <section class="diario-med-card" aria-labelledby="diario-med-heading">
-        <div class="diario-med-card__head">
-          <h2 id="diario-med-heading" class="diario-chart-card__title">Medicação da criança</h2>
-          <p class="diario-chart-card__sub" id="diario-med-sub">
-            Indica se deu o remédio e a que horas. Só podes <strong>registar no próprio dia</strong>; dias
-            anteriores ficam apenas para consulta.
-          </p>
-        </div>
-        <div id="diario-med-body" class="diario-med-body"></div>
       </section>
     </main>
 
@@ -205,7 +205,7 @@
       </div>
       <div class="diario-sheet__body">
         <p class="diario-sheet__label">Tipo de registro</p>
-        <div class="diario-kind" role="group" aria-label="Tipo">
+        <div class="diario-kind diario-kind--triple" role="group" aria-label="Tipo">
           <label class="diario-kind__opt">
             <input type="radio" name="diario-text-kind" value="marco" checked />
             <span class="diario-kind__btn">Marco alcançado</span>
@@ -214,11 +214,27 @@
             <input type="radio" name="diario-text-kind" value="crise" />
             <span class="diario-kind__btn">Crise</span>
           </label>
+          <label class="diario-kind__opt diario-kind__opt--med">
+            <input type="radio" name="diario-text-kind" value="medicacao" />
+            <span class="diario-kind__btn">Medicação</span>
+          </label>
         </div>
-        <label class="diario-sheet__label" for="diario-text-field">Descrição</label>
-        <textarea id="diario-text-field" class="diario-sheet__textarea"
-          placeholder="Descreva o que observou (comportamento, contexto, duração…)" rows="5"
-          autocomplete="off"></textarea>
+        <div id="diario-text-block-marco">
+          <label class="diario-sheet__label" for="diario-text-field">Descrição</label>
+          <textarea id="diario-text-field" class="diario-sheet__textarea"
+            placeholder="Descreva o que observou (comportamento, contexto, duração…)" rows="5"
+            autocomplete="off"></textarea>
+        </div>
+        <div id="diario-text-block-med" hidden>
+          <label class="diario-sheet__label" for="diario-text-med-name">Medicamento</label>
+          <input type="text" id="diario-text-med-name" class="diario-sheet__input" placeholder="Ex.: nome ou dosagem"
+            autocomplete="off" />
+          <label class="diario-sheet__label" for="diario-text-med-time">Horário em que foi dado</label>
+          <input type="time" id="diario-text-med-time" class="diario-sheet__input diario-sheet__input--time" step="60" />
+          <label class="diario-sheet__label" for="diario-text-med-notes">Observações (opcional)</label>
+          <textarea id="diario-text-med-notes" class="diario-sheet__textarea" rows="3"
+            placeholder="Reações, contexto, outro detalhe para o médico…" autocomplete="off"></textarea>
+        </div>
       </div>
       <div class="diario-sheet__foot">
         <button type="button" class="diario-sheet__btn diario-sheet__btn--ghost" id="diario-text-cancel">
@@ -241,7 +257,7 @@
       </div>
       <div class="diario-sheet__body">
         <p class="diario-sheet__label">Tipo de registro</p>
-        <div class="diario-kind" role="group" aria-label="Tipo">
+        <div class="diario-kind diario-kind--triple" role="group" aria-label="Tipo">
           <label class="diario-kind__opt">
             <input type="radio" name="diario-audio-kind" value="marco" checked />
             <span class="diario-kind__btn">Marco alcançado</span>
@@ -250,6 +266,17 @@
             <input type="radio" name="diario-audio-kind" value="crise" />
             <span class="diario-kind__btn">Crise</span>
           </label>
+          <label class="diario-kind__opt diario-kind__opt--med">
+            <input type="radio" name="diario-audio-kind" value="medicacao" />
+            <span class="diario-kind__btn">Medicação</span>
+          </label>
+        </div>
+        <div id="diario-audio-block-med" class="diario-audio-meta" hidden>
+          <label class="diario-sheet__label" for="diario-audio-med-name">Medicamento (recomendado)</label>
+          <input type="text" id="diario-audio-med-name" class="diario-sheet__input" placeholder="Qual remédio"
+            autocomplete="off" />
+          <label class="diario-sheet__label" for="diario-audio-med-time">Horário em que foi dado</label>
+          <input type="time" id="diario-audio-med-time" class="diario-sheet__input diario-sheet__input--time" step="60" />
         </div>
         <div class="diario-audio-panel">
           <button type="button" class="diario-audio-rec" id="diario-audio-toggle" aria-pressed="false"
