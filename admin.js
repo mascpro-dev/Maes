@@ -81,6 +81,22 @@ function escapeHtml(s) {
     .replace(/"/g, '&quot;');
 }
 
+function formatSbError(err) {
+  if (!err) return '';
+  const parts = [err.message, err.details, err.hint].filter(Boolean);
+  return parts.join(' — ');
+}
+
+function rpcMissing(err) {
+  const m = String(err?.message || err || '');
+  return (
+    err?.code === '42883' ||
+    /admin_save_cadastro_profile/i.test(m) ||
+    /could not find.*function/i.test(m) ||
+    /schema cache/i.test(m)
+  );
+}
+
 async function loadBookings(sb) {
   const { data, error } = await sb.rpc('admin_list_consultation_bookings', { p_limit: 300 });
   if (error) throw error;
@@ -232,22 +248,22 @@ async function main() {
   const durWrap = document.getElementById('adm-m-consult-dur-wrap');
   const durHint = document.getElementById('adm-m-consult-dur-hint');
 
-  async function refreshMedicDurationPanel(userId) {
+  async function syncConsultDurPanel(userId) {
     if (!durWrap || !durHint || !userId) return;
     const isMedic = document.querySelector('input[name="adm-m-account-type"]:checked')?.value === 'medic';
     if (!isMedic) {
-      durWrap.hidden = true;
+      durWrap.classList.remove('admin-dur-for-medic--on');
       delete durWrap.dataset.specialistId;
       durHint.textContent = '';
       return;
     }
-    durWrap.hidden = false;
+    durWrap.classList.add('admin-dur-for-medic--on');
     try {
       const { data: sum, error } = await sb.rpc('admin_get_linked_specialist_summary', {
         p_user_id: userId,
       });
       if (error) {
-        durHint.textContent = (error.message || String(error)).slice(0, 220);
+        durHint.textContent = formatSbError(error).slice(0, 280);
         delete durWrap.dataset.specialistId;
         return;
       }
@@ -275,11 +291,13 @@ async function main() {
   }
 
   document.querySelectorAll('input[name="adm-m-account-type"]').forEach((inp) => {
-    inp.addEventListener('change', async () => {
+    const onAcct = async () => {
       const uid = document.getElementById('adm-m-id')?.value?.trim();
       if (!uid) return;
-      await refreshMedicDurationPanel(uid);
-    });
+      await syncConsultDurPanel(uid);
+    };
+    inp.addEventListener('change', onAcct);
+    inp.addEventListener('click', onAcct);
   });
 
   function fillLinkSpecialistSelect(specs) {
@@ -517,7 +535,7 @@ async function main() {
         editor.hidden = false;
         editor.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       }
-      await refreshMedicDurationPanel(row.id);
+      await syncConsultDurPanel(row.id);
       setStatus(statusEl, 'Edita os campos e guarda.', false);
     } catch (e) {
       setStatus(statusEl, e.message || String(e), true);
@@ -528,6 +546,8 @@ async function main() {
     const editor = document.getElementById('adm-mother-editor');
     if (editor) editor.hidden = true;
     document.getElementById('adm-m-id').value = '';
+    durWrap?.classList.remove('admin-dur-for-medic--on');
+    if (durHint) durHint.textContent = '';
   });
 
   document.getElementById('adm-m-save')?.addEventListener('click', async () => {
@@ -540,36 +560,61 @@ async function main() {
     }
     const accountType =
       document.querySelector('input[name="adm-m-account-type"]:checked')?.value === 'medic' ? 'medic' : 'mother';
+    const emailRaw = document.getElementById('adm-m-email')?.value?.trim();
+    const estadoRaw = document.getElementById('adm-m-state')?.value?.trim().toUpperCase().slice(0, 2);
+    const clearTerms = !!document.getElementById('adm-m-clear-terms')?.checked;
+    const consultDur =
+      accountType === 'medic'
+        ? document.querySelector('input[name="adm-m-consult-dur"]:checked')?.value === '60'
+          ? 60
+          : 30
+        : null;
+
     const payload = {
       full_name,
-      email: document.getElementById('adm-m-email')?.value?.trim() || null,
+      email: emailRaw || null,
       phone: document.getElementById('adm-m-phone')?.value?.trim() || null,
       cidade: document.getElementById('adm-m-city')?.value?.trim() || null,
-      estado: document.getElementById('adm-m-state')?.value?.trim().toUpperCase().slice(0, 2) || null,
+      estado: estadoRaw || null,
       bio: document.getElementById('adm-m-bio')?.value?.trim() || null,
       account_type: accountType,
     };
-    if (document.getElementById('adm-m-clear-terms')?.checked) {
+    if (clearTerms) {
       payload.terms_accepted_at = null;
     }
     setStatus(statusEl, 'A guardar perfil…', false);
     try {
-      const { error } = await sb.from('profiles').update(payload).eq('id', id);
-      if (error) throw error;
-      if (accountType === 'mother') {
-        const { error: cErr } = await sb.rpc('admin_clear_specialist_link', { p_user_id: id });
-        if (cErr && !/function|schema|not exist/i.test(String(cErr.message || ''))) {
-          console.warn('[admin] clear specialist link:', cErr.message);
+      const { error: rpcErr } = await sb.rpc('admin_save_cadastro_profile', {
+        p_user_id: id,
+        p_full_name: full_name,
+        p_email: emailRaw || null,
+        p_phone: payload.phone,
+        p_cidade: payload.cidade,
+        p_estado: estadoRaw || null,
+        p_bio: payload.bio,
+        p_account_type: accountType,
+        p_clear_terms: clearTerms,
+        p_consultation_duration_minutes: consultDur,
+      });
+
+      if (rpcErr) {
+        if (!rpcMissing(rpcErr)) throw rpcErr;
+        const { error } = await sb.from('profiles').update(payload).eq('id', id);
+        if (error) throw error;
+        if (accountType === 'mother') {
+          const { error: cErr } = await sb.rpc('admin_clear_specialist_link', { p_user_id: id });
+          if (cErr && !/function|schema|not exist/i.test(String(cErr.message || ''))) {
+            console.warn('[admin] clear specialist link:', cErr.message);
+          }
+        } else if (accountType === 'medic' && durWrap?.dataset?.specialistId) {
+          const { error: spErr } = await sb
+            .from('specialists')
+            .update({ consultation_duration_minutes: consultDur })
+            .eq('id', durWrap.dataset.specialistId);
+          if (spErr) console.warn('[admin] consultation_duration_minutes:', spErr.message);
         }
-      } else if (accountType === 'medic' && durWrap?.dataset?.specialistId) {
-        const dm =
-          document.querySelector('input[name="adm-m-consult-dur"]:checked')?.value === '60' ? 60 : 30;
-        const { error: spErr } = await sb
-          .from('specialists')
-          .update({ consultation_duration_minutes: dm })
-          .eq('id', durWrap.dataset.specialistId);
-        if (spErr) console.warn('[admin] consultation_duration_minutes:', spErr.message);
       }
+
       document.getElementById('adm-mother-editor').hidden = true;
       const q = document.getElementById('adm-mother-q')?.value || '';
       const rows = await loadMothers(sb, q);
@@ -580,7 +625,8 @@ async function main() {
       }
       setStatus(statusEl, msg, false);
     } catch (e) {
-      setStatus(statusEl, e.message || String(e), true);
+      const extra = formatSbError(e);
+      setStatus(statusEl, extra || e.message || String(e), true);
     }
   });
 

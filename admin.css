@@ -243,6 +243,11 @@ body.admin-page {
   margin: 0;
 }
 
+/* Só mostra 30/60 min quando «Médico» está selecionado (admin.js adiciona --on) */
+.admin-dur-for-medic:not(.admin-dur-for-medic--on) {
+  display: none;
+}
+
 .admin-field-legend {
   font-size: 0.8rem;
   font-weight: 600;
