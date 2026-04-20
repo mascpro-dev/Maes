@@ -8,6 +8,10 @@
 -- O botão na app já fica ativo quando escolhes Pix ou cartão. O que “liberta”
 -- o pagamento de verdade é o servidor (Supabase) falar com o Mercado Pago.
 --
+-- IMPORTANTE: SQL + secrets NÃO publicam a Edge Function.
+-- Se a API responder NOT_FOUND / "Requested function was not found", a função
+-- ainda não foi deployada. Usa o passo D ou o script deploy-mp-functions.cmd.
+--
 -- PASSO A PASSO (ordem sugerida)
 --
 -- A) SQL no Supabase (SQL Editor → New query)
@@ -28,11 +32,14 @@
 --       Nome: APP_PUBLIC_URL               Valor: https://maes-pi.vercel.app
 --       (troca o URL se o teu site for outro; tem de ser https e sem barra no fim)
 --
--- D) Publicar as funções (no PC, na pasta do projeto, com Supabase CLI instalada e login feito)
---    supabase link --project-ref ahjhjzdmkkrcgbuxmhww
---    supabase functions deploy mercadopago-create-preference
---    supabase functions deploy mercadopago-webhook
---    (Se o project-ref for outro, usa o que está em Settings → API → Project URL)
+-- D) Publicar as funções (obrigatório — sem isto o pagamento dá sempre erro)
+--    Opção 1 — duplo clique no Windows (na pasta do repo):
+--       supabase\deploy-mp-functions.cmd
+--    Opção 2 — PowerShell na pasta MaesAtipicas:
+--       npx supabase login
+--       npx supabase functions deploy mercadopago-create-preference --project-ref ahjhjzdmkkrcgbuxmhww
+--       npx supabase functions deploy mercadopago-webhook --project-ref ahjhjzdmkkrcgbuxmhww
+--    (Se o project-ref for outro, vê em Supabase → Settings → API → URL do projeto)
 --
 -- E) Opcional no código (Vercel / domínio fixo)
 --    Em supabase-config.js podes preencher:

@@ -11,20 +11,11 @@ const PAY_METHOD_LABELS = {
   credit_card: 'cartão de crédito (1x)',
 };
 
-function mpCreatePreferenceUrl() {
-  const base = (window.AURA_SUPABASE_URL || '').replace(/\/$/, '');
-  if (!base) return '';
-  return `${base}/functions/v1/mercadopago-create-preference`;
-}
-
 async function createMercadoPagoPreference(supabase, payload) {
-  const url = mpCreatePreferenceUrl();
-  if (!url) throw new Error('missing_supabase_url');
   const {
     data: { session },
   } = await supabase.auth.getSession();
-  const token = session?.access_token;
-  if (!token) throw new Error('not_authenticated');
+  if (!session?.access_token) throw new Error('not_authenticated');
 
   const site =
     (typeof window.AURA_APP_PUBLIC_URL === 'string' && window.AURA_APP_PUBLIC_URL.trim()) ||
@@ -32,45 +23,47 @@ async function createMercadoPagoPreference(supabase, payload) {
       ? window.location.origin
       : '');
 
-  const headers = {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
-    apikey: window.AURA_SUPABASE_ANON_KEY || '',
-  };
-  if (site) {
-    headers['X-Public-Site-Url'] = site.replace(/\/$/, '');
-  }
+  const headers = {};
+  if (site) headers['X-Public-Site-Url'] = site.replace(/\/$/, '');
 
-  let res;
-  try {
-    res = await fetch(url, {
-      method: 'POST',
-      mode: 'cors',
-      headers,
-      body: JSON.stringify(payload),
-    });
-  } catch (netErr) {
-    const err = new Error('network');
-    err.detail =
-      'Não houve ligação ao servidor (função não deployada, CORS ou offline). Corre: supabase functions deploy mercadopago-create-preference';
-    err.cause = netErr;
-    throw err;
-  }
+  const { data, error } = await supabase.functions.invoke('mercadopago-create-preference', {
+    body: payload,
+    headers: Object.keys(headers).length ? headers : undefined,
+  });
 
-  const ct = res.headers.get('content-type') || '';
-  const json = ct.includes('application/json') ? await res.json().catch(() => ({})) : {};
+  if (error) {
+    const err = new Error(error.message || 'invoke_failed');
+    let bodyJson = null;
+    try {
+      if (error.context && typeof error.context.json === 'function') {
+        bodyJson = await error.context.json();
+      }
+    } catch {
+      /* ignore */
+    }
+    const code = bodyJson?.code || bodyJson?.error;
+    const msg = bodyJson?.message || bodyJson?.msg || '';
+    err.detail = bodyJson?.detail ?? bodyJson ?? error.message;
+    err.hint = bodyJson?.hint;
 
-  if (!res.ok) {
-    const err = new Error(json.error || `http_${res.status}`);
-    err.detail = json.detail ?? json;
-    err.hint = json.hint;
-    if (res.status === 404) {
-      err.hint = (err.hint || '') + ' Deploy da Edge Function mercadopago-create-preference em falta.';
+    const notFound =
+      code === 'NOT_FOUND' ||
+      /requested function was not found/i.test(String(msg)) ||
+      /requested function was not found/i.test(String(error.message));
+
+    if (notFound) {
+      err.detail =
+        'A função mercadopago-create-preference não está publicada neste projeto Supabase. SQL e secrets não chegam para isto: é preciso fazer deploy (no PC, na pasta do projeto): npx supabase login && npx supabase functions deploy mercadopago-create-preference --project-ref ahjhjzdmkkrcgbuxmhww && npx supabase functions deploy mercadopago-webhook --project-ref ahjhjzdmkkrcgbuxmhww — ou corre o ficheiro supabase/deploy-mp-functions.cmd';
     }
     throw err;
   }
-  if (!json.init_point) throw new Error('no_init_point');
-  return json;
+
+  if (!data?.init_point) {
+    const err = new Error('no_init_point');
+    err.detail = data;
+    throw err;
+  }
+  return data;
 }
 
 function pad(n) {
