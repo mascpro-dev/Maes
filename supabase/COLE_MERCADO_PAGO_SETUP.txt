@@ -54,6 +54,11 @@
 -- Se algo falhar, a mensagem vermelha na app tenta dizer o motivo (token, URL,
 -- migração em falta, função sem deploy, etc.).
 --
+-- Erro UNAUTHORIZED_UNSUPPORTED_TOKEN_ALGORITHM (JWT / ES256):
+-- O config.toml deste repo já tem verify_jwt = false em mercadopago-create-preference
+-- para o gateway não bloquear o token; a função valida o JWT à mão. Volta a fazer
+-- deploy da função depois de alterar o config (deploy-mp-functions.cmd).
+--
 -- =============================================================================
 -- Detalhe técnico (referência)
 -- =============================================================================

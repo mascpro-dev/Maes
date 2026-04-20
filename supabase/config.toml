@@ -1,7 +1,9 @@
 # https://supabase.com/docs/guides/functions/function-configuration
 
+# O gateway do Supabase pode rejeitar JWTs do Auth com algoritmo que não suporta (ex.: ES256).
+# A função valida o utilizador na mesma com getUser(jwt) — não deixes de enviar Authorization.
 [functions.mercadopago-create-preference]
-verify_jwt = true
+verify_jwt = false
 
 [functions.mercadopago-webhook]
 verify_jwt = false
