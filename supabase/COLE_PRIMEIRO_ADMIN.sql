@@ -1,18 +1,30 @@
 -- =============================================================================
--- Colar no SQL Editor do Supabase (como postgres / dashboard) — UMA VEZ
+-- Colar no SQL Editor do Supabase (Dashboard → SQL) — UMA VEZ
 -- Depois de aplicares a migração 20260410200000_admin_aura_admins_rls.sql
 -- =============================================================================
 --
--- 1) Descobre o teu user id (substitui o email):
+-- Opção A — recomendada: substitui só o email e executa este bloco inteiro
+--
+INSERT INTO public.aura_admins (user_id)
+SELECT id
+FROM auth.users
+WHERE lower(email) = lower('COLOCA_AQUI_O_TEU_EMAIL@exemplo.com')
+LIMIT 1
+ON CONFLICT (user_id) DO NOTHING;
+--
+-- Se "INSERT 0 0": o email não bate com nenhum utilizador (typo ou conta errada).
+-- Se "INSERT 0 1" ou "INSERT 1": ficaste na tabela (ou já lá estavas).
+--
+-- =============================================================================
+-- Opção B — manual: vê o UUID e depois insere
+--
 -- SELECT id, email FROM auth.users WHERE email = 'teuemail@gmail.com';
 --
--- 2) Torna-te admin (substitui o UUID pelo id do passo 1):
---
 -- INSERT INTO public.aura_admins (user_id)
--- VALUES ('00000000-0000-0000-0000-000000000000'::uuid)
+-- VALUES ('cola-aqui-o-uuid-sem-aspas-simples'::uuid)
 -- ON CONFLICT (user_id) DO NOTHING;
 --
--- 3) Abre no browser (com sessão iniciada):
---    https://teu-dominio.com/admin.html
---
+-- =============================================================================
+-- Abre o painel com sessão iniciada na mesma conta:
+--   …/admin.html
 -- =============================================================================
