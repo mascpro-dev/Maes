@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="aura-auth-checking">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CONTA MÃE — Admin</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&family=DM+Serif+Display:ital@0;1&display=swap"
+    rel="stylesheet" />
+  <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" sizes="any" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+
+<body>
+  <script src="supabase-config.js"></script>
+  <script src="auth.js"></script>
+  <script type="module" src="auth-session-guard.js"></script>
+
+  <div class="admin-wrap">
+    <div id="admin-denied" class="admin-banner admin-banner--error" hidden></div>
+
+    <div id="admin-app" hidden>
+      <header class="admin-top">
+        <div>
+          <h1>Painel admin</h1>
+          <p class="admin-top__sub">Especialistas, reservas e checkouts Mercado Pago</p>
+        </div>
+        <div class="admin-top__actions">
+          <a href="perfil.html" class="admin-btn">← Perfil</a>
+          <a href="especialistas.html" class="admin-btn">Ver app especialistas</a>
+          <a href="index.html" class="admin-btn admin-btn--primary">Início</a>
+        </div>
+      </header>
+
+      <p class="admin-muted" id="admin-status" role="status"></p>
+
+      <nav class="admin-tabs" role="tablist" aria-label="Secções admin">
+        <button type="button" class="admin-tab admin-tab--active" data-tab="spec" role="tab"
+          aria-selected="true">Especialistas</button>
+        <button type="button" class="admin-tab" data-tab="book" role="tab" aria-selected="false">Reservas</button>
+        <button type="button" class="admin-tab" data-tab="chk" role="tab" aria-selected="false">Checkouts MP</button>
+      </nav>
+
+      <section id="panel-spec" class="admin-panel" role="tabpanel">
+        <div class="admin-card">
+          <h2>Novo ou editar especialista</h2>
+          <input type="hidden" id="adm-spec-id" value="" />
+          <div class="admin-form-grid">
+            <div class="admin-field">
+              <label for="adm-spec-name">Nome</label>
+              <input type="text" id="adm-spec-name" maxlength="120" placeholder="Dra. Nome" />
+            </div>
+            <div class="admin-field">
+              <label for="adm-spec-specialty">Especialidade</label>
+              <input type="text" id="adm-spec-specialty" maxlength="120" placeholder="Pediatria…" />
+            </div>
+            <div class="admin-field" style="grid-column: 1 / -1">
+              <label for="adm-spec-bio">Bio</label>
+              <textarea id="adm-spec-bio" maxlength="2000" placeholder="Texto curto para a mãe ver"></textarea>
+            </div>
+            <div class="admin-field" style="grid-column: 1 / -1">
+              <label for="adm-spec-photo">URL da foto (capa)</label>
+              <input type="url" id="adm-spec-photo" maxlength="2000" placeholder="https://…" />
+            </div>
+            <div class="admin-field">
+              <label for="adm-spec-sort">Ordem (número)</label>
+              <input type="number" id="adm-spec-sort" min="0" max="999" value="0" />
+            </div>
+            <div class="admin-field admin-field--check" style="align-self: end">
+              <input type="checkbox" id="adm-spec-active" checked />
+              <label for="adm-spec-active">Ativo (visível na app)</label>
+            </div>
+          </div>
+          <div style="margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px">
+            <button type="button" class="admin-btn admin-btn--primary" id="adm-spec-save">Guardar</button>
+            <button type="button" class="admin-btn" id="adm-spec-clear">Limpar formulário</button>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <h2>Lista</h2>
+          <div class="admin-table-wrap">
+            <table class="admin-table" id="adm-spec-table">
+              <thead>
+                <tr>
+                  <th>Ordem</th>
+                  <th>Nome</th>
+                  <th>Especialidade</th>
+                  <th>Ativo</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="adm-spec-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="panel-book" class="admin-panel" role="tabpanel" hidden>
+        <div class="admin-card">
+          <h2>Consultas agendadas</h2>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Médico</th>
+                  <th>Mãe (id)</th>
+                  <th>Estado</th>
+                  <th>Pag.</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="adm-book-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="panel-chk" class="admin-panel" role="tabpanel" hidden>
+        <div class="admin-card">
+          <h2>Intenções Mercado Pago</h2>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Criado</th>
+                  <th>Estado</th>
+                  <th>Método</th>
+                  <th>Mãe</th>
+                  <th>Médico</th>
+                  <th>Horário</th>
+                </tr>
+              </thead>
+              <tbody id="adm-chk-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script type="module" src="admin.js"></script>
+</body>
+
+</html>

@@ -787,3 +787,18 @@
 .perfil-completion__weight--todo {
   color: var(--terracotta, #e2725b);
 }
+
+.perfil-admin-entry {
+  margin: 0 0 14px;
+}
+
+.perfil-admin-entry__link {
+  display: inline-block;
+}
+
+.perfil-admin-entry__hint {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--ink-mid, #5a5550);
+  margin-top: 4px;
+}
