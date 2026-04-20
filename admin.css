@@ -1,10 +1,23 @@
 /* Painel admin — alinhado à paleta Aura (style.css :root) */
+/*
+ * Em style.css, body é flex + justify-content: center (para .app-wrapper).
+ * Sem isto, .admin-wrap como filho flex fica com min-width: auto e o conteúdo
+ * largo (grelha, tabelas) corta / transborda na horizontal em mobile.
+ */
+body.admin-page {
+  display: block;
+  overflow-x: hidden;
+}
 
 .admin-wrap {
+  width: 100%;
   max-width: 960px;
   margin: 0 auto;
-  padding: 20px 16px 48px;
+  padding: 20px max(16px, env(safe-area-inset-left, 0px)) 48px
+    max(16px, env(safe-area-inset-right, 0px));
   min-height: 100dvh;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .admin-banner {
@@ -27,6 +40,8 @@
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 8px;
+  width: 100%;
+  min-width: 0;
 }
 
 .admin-top h1 {
@@ -46,6 +61,15 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  min-width: 0;
+  flex: 1 1 100%;
+}
+
+@media (min-width: 560px) {
+  .admin-top__actions {
+    flex: 0 1 auto;
+    justify-content: flex-end;
+  }
 }
 
 .admin-btn {
@@ -121,6 +145,7 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
+  min-width: 0;
 }
 
 .admin-card {
@@ -128,6 +153,8 @@
   border-radius: var(--radius-md, 20px);
   padding: 20px;
   box-shadow: var(--shadow-sm, 0 2px 8px rgba(45, 42, 38, 0.06));
+  min-width: 0;
+  max-width: 100%;
 }
 
 .admin-card h2 {
@@ -141,12 +168,17 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px 16px;
+  min-width: 0;
 }
 
 @media (max-width: 640px) {
   .admin-form-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.admin-field {
+  min-width: 0;
 }
 
 .admin-field label {
@@ -162,6 +194,7 @@
 .admin-field input[type='number'],
 .admin-field textarea {
   width: 100%;
+  max-width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--sage-light);
   border-radius: 10px;
@@ -188,6 +221,8 @@
 
 .admin-table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
   border-radius: 12px;
   border: 1px solid var(--sage-light);
   background: var(--white);
