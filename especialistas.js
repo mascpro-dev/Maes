@@ -66,8 +66,11 @@ async function createMercadoPagoPreference(supabase, payload) {
     throw err;
   }
 
+  if (data?.pix && data?.intent_id) {
+    return data;
+  }
   if (!data?.init_point) {
-    const err = new Error('no_init_point');
+    const err = new Error('no_checkout_payload');
     err.detail = data;
     throw err;
   }
@@ -197,6 +200,14 @@ async function main() {
   const payOptions = document.querySelectorAll('.spec-pay-option');
   const bookStatus = document.getElementById('spec-book-status');
   const priceCta = document.getElementById('spec-price-cta');
+  const payMethodUi = document.getElementById('spec-pay-method-ui');
+  const stepPixQr = document.getElementById('spec-step-pix-qr');
+  const specPixQrImg = document.getElementById('spec-pix-qr-img');
+  const specPixCopy = document.getElementById('spec-pix-copy');
+  const specPixCopyBtn = document.getElementById('spec-pix-copy-btn');
+  const specPixTicketLink = document.getElementById('spec-pix-ticket-link');
+  const specPixWait = document.getElementById('spec-pix-wait');
+  const specPixBackPay = document.getElementById('spec-pix-back-pay');
 
   const supabase = await getClient();
   if (!supabase || !rail) return;
@@ -210,8 +221,37 @@ async function main() {
   let pickedSlot = null;
   let selectedPaymentMethod = null;
   let lastBookingRoom = null;
+  let pixPollStop = false;
+
+  function updateFinalPayLabel() {
+    if (!btnFinalPay) return;
+    if (selectedPaymentMethod === 'pix') {
+      btnFinalPay.textContent = `Gerar Pix (QR) — ${PRICE_LABEL}`;
+    } else if (selectedPaymentMethod === 'credit_card') {
+      btnFinalPay.textContent = `Ir pagar no Mercado Pago — ${PRICE_LABEL}`;
+    } else {
+      btnFinalPay.textContent = `Continuar — ${PRICE_LABEL}`;
+    }
+  }
+
+  function hidePixQrStep() {
+    pixPollStop = true;
+    if (stepPixQr) stepPixQr.hidden = true;
+    if (payMethodUi) payMethodUi.hidden = false;
+    if (specPixQrImg) {
+      specPixQrImg.hidden = true;
+      specPixQrImg.removeAttribute('src');
+    }
+    if (specPixCopy) specPixCopy.value = '';
+    if (specPixTicketLink) {
+      specPixTicketLink.hidden = true;
+      specPixTicketLink.href = '#';
+    }
+    if (specPixWait) specPixWait.textContent = 'A aguardar confirmação do pagamento…';
+  }
 
   function showScheduleStep() {
+    hidePixQrStep();
     if (stepSchedule) stepSchedule.hidden = false;
     if (stepPayment) stepPayment.hidden = true;
     selectedPaymentMethod = null;
@@ -219,10 +259,14 @@ async function main() {
       opt.classList.remove('spec-pay-option--selected');
       opt.setAttribute('aria-checked', 'false');
     });
-    if (btnFinalPay) btnFinalPay.disabled = true;
+    if (btnFinalPay) {
+      btnFinalPay.disabled = true;
+      updateFinalPayLabel();
+    }
   }
 
   function showPaymentStep() {
+    hidePixQrStep();
     if (stepSchedule) stepSchedule.hidden = true;
     if (stepPayment) stepPayment.hidden = false;
     if (paySummary && pickedSlot) {
@@ -230,11 +274,45 @@ async function main() {
       paySummary.textContent = `${formatDateTimeLong(pickedSlot.toISOString())} · ${dm} min · ${PRICE_LABEL}`;
     }
     bookStatus.textContent = '';
+    updateFinalPayLabel();
   }
 
   function resetBookingModal() {
     showScheduleStep();
     bookStatus.textContent = '';
+  }
+
+  async function pollPixIntentUntilResolved(intentId) {
+    pixPollStop = false;
+    for (let i = 0; i < 150; i++) {
+      if (pixPollStop) return;
+      const { data } = await supabase
+        .from('consultation_checkout_intents')
+        .select('status')
+        .eq('id', intentId)
+        .maybeSingle();
+      if (data?.status === 'completed') {
+        if (specPixWait) specPixWait.textContent = 'Pagamento confirmado.';
+        bookStatus.textContent = 'Consulta agendada. Fecha este painel ou atualiza a página para ver o link da videochamada.';
+        if (btnFinalPay) btnFinalPay.disabled = false;
+        await loadSpecialists();
+        await loadNextBooking();
+        window.setTimeout(() => {
+          closeModal(backdrop, panel, resetBookingModal);
+        }, 1600);
+        return;
+      }
+      if (data?.status === 'failed') {
+        if (specPixWait) specPixWait.textContent = 'Este Pix não foi concluído. Podes tentar de novo.';
+        bookStatus.textContent =
+          'O pagamento falhou ou o horário já não está disponível. Escolhe outro meio ou outro horário.';
+        if (btnFinalPay) btnFinalPay.disabled = false;
+        hidePixQrStep();
+        return;
+      }
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+    if (specPixWait) specPixWait.textContent = 'Ainda a aguardar… Se já pagaste, pode demorar um minuto.';
   }
 
   async function loadSpecialists() {
@@ -431,13 +509,38 @@ async function main() {
       opt.classList.add('spec-pay-option--selected');
       opt.setAttribute('aria-checked', 'true');
       if (btnFinalPay) btnFinalPay.disabled = false;
+      updateFinalPayLabel();
     });
   });
+
+  if (specPixCopyBtn && specPixCopy) {
+    specPixCopyBtn.addEventListener('click', async () => {
+      const t = specPixCopy.value || '';
+      if (!t) return;
+      try {
+        await navigator.clipboard.writeText(t);
+        if (bookStatus) bookStatus.textContent = 'Código Pix copiado.';
+      } catch {
+        specPixCopy.focus();
+        specPixCopy.select();
+        if (bookStatus) bookStatus.textContent = 'Seleciona o código e copia manualmente (Ctrl+C).';
+      }
+    });
+  }
+
+  if (specPixBackPay) {
+    specPixBackPay.addEventListener('click', () => {
+      pixPollStop = true;
+      hidePixQrStep();
+      if (bookStatus) bookStatus.textContent = '';
+    });
+  }
 
   if (btnFinalPay) {
     btnFinalPay.addEventListener('click', async () => {
       if (!selectedSpecialist || !pickedSlot || !selectedPaymentMethod) return;
-      bookStatus.textContent = 'A abrir o Mercado Pago…';
+      bookStatus.textContent =
+        selectedPaymentMethod === 'pix' ? 'A gerar o Pix…' : 'A abrir o Mercado Pago…';
       btnFinalPay.disabled = true;
       const iso = pickedSlot.toISOString();
       try {
@@ -446,7 +549,37 @@ async function main() {
           starts_at: iso,
           payment_method: selectedPaymentMethod,
         });
-        window.location.href = out.init_point;
+        if (out.init_point) {
+          window.location.href = out.init_point;
+          return;
+        }
+        if (out.pix && out.intent_id && payMethodUi && stepPixQr) {
+          payMethodUi.hidden = true;
+          stepPixQr.hidden = false;
+          const pix = out.pix;
+          const b64 = typeof pix.qr_code_base64 === 'string' ? pix.qr_code_base64.trim() : '';
+          const emv = typeof pix.qr_code === 'string' ? pix.qr_code.trim() : '';
+          if (specPixCopy) specPixCopy.value = emv;
+          if (specPixQrImg) {
+            if (b64) {
+              specPixQrImg.src = `data:image/png;base64,${b64}`;
+              specPixQrImg.hidden = false;
+            } else {
+              specPixQrImg.hidden = true;
+              specPixQrImg.removeAttribute('src');
+            }
+          }
+          if (specPixTicketLink && pix.ticket_url) {
+            specPixTicketLink.href = String(pix.ticket_url);
+            specPixTicketLink.hidden = false;
+          } else if (specPixTicketLink) {
+            specPixTicketLink.hidden = true;
+          }
+          if (bookStatus) bookStatus.textContent = '';
+          void pollPixIntentUntilResolved(String(out.intent_id));
+          return;
+        }
+        throw new Error('no_checkout_payload');
       } catch (e) {
         const d = e?.detail;
         const detailStr =
@@ -479,6 +612,14 @@ async function main() {
           parts.length = 1;
           parts.push(
             'O projeto Supabase precisa de republicar a função com JWT desligado no gateway. Corre supabase\\deploy-mp-functions.cmd ou: npx supabase functions deploy mercadopago-create-preference --project-ref ahjhjzdmkkrcgbuxmhww --no-verify-jwt'
+          );
+        } else if (e?.message === 'no_checkout_payload') {
+          parts.length = 1;
+          parts.push('Resposta inesperada do servidor de pagamento. Recarrega a página e tenta de novo.');
+        } else if (raw.includes('mercadopago_order_error') || raw.includes('pix_order_no_qr')) {
+          parts.length = 1;
+          parts.push(
+            'O Mercado Pago não devolveu o QR Pix. Confirma credenciais de produção e que a conta tem Pix / Orders ativos.'
           );
         } else if (raw.includes('mercadopago_error') || raw.includes('http_')) {
           parts.push('Token Mercado Pago inválido ou MP a rejeitar o pedido — vê o painel MP.');

@@ -629,6 +629,64 @@
   font-size: 0.82rem;
 }
 
+.spec-step-pix-qr {
+  animation: spec-fade-in 0.22s var(--ease) both;
+}
+
+.spec-pix-hint {
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.62);
+  margin-bottom: 12px;
+}
+
+.spec-pix-qr-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.spec-pix-qr-img {
+  border-radius: 12px;
+  background: #fff;
+  padding: 8px;
+  max-width: 100%;
+  height: auto;
+}
+
+.spec-pix-copy {
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.35);
+  color: #e8e6e3;
+  font-family: ui-monospace, monospace;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  resize: vertical;
+  min-height: 4.5rem;
+}
+
+.spec-pix-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.spec-pix-actions .spec-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.spec-pix-wait {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.72);
+  margin-bottom: 10px;
+}
+
 .spec-legal {
   margin-top: 28px;
   padding: 0 18px 20px;

@@ -5,8 +5,8 @@
 -- MERCADO PAGO — forma simples (o botão “Ir pagar…” depende disto)
 -- =============================================================================
 --
--- O botão na app já fica ativo quando escolhes Pix ou cartão. O que “liberta”
--- o pagamento de verdade é o servidor (Supabase) falar com o Mercado Pago.
+-- Pix: a app mostra QR / Copia e Cola (API POST /v1/orders). Cartão: redirect Checkout Pro.
+-- Aplica também: supabase/migrations/20260421120000_checkout_intents_mp_order_id.sql (coluna mp_order_id).
 --
 -- IMPORTANTE: SQL + secrets NÃO publicam a Edge Function.
 -- Se a API responder NOT_FOUND / "Requested function was not found", a função
@@ -46,10 +46,13 @@
 --    window.AURA_APP_PUBLIC_URL = 'https://maes-pi.vercel.app';
 --    Isto reforça o domínio enviado ao servidor no pagamento.
 --
--- F) Webhook (para a consulta aparecer logo após pagar)
---    A preferência já manda notificações para:
+-- F) Webhooks (para a consulta aparecer logo após pagar)
+--    URL (produção, troca o ref se for outro projeto):
 --    https://ahjhjzdmkkrcgbuxmhww.supabase.co/functions/v1/mercadopago-webhook
---    No painel MP, em Webhooks, podes confirmar que recebes eventos (útil em produção).
+--    No painel MP → Suas integrações → Webhooks → Configurar notificações:
+--      • Evento **Order (Mercado Pago)** — obrigatório para Pix (Orders / QR).
+--      • Evento **Payment** — mantém o fluxo do cartão (Checkout Pro).
+--    Podes usar a mesma URL para os dois eventos.
 --
 -- Se algo falhar, a mensagem vermelha na app tenta dizer o motivo (token, URL,
 -- migração em falta, função sem deploy, etc.).

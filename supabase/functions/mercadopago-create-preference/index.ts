@@ -1,7 +1,9 @@
 /**
- * Cria preferência Checkout Pro (Pix + cartão crédito 1x) e regista intenção de consulta.
+ * Regista intenção de consulta e:
+ * - Pix: POST /v1/orders (Checkout API / Orders) — QR + Copia e Cola; webhook "Order" no MP.
+ * - Cartão: POST /checkout/preferences (Checkout Pro) — redirect init_point; webhook payment.
  * Secrets: MERCADOPAGO_ACCESS_TOKEN, SUPABASE_SERVICE_ROLE_KEY (+ URL já injectadas pelo Supabase)
- * Opcional: APP_PUBLIC_URL (https://teudominio.com) para back_urls se Origin falhar
+ * Opcional: APP_PUBLIC_URL (https://teudominio.com) para back_urls do cartão se Origin falhar
  */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 
@@ -149,6 +151,77 @@ Deno.serve(async (req) => {
   }
 
   const intentId = intent.id as string;
+  const UNIT_PRICE = '49.90';
+
+  /** Pix: Orders API (QR / Copia e Cola) — mesmo valor da consulta social. */
+  if (paymentMethod === 'pix') {
+    const orderBody = {
+      type: 'online',
+      total_amount: UNIT_PRICE,
+      external_reference: intentId,
+      processing_mode: 'automatic',
+      transactions: {
+        payments: [
+          {
+            amount: UNIT_PRICE,
+            payment_method: {
+              id: 'pix',
+              type: 'bank_transfer',
+            },
+            expiration_time: 'PT24H',
+          },
+        ],
+      },
+      payer: { email: payerEmail },
+    };
+
+    const mpRes = await fetch('https://api.mercadopago.com/v1/orders', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'X-Idempotency-Key': intentId,
+      },
+      body: JSON.stringify(orderBody),
+    });
+
+    const mpJson = (await mpRes.json().catch(() => ({}))) as Record<string, unknown>;
+    if (!mpRes.ok) {
+      console.error('[mp-preference] orders pix error', mpRes.status, mpJson);
+      await admin.from('consultation_checkout_intents').update({ status: 'failed' }).eq('id', intentId);
+      return json(req, 502, { error: 'mercadopago_order_error', status: mpRes.status, detail: mpJson });
+    }
+
+    const orderId = typeof mpJson.id === 'string' ? mpJson.id : '';
+    const txs = mpJson.transactions as { payments?: Array<Record<string, unknown>> } | undefined;
+    const pay0 = Array.isArray(txs?.payments) ? txs!.payments[0] : undefined;
+    const pm = pay0?.payment_method as Record<string, unknown> | undefined;
+    const qrCode = typeof pm?.qr_code === 'string' ? pm.qr_code : '';
+    const qrB64 = typeof pm?.qr_code_base64 === 'string' ? pm.qr_code_base64 : '';
+    const ticketUrl = typeof pm?.ticket_url === 'string' ? pm.ticket_url : '';
+
+    if (!qrCode && !ticketUrl) {
+      console.error('[mp-preference] orders pix missing qr', mpJson);
+      await admin.from('consultation_checkout_intents').update({ status: 'failed' }).eq('id', intentId);
+      return json(req, 502, { error: 'pix_order_no_qr', detail: mpJson });
+    }
+
+    if (orderId) {
+      await admin.from('consultation_checkout_intents').update({ mp_order_id: orderId }).eq('id', intentId);
+    }
+
+    return json(req, 200, {
+      intent_id: intentId,
+      mp_order_id: orderId || null,
+      pix: {
+        qr_code: qrCode,
+        qr_code_base64: qrB64,
+        ticket_url: ticketUrl,
+      },
+    });
+  }
+
   const base = publicBaseUrl(req);
   if (!base) {
     await admin.from('consultation_checkout_intents').update({ status: 'failed' }).eq('id', intentId);
@@ -173,7 +246,7 @@ Deno.serve(async (req) => {
         description: `Consulta credenciada · ref. ${intentId.slice(0, 8)}`,
         quantity: 1,
         currency_id: 'BRL',
-        unit_price: 49.9,
+        unit_price: Number(UNIT_PRICE),
       },
     ],
     payer: { email: payerEmail },

@@ -117,29 +117,48 @@
         <div id="spec-step-payment" class="spec-step-payment" hidden>
           <p class="spec-field__label" id="spec-pay-heading">Como queres pagar?</p>
           <p class="spec-pay-summary" id="spec-pay-summary" aria-live="polite"></p>
-          <div class="spec-pay-grid" role="radiogroup" aria-labelledby="spec-pay-heading">
-            <button type="button" class="spec-pay-option" data-method="pix" role="radio" aria-checked="false">
-              <span class="spec-pay-option__icon" aria-hidden="true">◎</span>
-              <span class="spec-pay-option__text">
-                <span class="spec-pay-option__title">Pix</span>
-                <span class="spec-pay-option__sub">Aprovação rápida</span>
-              </span>
+          <div id="spec-pay-method-ui">
+            <div class="spec-pay-grid" role="radiogroup" aria-labelledby="spec-pay-heading">
+              <button type="button" class="spec-pay-option" data-method="pix" role="radio" aria-checked="false">
+                <span class="spec-pay-option__icon" aria-hidden="true">◎</span>
+                <span class="spec-pay-option__text">
+                  <span class="spec-pay-option__title">Pix</span>
+                  <span class="spec-pay-option__sub">QR Code e Copia e Cola (Mercado Pago)</span>
+                </span>
+              </button>
+              <button type="button" class="spec-pay-option" data-method="credit_card" role="radio" aria-checked="false">
+                <span class="spec-pay-option__icon" aria-hidden="true">▭</span>
+                <span class="spec-pay-option__text">
+                  <span class="spec-pay-option__title">Cartão de crédito</span>
+                  <span class="spec-pay-option__sub">1x à vista (Checkout Mercado Pago)</span>
+                </span>
+              </button>
+            </div>
+            <button type="button" class="spec-btn spec-btn--ghost spec-btn--back" id="spec-btn-back-schedule">
+              ← Alterar data e hora
             </button>
-            <button type="button" class="spec-pay-option" data-method="credit_card" role="radio" aria-checked="false">
-              <span class="spec-pay-option__icon" aria-hidden="true">▭</span>
-              <span class="spec-pay-option__text">
-                <span class="spec-pay-option__title">Cartão de crédito</span>
-                <span class="spec-pay-option__sub">1x à vista (Checkout Mercado Pago)</span>
-              </span>
-            </button>
+            <div class="spec-modal__foot">
+              <button type="button" class="spec-btn spec-btn--primary" id="spec-btn-final-pay" style="width: 100%"
+                disabled>
+                Continuar — R$ 49,90
+              </button>
+            </div>
           </div>
-          <button type="button" class="spec-btn spec-btn--ghost spec-btn--back" id="spec-btn-back-schedule">
-            ← Alterar data e hora
-          </button>
-          <div class="spec-modal__foot">
-            <button type="button" class="spec-btn spec-btn--primary" id="spec-btn-final-pay" style="width: 100%"
-              disabled>
-              Ir pagar no Mercado Pago — R$ 49,90
+          <div id="spec-step-pix-qr" class="spec-step-pix-qr" hidden>
+            <p class="spec-field__label">Paga com Pix</p>
+            <p class="spec-pix-hint">Escaneia o QR ou copia o código no teu banco. A consulta confirma automaticamente após o pagamento.</p>
+            <div class="spec-pix-qr-wrap" id="spec-pix-qr-wrap">
+              <img id="spec-pix-qr-img" class="spec-pix-qr-img" alt="QR Code Pix" width="200" height="200" hidden />
+            </div>
+            <label class="spec-field__label" for="spec-pix-copy">Pix Copia e Cola</label>
+            <textarea id="spec-pix-copy" class="spec-pix-copy" rows="3" readonly></textarea>
+            <div class="spec-pix-actions">
+              <button type="button" class="spec-btn spec-btn--primary" id="spec-pix-copy-btn">Copiar código</button>
+              <a class="spec-btn spec-btn--ghost" id="spec-pix-ticket-link" href="#" target="_blank" rel="noopener noreferrer" hidden>Abrir no Mercado Pago</a>
+            </div>
+            <p class="spec-pix-wait" id="spec-pix-wait" aria-live="polite">A aguardar confirmação do pagamento…</p>
+            <button type="button" class="spec-btn spec-btn--ghost spec-btn--back" id="spec-pix-back-pay">
+              ← Escolher outro meio
             </button>
           </div>
         </div>

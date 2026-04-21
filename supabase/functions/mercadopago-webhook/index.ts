@@ -1,6 +1,8 @@
 /**
  * Webhook Mercado Pago — confirma pagamento e cria consultation_bookings.
- * Secret MERCADOPAGO_ACCESS_TOKEN (mesmo do checkout) para GET /v1/payments/:id
+ * - Pix (Orders): notificação `type: order` → GET /v1/orders/:id (configurar evento Order no painel MP).
+ * - Cartão (Checkout Pro): notificação `payment` → GET /v1/payments/:id
+ * Secret MERCADOPAGO_ACCESS_TOKEN para chamadas à API do MP.
  *
  * E-mail ao médico (opcional): após criar a reserva, envia para specialist_private_routes.notify_email
  * se existir RESEND_API_KEY (mesma chave que outras funções Resend). Ver COLE_EMAIL_MEDICO_NOVA_CONSULTA.txt
@@ -83,7 +85,13 @@ Deno.serve(async (req) => {
 
   const admin = createClient(supabaseUrl, serviceKey);
 
-  let payload: { type?: string; topic?: string; action?: string; data?: { id?: string }; resource?: string };
+  let payload: {
+    type?: string;
+    topic?: string;
+    action?: string;
+    data?: { id?: string };
+    resource?: string;
+  };
   try {
     const text = await req.text();
     payload = text ? JSON.parse(text) : {};
@@ -91,46 +99,90 @@ Deno.serve(async (req) => {
     return new Response('bad json', { status: 400, headers: corsHeaders });
   }
 
-  let paymentId: string | undefined;
-  if (payload.type === 'payment' && payload.data?.id) {
-    paymentId = String(payload.data.id);
-  } else if (payload.topic === 'payment' && (payload as { id?: string }).id) {
-    paymentId = String((payload as { id: string }).id);
-  }
+  let extRef = '';
+  let mpPaymentId = '';
+  let amount = NaN;
 
-  if (!paymentId && payload.topic === 'payment' && typeof payload.resource === 'string') {
-    const r = payload.resource.trim();
-    if (r.includes('/')) {
-      const parts = r.split('/');
-      paymentId = parts[parts.length - 1];
-    } else if (/^\d+$/.test(r)) {
-      paymentId = r;
+  /** Checkout API / Orders — Pix (webhook "Order" no painel MP) */
+  if (payload.type === 'order' && payload.data?.id) {
+    const orderId = String(payload.data.id).trim();
+    const ordRes = await fetch(`https://api.mercadopago.com/v1/orders/${encodeURIComponent(orderId)}`, {
+      headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' },
+    });
+    const ord = (await ordRes.json().catch(() => null)) as Record<string, unknown> | null;
+    if (!ordRes.ok || !ord) {
+      console.error('[mp-webhook] fetch order', ordRes.status, ord);
+      return new Response('order_fetch_failed', { status: 502, headers: corsHeaders });
+    }
+
+    extRef = ord.external_reference ? String(ord.external_reference).trim() : '';
+    const txs = ord.transactions as { payments?: Array<Record<string, unknown>> } | undefined;
+    const pay0 = Array.isArray(txs?.payments) ? txs!.payments[0] : undefined;
+    mpPaymentId = pay0?.id ? String(pay0.id).trim() : '';
+    const oStatus = String(ord.status || '');
+    const oDetail = String(ord.status_detail || '');
+    const pStatus = pay0 ? String(pay0.status || '') : '';
+    const pDetail = pay0 ? String(pay0.status_detail || '') : '';
+
+    const paid =
+      (oStatus === 'processed' && (oDetail === 'accredited' || oDetail === 'paid')) ||
+      (pStatus === 'processed' && (pDetail === 'accredited' || pDetail === 'paid'));
+
+    if (!paid) {
+      return new Response('order_not_paid', { status: 200, headers: corsHeaders });
+    }
+
+    const totalPaid = parseFloat(String(ord.total_paid_amount ?? ord.total_amount ?? '0'));
+    const payAmt = pay0?.paid_amount != null ? parseFloat(String(pay0.paid_amount)) : totalPaid;
+    amount = Number.isFinite(payAmt) && payAmt > 0 ? payAmt : totalPaid;
+  } else {
+    /** Checkout Pro — cartão (notificação payment) */
+    let paymentId: string | undefined;
+    if (payload.type === 'payment' && payload.data?.id) {
+      paymentId = String(payload.data.id);
+    } else if (payload.topic === 'payment' && (payload as { id?: string }).id) {
+      paymentId = String((payload as { id: string }).id);
+    }
+
+    if (!paymentId && payload.topic === 'payment' && typeof payload.resource === 'string') {
+      const r = payload.resource.trim();
+      if (r.includes('/')) {
+        const parts = r.split('/');
+        paymentId = parts[parts.length - 1];
+      } else if (/^\d+$/.test(r)) {
+        paymentId = r;
+      }
+    }
+
+    if (!paymentId) {
+      return new Response('ignored', { status: 200, headers: corsHeaders });
+    }
+
+    mpPaymentId = paymentId;
+    const payRes = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const pay = (await payRes.json().catch(() => null)) as Record<string, unknown> | null;
+    if (!payRes.ok || !pay) {
+      console.error('[mp-webhook] fetch payment', payRes.status, pay);
+      return new Response('payment_fetch_failed', { status: 502, headers: corsHeaders });
+    }
+
+    const status = String(pay.status || '');
+    extRef = pay.external_reference ? String(pay.external_reference).trim() : '';
+    amount = Number(pay.transaction_amount);
+
+    if (status !== 'approved' && status !== 'authorized') {
+      return new Response('not_approved', { status: 200, headers: corsHeaders });
     }
   }
-
-  if (!paymentId) {
-    return new Response('ignored', { status: 200, headers: corsHeaders });
-  }
-
-  const payRes = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-  const pay = await payRes.json().catch(() => null);
-  if (!payRes.ok || !pay) {
-    console.error('[mp-webhook] fetch payment', payRes.status, pay);
-    return new Response('payment_fetch_failed', { status: 502, headers: corsHeaders });
-  }
-
-  const status = String(pay.status || '');
-  const extRef = pay.external_reference ? String(pay.external_reference).trim() : '';
-  const amount = Number(pay.transaction_amount);
 
   if (!extRef || extRef.length < 32) {
     return new Response('no_external_ref', { status: 200, headers: corsHeaders });
   }
 
-  if (status !== 'approved' && status !== 'authorized') {
-    return new Response('not_approved', { status: 200, headers: corsHeaders });
+  if (!mpPaymentId) {
+    return new Response('no_payment_id', { status: 200, headers: corsHeaders });
   }
 
   if (!Number.isFinite(amount) || amount < 49.89) {
@@ -140,7 +192,7 @@ Deno.serve(async (req) => {
 
   const { data, error } = await admin.rpc('finalize_consultation_checkout_intent', {
     p_intent_id: extRef,
-    p_mp_payment_id: paymentId,
+    p_mp_payment_id: mpPaymentId,
   });
 
   if (error) {
@@ -192,7 +244,7 @@ Deno.serve(async (req) => {
     }
   }
 
-  console.log('[mp-webhook] ok', paymentId, data);
+  console.log('[mp-webhook] ok', mpPaymentId, data);
   return new Response(JSON.stringify({ ok: true, data }), {
     status: 200,
     headers: { ...corsHeaders, 'Content-Type': 'application/json' },
