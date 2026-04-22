@@ -6,6 +6,23 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const PRICE_LABEL = 'R$ 49,90';
 const JITSI_BASE = 'https://meet.jit.si';
 
+/** Capa quando não há URL ou a imagem remota falha ao carregar. */
+const SPEC_COVER_FALLBACK =
+  'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&h=600&fit=crop&q=80';
+
+/** Aceita só http(s); normaliza; vazio se inválido. */
+function specialistCoverUrl(raw) {
+  const t = raw != null ? String(raw).trim() : '';
+  if (!t) return '';
+  try {
+    const u = new URL(t);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
+    return u.href;
+  } catch {
+    return '';
+  }
+}
+
 const PAY_METHOD_LABELS = {
   pix: 'Pix',
   credit_card: 'cartão de crédito (1x)',
@@ -335,21 +352,39 @@ async function main() {
       btn.type = 'button';
       btn.className = 'spec-card';
       btn.setAttribute('aria-label', `Ver ${s.display_name}, ${s.specialty}`);
-      const photo =
-        (s.photo_url && String(s.photo_url).trim()) ||
-        'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=400&h=600&fit=crop&q=80';
-      btn.innerHTML = `
-        <div class="spec-card__poster">
-          <img src="${photo.replace(/"/g, '&quot;')}" alt="" loading="lazy" width="200" height="300" />
-          <div class="spec-card__grad"></div>
-          <div class="spec-card__meta">
-            <div class="spec-card__name"></div>
-            <div class="spec-card__spec"></div>
-          </div>
-        </div>
-      `;
-      btn.querySelector('.spec-card__name').textContent = s.display_name;
-      btn.querySelector('.spec-card__spec').textContent = s.specialty;
+
+      const poster = document.createElement('div');
+      poster.className = 'spec-card__poster';
+      const img = document.createElement('img');
+      const resolved = specialistCoverUrl(s.photo_url);
+      img.src = resolved || SPEC_COVER_FALLBACK;
+      img.alt = '';
+      img.width = 200;
+      img.height = 300;
+      img.loading = 'lazy';
+      img.decoding = 'async';
+      img.referrerPolicy = 'no-referrer';
+      img.addEventListener('error', function onCoverErr() {
+        img.removeEventListener('error', onCoverErr);
+        if (img.src !== SPEC_COVER_FALLBACK) img.src = SPEC_COVER_FALLBACK;
+      });
+      poster.appendChild(img);
+      const grad = document.createElement('div');
+      grad.className = 'spec-card__grad';
+      poster.appendChild(grad);
+      const meta = document.createElement('div');
+      meta.className = 'spec-card__meta';
+      const nameEl = document.createElement('div');
+      nameEl.className = 'spec-card__name';
+      nameEl.textContent = s.display_name;
+      const specEl = document.createElement('div');
+      specEl.className = 'spec-card__spec';
+      specEl.textContent = s.specialty;
+      meta.appendChild(nameEl);
+      meta.appendChild(specEl);
+      poster.appendChild(meta);
+      btn.appendChild(poster);
+
       btn.addEventListener('click', () => openSpecialistModal(s));
       rail.appendChild(btn);
     });
