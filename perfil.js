@@ -456,14 +456,33 @@ function renderProfile(profile, children) {
 
   try {
     const { data: linkedSpecId, error: linkErr } = await supabase.rpc('my_specialist_id');
-    const isMedic = merged.account_type === 'medic';
+    const isMedic = String(merged?.account_type ?? '')
+      .trim()
+      .toLowerCase() === 'medic';
+    const specRaw = linkedSpecId == null ? '' : String(linkedSpecId).trim();
+    const hasValidSpecialistId =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        specRaw
+      );
+    const showAgenda = isMedic && !linkErr && hasValidSpecialistId;
+
     const agendaLink = document.getElementById('perfil-link-esp-agenda');
     const banner = document.getElementById('perfil-medic-link-hint');
     if (agendaLink) {
-      agendaLink.hidden = !(isMedic && !linkErr && linkedSpecId);
+      if (showAgenda) {
+        agendaLink.classList.remove('perfil-esp-agenda--hidden');
+        agendaLink.removeAttribute('hidden');
+        agendaLink.setAttribute('aria-hidden', 'false');
+        agendaLink.removeAttribute('tabindex');
+      } else {
+        agendaLink.classList.add('perfil-esp-agenda--hidden');
+        agendaLink.setAttribute('hidden', '');
+        agendaLink.setAttribute('aria-hidden', 'true');
+        agendaLink.setAttribute('tabindex', '-1');
+      }
     }
     if (banner) {
-      if (isMedic && !linkErr && !linkedSpecId) {
+      if (isMedic && !linkErr && !hasValidSpecialistId) {
         banner.hidden = false;
         banner.textContent =
           'A tua conta está como médico, mas falta a ligação ao registo de especialista na base de dados. Pede à equipa (painel admin → Especialistas → ligar conta).';

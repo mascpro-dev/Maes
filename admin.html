@@ -205,9 +205,10 @@
         <div class="admin-card">
           <h2>Utilizadores — perfis (mãe ou médico)</h2>
           <p class="admin-muted" style="margin-bottom: 12px">
-            Pesquisa por nome ou e-mail. Define o <strong>tipo de conta</strong> (Mãe / Médico): a app mostra a
-            <strong>agenda do médico</strong> só a quem está como Médico e ligado a um especialista. Ficha pública
-            do médico continua na aba <strong>Especialistas</strong>.
+            Pesquisa por nome ou e-mail. Define o <strong>tipo de conta</strong> (Mãe / Médico): ao guardar como
+            <strong>Médico</strong> sem vínculo anterior, é criado automaticamente um registo na aba
+            <strong>Especialistas</strong> (visível na app) com o nome do perfil — podes editar especialidade, foto e
+            ordem lá. A <strong>agenda</strong> usa esse mesmo registo.
           </p>
           <div class="admin-form-grid" style="margin-bottom: 12px; align-items: end">
             <div class="admin-field" style="grid-column: 1 / -1">
@@ -248,7 +249,7 @@
               </label>
               <label class="admin-radio">
                 <input type="radio" name="adm-m-account-type" value="medic" />
-                Médico — agenda (depois de ligar o utilizador ao especialista)
+                Médico — cria-se o registo em Especialistas se ainda não existir; agenda na app
               </label>
             </fieldset>
             <fieldset class="admin-field admin-field--fieldset admin-dur-for-medic" id="adm-m-consult-dur-wrap"

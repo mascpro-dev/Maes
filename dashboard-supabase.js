@@ -93,6 +93,8 @@ async function fetchRefundPendingCount(supabase, userId) {
   return typeof count === 'number' ? count : 0;
 }
 
+const CONSULT_REMINDER_LOC = 'Videochamada — abre em Especialistas';
+
 /** Perfil + filhos → localStorage, topbar, cards e dica do dia. */
 async function hydrateDashboardContext(supabase, userId) {
   const { data: profile, error: pErr } = await supabase
@@ -106,14 +108,32 @@ async function hydrateDashboardContext(supabase, userId) {
   if (pErr) console.warn('[Aura] profiles read:', pErr.message);
 
   let children = [];
-  const { data: kids, error: cErr } = await supabase
-    .from('children')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: true });
+  const [kidsRes, consultRes] = await Promise.all([
+    supabase
+      .from('children')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('consultation_bookings')
+      .select('starts_at, specialists ( display_name )')
+      .eq('mother_id', userId)
+      .eq('status', 'confirmed')
+      .gte('starts_at', new Date(Date.now() - 2 * 60 * 1000).toISOString())
+      .order('starts_at', { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
-  if (cErr) console.warn('[Aura] children read:', cErr.message);
-  else children = kids || [];
+  if (kidsRes.error) {
+    console.warn('[Aura] children read:', kidsRes.error.message);
+  } else {
+    children = kidsRes.data || [];
+  }
+
+  if (consultRes.error) {
+    console.warn('[Aura] próxima consulta:', consultRes.error.message);
+  }
 
   const sub = document.getElementById('greeting-sub');
   if (sub) sub.textContent = `${greetingForHour()} ✨`;
@@ -154,11 +174,64 @@ async function hydrateDashboardContext(supabase, userId) {
   const locEl = document.getElementById('appointment-location');
   const cdLabel = document.getElementById('appointment-countdown-label');
 
+  const nowMs = Date.now();
+  const slackMs = 2 * 60 * 1000;
+  const nextBook = consultRes.data;
+  const specRel = nextBook?.specialists;
+  const specName = specRel
+    ? (Array.isArray(specRel) ? specRel[0]?.display_name : specRel?.display_name)
+    : null;
+  const bookDate = nextBook?.starts_at ? new Date(nextBook.starts_at) : null;
+  const bookValid =
+    bookDate && !Number.isNaN(bookDate.getTime()) && bookDate.getTime() >= nowMs - slackMs;
+  const bookTitle =
+    (specName && String(specName).trim()) !== ''
+      ? `Consulta com ${String(specName).trim()}`
+      : 'Consulta (Especialistas)';
+
+  const customTitle = (profile?.next_appointment_title || '').trim();
+  const locText = (profile?.next_appointment_location || '').trim();
+  const apptIso = profile?.next_appointment_at || null;
+  const apptDate = apptIso ? new Date(apptIso) : null;
+  const apptValid = apptDate && !Number.isNaN(apptDate.getTime());
+
+  const profileTitle = customTitle || (childName ? `Próxima terapia de ${childName}` : 'Próxima terapia');
+
+  const candidates = [];
   if (localNext?.startAt) {
-    const d = localNext.startAt;
-    if (apptTitle) apptTitle.textContent = localNext.title || 'Próximo compromisso';
+    const t = localNext.startAt.getTime();
+    if (t >= nowMs - slackMs) {
+      candidates.push({
+        t,
+        title: (localNext.title || '').trim() || 'Próximo compromisso',
+        loc: (localNext.location || '').trim() || 'Local a definir na agenda',
+        date: localNext.startAt,
+      });
+    }
+  }
+  if (apptValid && apptDate.getTime() >= nowMs - slackMs) {
+    candidates.push({
+      t: apptDate.getTime(),
+      title: profileTitle,
+      loc: locText || (customTitle ? '—' : 'Marca data e local na agenda Aura'),
+      date: apptDate,
+    });
+  }
+  if (bookValid) {
+    candidates.push({
+      t: bookDate.getTime(),
+      title: bookTitle,
+      loc: CONSULT_REMINDER_LOC,
+      date: bookDate,
+    });
+  }
+  candidates.sort((a, b) => a.t - b.t);
+  const win = candidates[0];
+
+  if (win) {
+    if (apptTitle) apptTitle.textContent = win.title;
     if (timeEl) {
-      timeEl.textContent = d.toLocaleString('pt-BR', {
+      timeEl.textContent = win.date.toLocaleString('pt-BR', {
         weekday: 'long',
         day: 'numeric',
         month: 'long',
@@ -166,40 +239,17 @@ async function hydrateDashboardContext(supabase, userId) {
         minute: '2-digit',
       });
     }
-    if (locEl) locEl.textContent = (localNext.location || '').trim() || 'Local a definir na agenda';
-    window.AuraDashboard?.setAppointmentTarget?.(d.toISOString(), {});
+    if (locEl) locEl.textContent = win.loc;
+    window.AuraDashboard?.setAppointmentTarget?.(win.date.toISOString(), {});
     if (cdLabel) cdLabel.textContent = 'Em ';
   } else {
-    const customTitle = (profile?.next_appointment_title || '').trim();
-    const locText = (profile?.next_appointment_location || '').trim();
-    const apptIso = profile?.next_appointment_at || null;
-    const apptDate = apptIso ? new Date(apptIso) : null;
-    const apptValid = apptDate && !Number.isNaN(apptDate.getTime());
-
-    if (apptTitle) {
-      if (customTitle) apptTitle.textContent = customTitle;
-      else apptTitle.textContent = childName ? `Próxima terapia de ${childName}` : 'Próxima terapia';
+    if (apptTitle) apptTitle.textContent = 'Próximo compromisso';
+    if (timeEl) timeEl.textContent = 'Horário a combinar com a clínica';
+    if (locEl) {
+      locEl.textContent = locText || 'Marca data e local na agenda Aura';
     }
-
-    if (apptValid) {
-      if (timeEl) {
-        timeEl.textContent = apptDate.toLocaleString('pt-BR', {
-          weekday: 'long',
-          day: 'numeric',
-          month: 'long',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
-      }
-      if (locEl) locEl.textContent = locText || 'Adiciona o local na agenda';
-      window.AuraDashboard?.setAppointmentTarget?.(apptDate.toISOString(), {});
-      if (cdLabel) cdLabel.textContent = 'Em ';
-    } else {
-      if (timeEl) timeEl.textContent = 'Horário a combinar com a clínica';
-      if (locEl) locEl.textContent = locText || 'Marca data e local na agenda Aura';
-      window.AuraDashboard?.setAppointmentTarget?.(null, { countdownText: 'a combinar' });
-      if (cdLabel) cdLabel.textContent = '';
-    }
+    window.AuraDashboard?.setAppointmentTarget?.(null, { countdownText: 'a combinar' });
+    if (cdLabel) cdLabel.textContent = '';
   }
 
   const tipEl = document.getElementById('tip-text');

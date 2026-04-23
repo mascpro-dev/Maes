@@ -243,7 +243,7 @@ function render(posts) {
     .join("");
 }
 
-/** Submete comentário: REST primeiro (mais fiável), depois RPC. */
+/** Submete comentário: RPC primeiro (bypassa RLS/sessão de forma fiável), depois REST. */
 async function sendCommentForPost(postId) {
   const form = el.list?.querySelector(`[data-comment-form="${postId}"]`);
   const input = form?.querySelector?.(".feed-post__comment-input");
@@ -252,26 +252,28 @@ async function sendCommentForPost(postId) {
   const btn = form?.querySelector?.("[data-comment-send]");
   if (btn) btn.disabled = true;
 
-  let r = await supabase.from("feed_post_comments").insert({
-    post_id: postId,
-    author_id: userId,
-    content: text,
+  const r = await supabase.rpc("add_feed_post_comment", {
+    p_post_id: postId,
+    p_content: text,
   });
   let error = r.error;
   if (error) {
-    console.warn("[feed] insert comentário (REST):", error);
-    const rpc = await supabase.rpc("add_feed_post_comment", {
-      p_post_id: postId,
-      p_content: text,
+    if (!rpcFunctionMissing(error)) {
+      console.warn("[feed] add_feed_post_comment (RPC):", error);
+    }
+    const rest = await supabase.from("feed_post_comments").insert({
+      post_id: postId,
+      author_id: userId,
+      content: text,
     });
-    error = rpc.error;
-    if (error) console.warn("[feed] add_feed_post_comment (RPC):", error);
+    error = rest.error;
+    if (error) console.warn("[feed] insert comentário (REST, fallback):", error);
   }
   if (btn) btn.disabled = false;
   if (error) {
     setStatus(
       formatSupabaseErr(error) +
-        " — Confirma no Supabase: tabelas feed_post_comments + COLE_FEED_INTERACTION_RPCS.sql."
+        " — Confirma no Supabase: tabelas feed_post_comments + COLE_FEED_INTERACTION_RPCS.sql (e migration de grants, se ainda não aplicou)."
     );
     return;
   }
@@ -285,7 +287,7 @@ async function sendCommentForPost(postId) {
   await loadFeed();
 }
 
-/** Curtir / descurtir: REST primeiro, depois RPC (evita falha quando só uma das vias está aplicada). */
+/** Curtir / descurtir: RPC primeiro, depois REST (o RPC aplica a mesma regra e evita conflitos de RLS). */
 async function toggleLike(postId) {
   if (!postId) return;
   const likeBtn = el.list?.querySelector(`[data-like-post="${postId}"]`);
@@ -294,28 +296,35 @@ async function toggleLike(postId) {
   const post = lastPosts.find((x) => x.id === postId);
   const liked = !!post?.liked_by_me;
 
-  let err = null;
-  if (liked) {
-    const r = await supabase
-      .from("feed_post_likes")
-      .delete()
-      .eq("post_id", postId)
-      .eq("user_id", userId);
-    err = r.error;
-  } else {
-    const r = await supabase.from("feed_post_likes").insert({
-      post_id: postId,
-      user_id: userId,
-    });
-    err = r.error;
-    if (err?.code === "23505") err = null;
+  let r = await supabase.rpc("toggle_feed_post_like", { p_post_id: postId });
+  let err = r.error;
+  if (err && !rpcFunctionMissing(err)) {
+    console.warn("[feed] toggle_feed_post_like (RPC):", err);
   }
-
+  if (err && (rpcFunctionMissing(err) || err)) {
+    if (rpcFunctionMissing(err)) {
+      err = null;
+    } else {
+      err = (await supabase.rpc("toggle_feed_post_like", { p_post_id: postId })).error;
+    }
+  }
   if (err) {
-    console.warn("[feed] toggle like (REST):", err);
-    const rpc = await supabase.rpc("toggle_feed_post_like", { p_post_id: postId });
-    err = rpc.error;
-    if (err) console.warn("[feed] toggle_feed_post_like (RPC):", err);
+    if (liked) {
+      const d = await supabase
+        .from("feed_post_likes")
+        .delete()
+        .eq("post_id", postId)
+        .eq("user_id", userId);
+      err = d.error;
+    } else {
+      const ins = await supabase.from("feed_post_likes").insert({
+        post_id: postId,
+        user_id: userId,
+      });
+      err = ins.error;
+      if (err?.code === "23505") err = null;
+    }
+    if (err) console.warn("[feed] toggle like (REST, fallback):", err);
   }
 
   if (likeBtn) likeBtn.disabled = false;
@@ -323,7 +332,7 @@ async function toggleLike(postId) {
   if (err) {
     setStatus(
       formatSupabaseErr(err) +
-        " — No Supabase: executa COLE_FEED_LIKES_COMMENTS.sql (tabelas + list_feed_posts) e COLE_FEED_INTERACTION_RPCS.sql."
+        " — No Supabase: executa COLE_FEED_LIKES_COMMENTS.sql (tabelas + list_feed_posts) e COLE_FEED_INTERACTION_RPCS.sql (incl. grants, migration 20260422130000 se aplicável)."
     );
     return;
   }
@@ -455,8 +464,12 @@ async function init() {
     createClient(window.AURA_SUPABASE_URL, window.AURA_SUPABASE_ANON_KEY, {
       auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
     });
-  const { data } = await supabase.auth.getUser();
-  userId = data?.user?.id;
+  const { data: s } = await supabase.auth.getSession();
+  userId = s?.session?.user?.id;
+  if (!userId) {
+    const { data: u } = await supabase.auth.getUser();
+    userId = u?.user?.id;
+  }
   if (!userId) {
     setStatus("Sessão não encontrada.");
     return;

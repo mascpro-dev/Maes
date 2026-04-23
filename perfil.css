@@ -257,6 +257,11 @@
   font-weight: 600;
 }
 
+/* Só contas médico + specialist_accounts: o [hidden] podia perder para display:flex do link */
+#perfil-link-esp-agenda.perfil-esp-agenda--hidden {
+  display: none !important;
+}
+
 .perfil-sidebar__footer {
   width: 100%;
   margin-top: auto;

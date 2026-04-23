@@ -584,7 +584,7 @@ async function main() {
     }
     setStatus(statusEl, 'A guardar perfil…', false);
     try {
-      const { error: rpcErr } = await sb.rpc('admin_save_cadastro_profile', {
+      const { data: rpcData, error: rpcErr } = await sb.rpc('admin_save_cadastro_profile', {
         p_user_id: id,
         p_full_name: full_name,
         p_email: emailRaw || null,
@@ -616,12 +616,22 @@ async function main() {
       }
 
       document.getElementById('adm-mother-editor').hidden = true;
+
+      await refreshAll();
       const q = document.getElementById('adm-mother-q')?.value || '';
       const rows = await loadMothers(sb, q);
       renderMothers(rows, tbodyMothers);
       let msg = 'Perfil atualizado.';
       if (accountType === 'medic') {
-        msg += ' Para agenda: liga o utilizador ao especialista (aba Especialistas).';
+        if (rpcData?.specialist_auto_created) {
+          msg +=
+            ' Foi criado um registo em Especialistas (ativo na app). Completa especialidade e capa na aba Especialistas.';
+        } else if (!rpcErr) {
+          msg += ' Registo de especialista atualizado. Ajusta detalhes na aba Especialistas, se precisares.';
+        } else {
+          msg +=
+            ' Para criar o registo em Especialistas ao mudar para médico, aplica no Supabase a migração SQL mais recente (admin_save_cadastro_profile).';
+        }
       }
       setStatus(statusEl, msg, false);
     } catch (e) {
