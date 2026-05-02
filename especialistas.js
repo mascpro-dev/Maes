@@ -486,7 +486,7 @@ async function main() {
 
     if (!slots.length) {
       const p = document.createElement('p');
-      p.style.cssText = 'color:rgba(255,255,255,.5);font-size:.85rem;';
+      p.className = 'spec-slots-empty';
       p.textContent = 'Não há horários disponíveis para este dia (ou todos já passaram).';
       slotsEl.appendChild(p);
     }

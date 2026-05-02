@@ -573,6 +573,23 @@ button {
 .card--tip { grid-column: 2; grid-row: 2; }
 .card--refund { grid-column: 1 / 3; grid-row: 3; }
 
+/* Home: só bateria + dica (Mural fica fora do bento) */
+.bento-grid--home {
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto;
+  margin-top: 6px;
+}
+
+.bento-grid--home .card--battery {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.bento-grid--home .card--tip {
+  grid-column: 2;
+  grid-row: 1;
+}
+
 /* ── Bento Card Base ─────────────────────────────────────── */
 .bento-card {
   border-radius: var(--radius-lg);
@@ -1201,9 +1218,10 @@ a.btn-scan {
   touch-action: manipulation;
 }
 
-/* Barra com 6 destinos (ex.: Especialistas): duas filas em telemóvel */
+/* Barra com 6–7 destinos: duas filas em telemóvel */
 @media (max-width: 767px) {
-  .bottom-nav.bottom-nav--six {
+  .bottom-nav.bottom-nav--six,
+  .bottom-nav.bottom-nav--seven {
     flex-wrap: wrap;
     justify-content: center;
     row-gap: 6px;
@@ -1211,14 +1229,16 @@ a.btn-scan {
     padding-top: 8px;
   }
 
-  .bottom-nav.bottom-nav--six .nav-btn {
+  .bottom-nav.bottom-nav--six .nav-btn,
+  .bottom-nav.bottom-nav--seven .nav-btn {
     flex: 1 1 28%;
     max-width: 33.33%;
     padding-left: 4px;
     padding-right: 4px;
   }
 
-  .bottom-nav.bottom-nav--six .nav-btn__long {
+  .bottom-nav.bottom-nav--six .nav-btn__long,
+  .bottom-nav.bottom-nav--seven .nav-btn__long {
     font-size: 0.52rem;
     letter-spacing: 0.02em;
   }
@@ -1338,12 +1358,10 @@ a.btn-scan {
 
 .topbar        { animation: fade-up .45s var(--ease) both; }
 .mood-strip    { animation: fade-up .5s .06s var(--ease) both; }
-.card--appointment { animation: fade-up .55s .12s var(--ease) both; }
+.home-mural     { animation: fade-up .52s .08s var(--ease) both; }
 
-/* Âncora do ícone Compromisso: não ficar atrás da barra fixa no telemóvel */
-.card--battery     { animation: fade-up .55s .18s var(--ease) both; }
-.card--tip         { animation: fade-up .55s .24s var(--ease) both; }
-.card--refund      { animation: fade-up .55s .30s var(--ease) both; }
+.card--battery     { animation: fade-up .55s .14s var(--ease) both; }
+.card--tip         { animation: fade-up .55s .20s var(--ease) both; }
 
 /* ── Focus Styles ────────────────────────────────────────── */
 :focus-visible {
@@ -1426,6 +1444,23 @@ a.btn-scan {
     align-self: stretch;
   }
 
+  .bento-grid--home {
+    grid-template-columns: 1fr 1fr;
+    max-width: min(900px, 100%);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .bento-grid--home .card--battery {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .bento-grid--home .card--tip {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
   .app-wrapper--reemb {
     max-width: min(720px, calc(100vw - 48px));
     margin: 0 auto;
@@ -1437,8 +1472,9 @@ a.btn-scan {
   }
 }
 
-/* Barra com 6 ícones (duas filas): mais espaço por baixo do conteúdo */
-.app-wrapper:has(> .bottom-nav.bottom-nav--six) {
+/* Barra com 6–7 ícones (duas filas): mais espaço por baixo do conteúdo */
+.app-wrapper:has(> .bottom-nav.bottom-nav--six),
+.app-wrapper:has(> .bottom-nav.bottom-nav--seven) {
   padding-bottom: calc(var(--nav-h) + 56px);
 }
 
@@ -1451,8 +1487,9 @@ a.btn-scan {
   padding-bottom: calc(var(--nav-h) + 104px);
 }
 
-/* Diário + barra com 6 ícones: nav mais alta (duas filas) */
-.app-wrapper--diario:has(> .bottom-nav.bottom-nav--six) {
+/* Diário + barra com 6–7 ícones: nav mais alta (duas filas) */
+.app-wrapper--diario:has(> .bottom-nav.bottom-nav--six),
+.app-wrapper--diario:has(> .bottom-nav.bottom-nav--seven) {
   padding-bottom: calc(var(--nav-h) + 104px + 52px);
 }
 
@@ -1886,11 +1923,13 @@ a.btn-scan {
  * Sem este offset, "Gerar relatório" fica por cima do menu.
  */
 @media (max-width: 767px) {
-  .app-wrapper--diario:has(> .bottom-nav.bottom-nav--six) .diario-report-bar {
+  .app-wrapper--diario:has(> .bottom-nav.bottom-nav--six) .diario-report-bar,
+  .app-wrapper--diario:has(> .bottom-nav.bottom-nav--seven) .diario-report-bar {
     bottom: calc(var(--nav-h) + 58px + env(safe-area-inset-bottom, 0px));
   }
 
-  .app-wrapper--diario:has(> .bottom-nav.bottom-nav--six) .diario-fab-stack {
+  .app-wrapper--diario:has(> .bottom-nav.bottom-nav--six) .diario-fab-stack,
+  .app-wrapper--diario:has(> .bottom-nav.bottom-nav--seven) .diario-fab-stack {
     bottom: calc(var(--nav-h) + 58px + 86px + env(safe-area-inset-bottom, 0px));
   }
 }

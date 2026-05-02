@@ -14,11 +14,11 @@
     rel="stylesheet" />
   <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" sizes="any" />
   <link rel="manifest" href="manifest.webmanifest" />
-  <meta name="theme-color" content="#0b0b0c" />
+  <meta name="theme-color" content="#F5F5DC" />
   <link rel="apple-touch-icon" href="assets/branding/logohorizontal.svg" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="CONTA MÃE" />
   <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="especialistas.css" />
@@ -45,7 +45,7 @@
           aria-label="Ver especialistas e marcar consulta a 49,90 reais">
           Valor social <strong id="spec-price-strong">R$ 49,90</strong> por consulta
         </button>
-        <p class="spec-hero__sub" id="spec-hero-status" style="margin-top: 12px; color: #f5a08c"></p>
+        <p class="spec-hero__sub spec-hero__status" id="spec-hero-status"></p>
       </div>
     </header>
 
@@ -168,7 +168,7 @@
     </div>
     </main>
 
-    <nav class="bottom-nav bottom-nav--six" role="navigation" aria-label="Navegação principal">
+    <nav class="bottom-nav bottom-nav--seven" role="navigation" aria-label="Navegação principal">
       <a href="index.html" class="sidebar-brand" aria-label="CONTA MÃE — início">
         <span class="sidebar-brand__mark">
           <img class="sidebar-brand__logo" src="assets/branding/logohorizontal.svg" alt="CONTA MÃE" width="200"
@@ -192,6 +192,14 @@
           <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
         <span>Compromisso</span>
+      </a>
+      <a href="reembolsos.html" class="nav-btn" id="nav-reembolsos" aria-label="Reembolsos">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23" />
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
+        <span>Reembolsos</span>
       </a>
       <a href="especialistas.html" class="nav-btn nav-btn--active" id="nav-specialists" aria-label="Especialistas"
         aria-current="page">

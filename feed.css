@@ -1,4 +1,5 @@
-body {
+/* Só na página dedicada feed.html — no index usa-se .home-mural dentro do app shell */
+body:has(.feed-shell) {
   margin: 0;
   font-family: "DM Sans", sans-serif;
   background: #f7f3ee;
@@ -292,5 +293,38 @@ body {
 .feed-post__comment-send:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+/* ── Integração no dashboard (index.html): Mural de Histórias ─────────────── */
+.app-wrapper .home-mural {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 8px 16px 16px;
+}
+
+.app-wrapper .home-mural__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.app-wrapper .home-mural__title {
+  font-family: var(--font-serif, "DM Serif Display", Georgia, serif);
+  font-size: 1.35rem;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--ink, #2d2a26);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.app-wrapper .home-mural .composer {
+  margin-top: 4px;
+}
+
+.app-wrapper .home-mural__feed-block {
+  margin-top: 4px;
 }
 

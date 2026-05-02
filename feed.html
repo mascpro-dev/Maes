@@ -1,58 +1,18 @@
 <!DOCTYPE html>
-<html lang="pt-BR" class="aura-auth-checking">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CONTA MÃE — Feed</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" sizes="any" />
-  <link rel="manifest" href="manifest.webmanifest" />
-  <meta name="theme-color" content="#7a9e7e" />
-  <link rel="apple-touch-icon" href="assets/branding/logohorizontal.svg" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <meta name="apple-mobile-web-app-title" content="CONTA MÃE" />
-  <link rel="stylesheet" href="feed.css" />
+  <title>CONTA MÃE — A abrir o Mural…</title>
+  <meta http-equiv="refresh" content="0;url=index.html#mural-de-historias" />
+  <link rel="canonical" href="index.html#mural-de-historias" />
+  <script>
+    location.replace("index.html#mural-de-historias");
+  </script>
 </head>
 <body>
-  <script src="supabase-config.js"></script>
-  <script src="auth.js"></script>
-  <script type="module" src="auth-session-guard.js"></script>
-
-  <main class="feed-shell">
-    <header class="feed-header">
-      <div class="feed-header__side feed-header__side--left">
-        <a href="community.html" class="feed-back">← Comunidade</a>
-      </div>
-      <a href="community.html" class="feed-header__brand" aria-label="Voltar à Comunidade">
-        <img src="assets/branding/logohorizontal.svg" alt="" width="160" height="30" decoding="async" />
-      </a>
-      <div class="feed-header__side feed-header__side--right">
-        <h1 class="feed-header__title">Feed</h1>
-        <a href="mensagens.html" class="feed-link">Mensagens</a>
-      </div>
-    </header>
-
-    <section class="composer">
-      <textarea id="post-content" maxlength="2000" placeholder="Compartilhe como foi seu dia… Marque alguém com @ e o nome completo (como no perfil de quem você segue)."></textarea>
-      <div class="composer-row">
-        <input id="post-image" type="file" accept="image/*" />
-        <button id="btn-post" type="button">Publicar</button>
-      </div>
-      <p id="feed-status" class="status"></p>
-    </section>
-
-    <section>
-      <h2>Postagens de quem você segue</h2>
-      <div id="feed-list" class="feed-list"></div>
-    </section>
-  </main>
-
-  <script type="module" src="feed.js"></script>
-  <script src="pwa.js"></script>
+  <p style="font-family: system-ui, sans-serif; padding: 1.5rem">
+    O Mural de Histórias passou para a <a href="index.html#mural-de-historias">página inicial</a>.
+  </p>
 </body>
 </html>
-

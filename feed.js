@@ -199,7 +199,7 @@ function render(posts) {
   lastPosts = posts || [];
   if (!lastPosts.length) {
     el.list.innerHTML =
-      '<article class="feed-post">Sem postagens ainda. Siga alguém no Explorar para preencher seu feed.</article>';
+      '<article class="feed-post">Sem postagens ainda. Siga alguém no Explorar para ver histórias aqui.</article>';
     return;
   }
   el.list.innerHTML = lastPosts
@@ -417,7 +417,7 @@ async function loadFeed() {
   if (error) {
     setStatus(
       error.message?.includes("list_feed_posts") || error.code === "PGRST202"
-        ? "Atualiza o feed: executa supabase/COLE_FEED_LIKES_COMMENTS.sql (e RPC de interação se ainda não aplicou)."
+        ? "Atualiza o Mural: executa supabase/COLE_FEED_LIKES_COMMENTS.sql (e RPC de interação se ainda não aplicou)."
         : formatSupabaseErr(error)
     );
     return;
