@@ -90,6 +90,16 @@
     document.addEventListener("keydown", function (ev) {
       if (ev.key === "Escape") closeAllOverflowMenus(null);
     });
+
+    /* Ao passar para desktop o ⋯ some do DOM visual — fechar estado para não ficar “aberto” ao voltar ao telemóvel */
+    try {
+      var mqDesk = window.matchMedia("(min-width: 768px)");
+      function onViewportRail() {
+        if (mqDesk.matches) closeAllOverflowMenus(null);
+      }
+      if (mqDesk.addEventListener) mqDesk.addEventListener("change", onViewportRail);
+      else if (mqDesk.addListener) mqDesk.addListener(onViewportRail);
+    } catch (e) {}
   }
 
   function routeSearchClick(ev) {
