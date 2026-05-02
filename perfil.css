@@ -382,6 +382,23 @@
   margin-bottom: 12px;
 }
 
+/* Sem pesquisa/sino no topo — menos altura no cabeçalho */
+.app-wrapper--perfil-dash .perfil-dash__header {
+  margin-bottom: 6px;
+}
+
+.app-wrapper--perfil-dash .perfil-dash__header-row {
+  margin-bottom: 0;
+  min-height: 0;
+}
+
+/* Desktop com rail: Voltar e ⋯ já estão ocultos — remove faixa vazia */
+@media (min-width: 768px) {
+  body.aura-has-rail .app-wrapper--perfil-dash .perfil-dash__header {
+    display: none;
+  }
+}
+
 .perfil-dash__back {
   display: inline-block;
   font-size: 0.82rem;
