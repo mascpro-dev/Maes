@@ -168,6 +168,8 @@ button {
   align-items: center;
   gap: 14px;
   padding: 18px 22px 10px;
+  position: relative;
+  z-index: 50;
 }
 
 .topbar__avatar {
@@ -1417,7 +1419,8 @@ a.btn-scan {
     --layout-gap: 24px;
   }
 
-  .app-wrapper:has(> .bottom-nav) {
+  .app-wrapper:has(> .bottom-nav),
+  body:has(> .bottom-nav) .app-wrapper {
     max-width: var(--layout-shell);
     margin-left: auto;
     margin-right: auto;
@@ -1482,7 +1485,9 @@ a.btn-scan {
 
 /* Barra com 6–7 ícones (duas filas): mais espaço por baixo do conteúdo */
 .app-wrapper:has(> .bottom-nav.bottom-nav--six),
-.app-wrapper:has(> .bottom-nav.bottom-nav--seven) {
+.app-wrapper:has(> .bottom-nav.bottom-nav--seven),
+body:has(> .bottom-nav.bottom-nav--six) .app-wrapper,
+body:has(> .bottom-nav.bottom-nav--seven) .app-wrapper {
   padding-bottom: calc(var(--nav-h) + 56px);
 }
 
@@ -1496,7 +1501,8 @@ a.btn-scan {
 }
 
 /* Diário + barra com 5 ícones: nav mais alta (duas filas em telemóvel) */
-.app-wrapper--diario:has(> .bottom-nav.bottom-nav--four) {
+.app-wrapper--diario:has(> .bottom-nav.bottom-nav--four),
+body:has(> .bottom-nav.bottom-nav--four) .app-wrapper--diario {
   padding-bottom: calc(var(--nav-h) + 104px + 52px);
 }
 
@@ -1831,22 +1837,35 @@ a.btn-scan {
   backdrop-filter: blur(2px);
 }
 
+/* Pilha do +: no fluxo do rodapé, à direita do relatório (não sobrepõe o gráfico) */
+.diario-report-bar__row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
 .diario-fab-stack {
-  position: fixed;
-  right: max(22px, calc(50% - var(--app-max-w) / 2 + 22px));
-  bottom: calc(var(--nav-h) + 86px);
-  z-index: 200;
+  position: relative;
+  flex-shrink: 0;
+  z-index: 5;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 12px;
+  gap: 10px;
 }
 
 .diario-fab-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
   display: flex;
   flex-direction: column;
   gap: 10px;
-  min-width: 220px;
+  min-width: min(280px, calc(100vw - 48px));
+  z-index: 30;
 }
 
 /* display:flex do menu vencia o [hidden] do HTML — forçar oculto */
@@ -1945,6 +1964,7 @@ a.btn-scan {
   border-top: 1px solid rgba(122,158,126,.22);
   z-index: 150;
   box-shadow: 0 -6px 24px rgba(45,42,38,.06);
+  overflow: visible;
 }
 
 /*
@@ -1954,19 +1974,18 @@ a.btn-scan {
 @media (max-width: 767px) {
   .app-wrapper--diario:has(> .bottom-nav.bottom-nav--four) .diario-report-bar,
   .app-wrapper--diario:has(> .bottom-nav.bottom-nav--six) .diario-report-bar,
-  .app-wrapper--diario:has(> .bottom-nav.bottom-nav--seven) .diario-report-bar {
+  .app-wrapper--diario:has(> .bottom-nav.bottom-nav--seven) .diario-report-bar,
+  body:has(> .bottom-nav.bottom-nav--four) .app-wrapper--diario .diario-report-bar,
+  body:has(> .bottom-nav.bottom-nav--six) .app-wrapper--diario .diario-report-bar,
+  body:has(> .bottom-nav.bottom-nav--seven) .app-wrapper--diario .diario-report-bar {
     bottom: calc(var(--nav-h) + 58px + env(safe-area-inset-bottom, 0px));
-  }
-
-  .app-wrapper--diario:has(> .bottom-nav.bottom-nav--four) .diario-fab-stack,
-  .app-wrapper--diario:has(> .bottom-nav.bottom-nav--six) .diario-fab-stack,
-  .app-wrapper--diario:has(> .bottom-nav.bottom-nav--seven) .diario-fab-stack {
-    bottom: calc(var(--nav-h) + 58px + 86px + env(safe-area-inset-bottom, 0px));
   }
 }
 
 .diario-report-btn {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
+  width: auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1980,6 +1999,18 @@ a.btn-scan {
   color: var(--ink);
   letter-spacing: .02em;
   transition: all var(--dur) var(--ease);
+}
+
+.diario-report-btn__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .diario-report-bar__row {
+    gap: 16px;
+  }
 }
 
 .diario-report-btn:hover,
@@ -2296,17 +2327,29 @@ a.btn-scan {
   padding-bottom: 100px;
 }
 
-.app-wrapper--reemb:has(> .bottom-nav.bottom-nav--four) {
+.app-wrapper--reemb:has(> .bottom-nav.bottom-nav--four),
+body:has(> .bottom-nav.bottom-nav--four) .app-wrapper--reemb {
   padding-bottom: calc(var(--nav-h) + 56px + env(safe-area-inset-bottom, 0px));
 }
 
-.app-wrapper--reemb:has(> .bottom-nav.bottom-nav--four) .reemb-footer {
-  bottom: var(--nav-h);
+/* Só quando a bottom-nav está visível (telemóvel). No desktop a nav está oculta com rail —
+   o selector :has() continuava a bater e forçava bottom: var(--nav-h), deixando o CTA a “flutuar”. */
+@media (max-width: 767px) {
+  .app-wrapper--reemb:has(> .bottom-nav.bottom-nav--four) .reemb-footer,
+  body:has(> .bottom-nav.bottom-nav--four) .app-wrapper--reemb .reemb-footer {
+    bottom: var(--nav-h);
+  }
 }
 
 @media (min-width: 768px) {
   body.aura-has-rail .app-wrapper--reemb .reemb-footer {
     bottom: 0;
+    left: var(--aura-rail-w, 220px);
+    right: 0;
+    width: auto;
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
   }
 }
 

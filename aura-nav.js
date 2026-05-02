@@ -79,7 +79,20 @@
     });
   }
 
+  /**
+   * Ancora o menu ao viewport (iOS/Android): `position:fixed` dentro de wrappers com
+   * overflow/transform/isolation pode rolar com o conteúdo; como filho directo do body,
+   * o fixed volta a referenciar a janela.
+   */
+  function pinBottomNavToBody() {
+    const nav = document.querySelector(".bottom-nav");
+    if (nav && nav.parentElement && nav.parentElement !== document.body) {
+      document.body.appendChild(nav);
+    }
+  }
+
   function init() {
+    pinBottomNavToBody();
     if (document.querySelector(".aura-rail")) {
       document.body.classList.add("aura-has-rail");
     }

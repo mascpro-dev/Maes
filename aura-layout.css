@@ -159,11 +159,31 @@
     box-sizing: border-box;
   }
 
-  body.aura-has-rail .app-wrapper:has(> .bottom-nav) {
+  /* Explorar: .explorar.css tinha padding shorthand com maior especificidade e anulava a rail */
+  body.aura-has-rail .app-wrapper.app-wrapper--explore.explore-shell {
+    padding-left: calc(var(--aura-rail-w) + 18px);
+    padding-right: max(18px, env(safe-area-inset-right, 0px));
+    max-width: min(760px, calc(100vw - var(--aura-rail-w) - 32px));
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  body.aura-has-rail .app-wrapper.app-wrapper--explore.explore-shell .explore-aurora {
+    left: var(--aura-rail-w);
+    right: 0;
+    width: auto;
+    max-width: none;
+    margin: 0;
+  }
+
+  body.aura-has-rail .app-wrapper:has(> .bottom-nav),
+  body.aura-has-rail:has(> .bottom-nav) .app-wrapper {
     max-width: min(1240px, calc(100vw - var(--aura-rail-w) - 24px));
   }
 
-  body.aura-has-rail .app-shell:has(> .bottom-nav) {
+  body.aura-has-rail .app-shell:has(> .bottom-nav),
+  body.aura-has-rail:has(> .bottom-nav) .app-shell {
     max-width: min(1240px, calc(100vw - var(--aura-rail-w) - 24px));
     margin-left: auto;
     margin-right: auto;
@@ -180,7 +200,18 @@
   }
 
   body.aura-has-rail .app-wrapper--diario {
-    padding-bottom: calc(104px + 24px);
+    /* Rodapé (relatório + FAB) colado à base; sem barra inferior fixa */
+    padding-bottom: calc(96px + 24px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body.aura-has-rail .diario-report-bar {
+    bottom: 0;
+    max-width: min(1240px, calc(100vw - var(--aura-rail-w) - 24px));
+    margin-left: auto;
+    margin-right: auto;
+    left: 0;
+    right: 0;
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
   }
 
   /* Menu ⋯ do telemóvel não faz sentido no desktop */
@@ -260,12 +291,16 @@
 
 /* Deslocamento à base da área de scroll (barra inferior no telemóvel) */
 .app-wrapper:has(> .bottom-nav.bottom-nav--four),
-.app-shell:has(> .bottom-nav.bottom-nav--four) {
+.app-shell:has(> .bottom-nav.bottom-nav--four),
+body:has(> .bottom-nav.bottom-nav--four) .app-wrapper,
+body:has(> .bottom-nav.bottom-nav--four) .app-shell {
   padding-bottom: calc(var(--nav-h) + 56px);
 }
 
 .app-wrapper--diario:has(> .bottom-nav.bottom-nav--four),
-.app-shell--diario:has(> .bottom-nav.bottom-nav--four) {
+.app-shell--diario:has(> .bottom-nav.bottom-nav--four),
+body:has(> .bottom-nav.bottom-nav--four) .app-wrapper--diario,
+body:has(> .bottom-nav.bottom-nav--four) .app-shell--diario {
   padding-bottom: calc(var(--nav-h) + 104px + 52px);
 }
 

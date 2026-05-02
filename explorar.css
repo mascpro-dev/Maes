@@ -47,14 +47,23 @@ a {
   color: inherit;
 }
 
-/* Mesmo shell que as outras páginas (style.css .app-wrapper) + fundo Explorar */
+/* Mesmo shell que as outras páginas (style.css .app-wrapper) + fundo Explorar
+   Não usar shorthand padding — senão sobrescreve padding-left da rail (aura-layout). */
 .app-wrapper.app-wrapper--explore.explore-shell {
   position: relative;
   max-width: var(--app-max-w, 430px);
   margin: 0 auto;
   min-height: 100dvh;
-  padding: 12px 18px 0;
+  padding-top: 12px;
+  padding-right: 18px;
+  padding-bottom: 0;
   isolation: isolate;
+}
+
+@media (max-width: 767px) {
+  .app-wrapper.app-wrapper--explore.explore-shell {
+    padding-left: 18px;
+  }
 }
 
 /* Orbes de fundo */

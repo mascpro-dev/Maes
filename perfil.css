@@ -32,6 +32,12 @@
   margin-bottom: 6px;
 }
 
+@media (min-width: 768px) {
+  body.aura-has-rail .perfil-dash__header-row {
+    justify-content: flex-end;
+  }
+}
+
 .perfil-dash__back.aura-back {
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -96,7 +102,7 @@
   box-sizing: border-box;
 }
 
-/* Mobile: área principal (sem “Perfil completo”) primeiro, menu em baixo */
+/* Mobile: área principal primeiro, coluna do menu (com resumo) em baixo */
 .perfil-layout > .perfil-main-wrap {
   order: 1;
   display: flex;
@@ -109,16 +115,12 @@
   order: 2;
 }
 
-/* “Perfil completo” só em ecrãs largos — evita bloco extra no telemóvel */
-.perfil-main-wrap .perfil-completion {
-  display: none;
-}
-
 @media (min-width: 768px) {
   .perfil-layout {
-    grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+    grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
     gap: clamp(16px, 2.5vw, 28px);
     padding: 24px clamp(16px, 3vw, 32px) 32px;
+    max-width: min(1320px, 100%);
   }
 
   .perfil-layout > .perfil-sidebar,
@@ -127,21 +129,22 @@
   }
 
   .perfil-layout > .perfil-main-wrap {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 24px;
-    align-items: start;
-  }
-
-  .perfil-main-wrap .perfil-completion {
-    display: block;
+    min-width: 0;
   }
 }
 
-/* Desktop largo: conteúdo + coluna “Perfil completo”; ecrãs médios empilham o donut por baixo */
-@media (min-width: 1080px) {
-  .perfil-layout > .perfil-main-wrap {
-    grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+/* Com rail global: menos ruído na coluna do perfil */
+@media (min-width: 768px) {
+  body.aura-has-rail .perfil-sidebar__brand {
+    display: none;
+  }
+
+  body.aura-has-rail .perfil-sidebar__footer {
+    display: none;
+  }
+
+  body.aura-has-rail .perfil-dash__header .aura-back {
+    display: none;
   }
 }
 
@@ -169,8 +172,22 @@
     align-items: stretch;
     position: sticky;
     top: 16px;
+    align-self: start;
     padding: 20px 14px;
-    min-height: min(520px, calc(100dvh - 48px));
+    max-height: calc(100dvh - 32px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(122, 158, 126, 0.35) transparent;
+  }
+
+  .perfil-sidebar::-webkit-scrollbar {
+    width: 5px;
+  }
+
+  .perfil-sidebar::-webkit-scrollbar-thumb {
+    background: rgba(122, 158, 126, 0.28);
+    border-radius: 10px;
   }
 }
 
@@ -745,12 +762,47 @@
   box-sizing: border-box;
 }
 
-@media (min-width: 768px) {
-  .perfil-completion {
-    position: sticky;
-    top: 16px;
-    align-self: start;
-  }
+/* Widget na sidebar: compacto; situa-se depois dos links (resumo antes do rodapé / Sair) */
+.perfil-completion--sidebar {
+  flex-shrink: 0;
+  margin-top: 10px;
+  padding: 14px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(45, 42, 38, 0.08);
+  box-shadow: 0 4px 20px rgba(45, 42, 38, 0.04);
+}
+
+.perfil-completion--sidebar .perfil-completion__title {
+  font-size: 0.82rem;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.perfil-completion--sidebar .perfil-completion__chart {
+  width: 88px;
+  height: 88px;
+  margin: 0 auto 14px;
+}
+
+.perfil-completion--sidebar .perfil-donut {
+  width: 88px;
+  height: 88px;
+}
+
+.perfil-completion--sidebar .perfil-completion__pct {
+  font-size: 1rem;
+}
+
+.perfil-completion--sidebar .perfil-completion__item {
+  padding: 8px 0;
+  font-size: 0.78rem;
+  gap: 8px;
+}
+
+.perfil-completion--sidebar .perfil-completion__list {
+  max-height: min(240px, 35vh);
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
 .perfil-completion__title {

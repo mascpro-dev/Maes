@@ -849,7 +849,8 @@
     margin-right: auto;
   }
 
-  .app-wrapper--especialistas:has(> .bottom-nav.bottom-nav--six) {
+  .app-wrapper--especialistas:has(> .bottom-nav.bottom-nav--six),
+  body:has(> .bottom-nav.bottom-nav--six) .app-wrapper--especialistas {
     padding-bottom: calc(var(--nav-h) + 56px);
   }
 

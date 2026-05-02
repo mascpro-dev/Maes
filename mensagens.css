@@ -99,9 +99,8 @@ body {
   gap: 16px;
   margin-top: 12px;
   flex: 1;
-  min-height: 0;
-  align-items: stretch;
   min-height: min(640px, calc(100dvh - 150px));
+  align-items: stretch;
 }
 
 .dm-users,
@@ -213,9 +212,9 @@ body {
   gap: 12px;
   width: 100%;
   box-sizing: border-box;
-  min-height: 68px;
+  height: 68px;
   padding: 10px 12px;
-  margin: 0 0 6px;
+  margin: 0;
   border: 1px solid #ebe3d9;
   border-radius: 14px;
   background: #fff;
@@ -226,11 +225,6 @@ body {
   transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.dm-user-row:last-child {
-  margin-bottom: 0;
-}
-
-.dm-user-row:hover {
   background: #faf8f5;
   border-color: #ddd4c8;
 }

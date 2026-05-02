@@ -270,66 +270,67 @@
     <!-- Backdrop menu FAB -->
     <div class="diario-fab-backdrop" id="diario-fab-backdrop" hidden aria-hidden="true"></div>
 
-    <!-- Menu flutuante + -->
-    <div class="diario-fab-stack" id="diario-fab-stack">
-      <div class="diario-fab-menu" id="diario-fab-menu" role="menu" aria-label="Forma de registro" hidden>
-        <button type="button" class="diario-fab-option" id="diario-opt-audio" role="menuitem">
-          <span class="diario-fab-option__icon" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-              <line x1="12" y1="19" x2="12" y2="23" />
-              <line x1="8" y1="23" x2="16" y2="23" />
-            </svg>
-          </span>
-          <span class="diario-fab-option__text">Registrar por Áudio</span>
-        </button>
-        <button type="button" class="diario-fab-option" id="diario-opt-texto" role="menuitem">
-          <span class="diario-fab-option__icon" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-              stroke-linecap="round" stroke-linejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="8" y1="13" x2="16" y2="13" />
-              <line x1="8" y1="17" x2="14" y2="17" />
-            </svg>
-          </span>
-          <span class="diario-fab-option__text">Registrar por Texto</span>
-        </button>
-      </div>
-      <button type="button" class="diario-fab" id="diario-fab" aria-expanded="false"
-        aria-controls="diario-fab-menu" aria-haspopup="true" aria-label="Novo registro no diário">
-        <svg class="diario-fab__icon diario-fab__icon--plus" width="26" height="26" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-          <line x1="12" y1="5" x2="12" y2="19" />
-          <line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-        <svg class="diario-fab__icon diario-fab__icon--close" width="26" height="26" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
-      </button>
-    </div>
-
-    <!-- Rodapé: relatório médico -->
+    <!-- Rodapé: relatório + registro (+) na mesma linha (desktop e telemóvel) -->
     <footer class="diario-report-bar" role="contentinfo">
-      <button type="button" class="diario-report-btn" id="diario-btn-relatorio">
-        <span class="diario-report-btn__icon" aria-hidden="true">
-          <svg class="diario-pdf-icon" width="24" height="24" viewBox="0 0 24 24" fill="none"
-            xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor"
-              stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" />
-            <path d="M14 2v6h6" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"
-              stroke-linejoin="round" />
-            <text x="12" y="17.2" text-anchor="middle" fill="currentColor"
-              font-family="'DM Sans', system-ui, sans-serif" font-size="6.2" font-weight="700"
-              letter-spacing="-0.02em">PDF</text>
-          </svg>
-        </span>
-        <span class="diario-report-btn__label">Gerar Relatório para o Médico</span>
-      </button>
+      <div class="diario-report-bar__row">
+        <button type="button" class="diario-report-btn" id="diario-btn-relatorio">
+          <span class="diario-report-btn__icon" aria-hidden="true">
+            <svg class="diario-pdf-icon" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z" stroke="currentColor"
+                stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M14 2v6h6" stroke="currentColor" stroke-width="1.65" stroke-linecap="round"
+                stroke-linejoin="round" />
+              <text x="12" y="17.2" text-anchor="middle" fill="currentColor"
+                font-family="'DM Sans', system-ui, sans-serif" font-size="6.2" font-weight="700"
+                letter-spacing="-0.02em">PDF</text>
+            </svg>
+          </span>
+          <span class="diario-report-btn__label">Gerar Relatório para o Médico</span>
+        </button>
+
+        <div class="diario-fab-stack" id="diario-fab-stack">
+          <div class="diario-fab-menu" id="diario-fab-menu" role="menu" aria-label="Forma de registro" hidden>
+            <button type="button" class="diario-fab-option" id="diario-opt-audio" role="menuitem">
+              <span class="diario-fab-option__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                  <line x1="12" y1="19" x2="12" y2="23" />
+                  <line x1="8" y1="23" x2="16" y2="23" />
+                </svg>
+              </span>
+              <span class="diario-fab-option__text">Registrar por Áudio</span>
+            </button>
+            <button type="button" class="diario-fab-option" id="diario-opt-texto" role="menuitem">
+              <span class="diario-fab-option__icon" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="8" y1="13" x2="16" y2="13" />
+                  <line x1="8" y1="17" x2="14" y2="17" />
+                </svg>
+              </span>
+              <span class="diario-fab-option__text">Registrar por Texto</span>
+            </button>
+          </div>
+          <button type="button" class="diario-fab" id="diario-fab" aria-expanded="false"
+            aria-controls="diario-fab-menu" aria-haspopup="true" aria-label="Novo registro no diário">
+            <svg class="diario-fab__icon diario-fab__icon--plus" width="26" height="26" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            <svg class="diario-fab__icon diario-fab__icon--close" width="26" height="26" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      </div>
     </footer>
 
     <!-- Modal: registro por texto -->

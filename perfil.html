@@ -192,6 +192,19 @@
           </a>
         </nav>
 
+        <div class="perfil-completion perfil-completion--sidebar" role="complementary" aria-labelledby="perfil-completion-heading">
+          <h2 class="perfil-completion__title" id="perfil-completion-heading">Perfil completo</h2>
+          <div class="perfil-completion__chart" aria-hidden="true">
+            <svg class="perfil-donut" viewBox="0 0 120 120" width="120" height="120">
+              <circle class="perfil-donut__track" cx="60" cy="60" r="46" fill="none" stroke-width="12" />
+              <circle class="perfil-donut__progress" id="perfil-donut-progress" cx="60" cy="60" r="46" fill="none"
+                stroke-width="12" stroke-linecap="round" transform="rotate(-90 60 60)" />
+            </svg>
+            <span class="perfil-completion__pct" id="perfil-completion-pct">0%</span>
+          </div>
+          <ul class="perfil-completion__list" id="perfil-completion-list"></ul>
+        </div>
+
         <div class="perfil-sidebar__footer">
           <button type="button" class="perfil-sidebar__logout" id="btn-perfil-sair">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -467,19 +480,6 @@
           </section>
         </div>
       </div>
-
-      <aside class="perfil-completion" aria-labelledby="perfil-completion-heading">
-        <h2 class="perfil-completion__title" id="perfil-completion-heading">Perfil completo</h2>
-        <div class="perfil-completion__chart" aria-hidden="true">
-          <svg class="perfil-donut" viewBox="0 0 120 120" width="120" height="120">
-            <circle class="perfil-donut__track" cx="60" cy="60" r="46" fill="none" stroke-width="12" />
-            <circle class="perfil-donut__progress" id="perfil-donut-progress" cx="60" cy="60" r="46" fill="none"
-              stroke-width="12" stroke-linecap="round" transform="rotate(-90 60 60)" />
-          </svg>
-          <span class="perfil-completion__pct" id="perfil-completion-pct">0%</span>
-        </div>
-        <ul class="perfil-completion__list" id="perfil-completion-list"></ul>
-      </aside>
       </div>
     </div>
 

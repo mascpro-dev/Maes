@@ -122,6 +122,12 @@
     }
 
     if (page === "mensagens.html") {
+      const search = document.getElementById("dm-users-filter");
+      if (search) {
+        search.focus();
+        search.scrollIntoView({ block: "nearest", behavior: "smooth" });
+        return;
+      }
       const dm = document.getElementById("dm-input");
       if (dm) {
         dm.focus();

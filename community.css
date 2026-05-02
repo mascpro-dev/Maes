@@ -1413,7 +1413,8 @@ button.nav-btn {
     margin-right: auto;
   }
 
-  .app-shell:has(> .bottom-nav.bottom-nav--four) {
+  .app-shell:has(> .bottom-nav.bottom-nav--four),
+  body:has(> .bottom-nav.bottom-nav--four) .app-shell {
     padding-bottom: calc(var(--nav-h) + 56px);
   }
 
