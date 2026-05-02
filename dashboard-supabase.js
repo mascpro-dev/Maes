@@ -70,6 +70,121 @@ const TIP_BY_CHALLENGE = {
 
 const DEFAULT_TIP = 'Respirar fundo 3 vezes antes de responder seu filho pode mudar tudo.';
 
+/** Versículos (NVI-PT corrigido / equivalência comum) — rotação por dia + desafio do perfil */
+const DAILY_VERSES = [
+  {
+    ref: 'Isaías 40:29',
+    text: 'Ele fortalece ao cansado e multiplica as forças ao que não tem vigor.',
+  },
+  {
+    ref: 'Filipenses 4:6-7',
+    text: 'Não andem ansiosos por nada… a paz de Deus… guardará o coração e a mente.',
+  },
+  {
+    ref: 'Mateus 11:28',
+    text: 'Venham a mim… e eu lhes darei descanso.',
+  },
+  {
+    ref: 'Salmos 127:2',
+    text: 'É inútil trabalhar de madrugada… pois concede aos seus amados o sono.',
+  },
+  {
+    ref: 'Provérbios 3:5-6',
+    text: 'Confie no Senhor de todo o seu coração… ele endireitará as suas veredas.',
+  },
+  {
+    ref: '2 Coríntios 12:9',
+    text: 'A minha graça te basta… pois o meu poder se aperfeiçoa na fraqueza.',
+  },
+  {
+    ref: 'Salmos 46:1',
+    text: 'Deus é o nosso refúgio e fortaleza… sempre pronto a ajudar nos momentos de tribulação.',
+  },
+  {
+    ref: 'Romanos 15:13',
+    text: 'O Deus da esperança os encha… transbordando em esperança pelo Espírito Santo.',
+  },
+  {
+    ref: 'Salmos 55:22',
+    text: 'Entregue o seu caminho ao Senhor… confie nele.',
+  },
+  {
+    ref: 'Isaías 41:10',
+    text: 'Não tema, pois estou com você… Eu o fortaleço e o ajudo.',
+  },
+  {
+    ref: 'Tiago 1:5',
+    text: 'Se alguém tem falta de sabedoria, peça-a a Deus… e lhe será concedida.',
+  },
+  {
+    ref: 'Salmos 34:17',
+    text: 'Os justos clamam… o Senhor os ouve e os livra de todas as suas tribulações.',
+  },
+  {
+    ref: 'Provérbios 31:25',
+    text: 'A força e a dignidade são o seu vestir… e sorrirá diante do futuro.',
+  },
+  {
+    ref: 'Lucas 12:25',
+    text: 'Qual de vocês… pode acrescentar uma hora à sua vida por estar ansioso?',
+  },
+  {
+    ref: 'João 14:27',
+    text: 'Deixo-lhes a paz… não a dou como o mundo a dá.',
+  },
+  {
+    ref: 'Salmos 139:14',
+    text: 'Eu te louvo porque me fizeste de modo especial e admirável.',
+  },
+  {
+    ref: 'Miqueias 6:8',
+    text: 'Ele te mostrou o que é bom… amar a misericórdia e andar humilhamente com o teu Deus.',
+  },
+  {
+    ref: 'Romanos 8:28',
+    text: 'Sabemos que… todas as coisas cooperam para o bem daqueles que amam a Deus.',
+  },
+  {
+    ref: 'Deuteronômio 31:8',
+    text: 'O próprio Senhor irá à sua frente… não o deixará nem o abandonará.',
+  },
+  {
+    ref: 'Salmos 62:5',
+    text: 'A minha alma, espera silenciosa somente em Deus.',
+  },
+  {
+    ref: '1 Pedro 5:7',
+    text: 'Lancem sobre ele toda a sua ansiedade, porque ele tem cuidado de vocês.',
+  },
+  {
+    ref: 'Salmos 121:1-2',
+    text: 'Levanto os meus olhos para os montes… o meu socorro vem do Senhor.',
+  },
+  {
+    ref: 'Jeremias 29:11',
+    text: 'São planos de paz e não de mal, para vos dar um futuro e uma esperança.',
+  },
+  {
+    ref: 'Lucas 1:37',
+    text: 'Para Deus nada é impossível.',
+  },
+];
+
+function pickDailyVerse(profile) {
+  let seed = 0;
+  const challenges = profile?.onboarding_challenges || [];
+  for (const slug of challenges || []) {
+    if (slug && typeof slug === 'string') {
+      for (let i = 0; i < slug.length; i += 1) seed = (seed + slug.charCodeAt(i) * (i + 1)) % 10007;
+    }
+  }
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((now - start) / 86400000);
+  const idx = Math.abs((dayOfYear + seed) % DAILY_VERSES.length);
+  return DAILY_VERSES[idx];
+}
+
 function greetingForHour() {
   const h = new Date().getHours();
   if (h < 12) return 'Bom dia';
@@ -250,6 +365,14 @@ async function hydrateDashboardContext(supabase, userId) {
     }
     window.AuraDashboard?.setAppointmentTarget?.(null, { countdownText: 'a combinar' });
     if (cdLabel) cdLabel.textContent = '';
+  }
+
+  const verseQuote = document.getElementById('daily-verse-text');
+  const verseRefEl = document.getElementById('daily-verse-ref');
+  if (verseQuote && verseRefEl) {
+    const v = pickDailyVerse(profile);
+    verseQuote.textContent = `"${v.text}"`;
+    verseRefEl.textContent = v.ref;
   }
 
   const tipEl = document.getElementById('tip-text');
@@ -449,7 +572,7 @@ async function initRefundAssistant(supabase, userId) {
     if (insErr) {
       console.warn('[Aura] refunds insert:', insErr.message);
       if (typeof showToast === 'function') {
-        showToast('Upload ok, mas falhou ao criar reembolso. Ajuste colunas da tabela refunds.');
+        showToast('Upload ok, mas falhou ao guardar o recibo. Ajuste colunas da tabela refunds.');
       }
       return;
     }
@@ -462,7 +585,7 @@ async function initRefundAssistant(supabase, userId) {
     } catch (e) { /* ignore */ }
 
     window.AuraDashboard?.refreshRefundPendingLabel?.();
-    if (typeof showToast === 'function') showToast('Recibo em Pendentes — confere e dá OK em Meus reembolsos ✓');
+    if (typeof showToast === 'function') showToast('Recibo em «A conferir» — abre Finanças e confirma ✓');
   });
 }
 

@@ -213,6 +213,7 @@ async function main() {
   const btnConfirmPay = document.getElementById('spec-btn-confirm-pay');
   const btnBackSchedule = document.getElementById('spec-btn-back-schedule');
   const btnFinalPay = document.getElementById('spec-btn-final-pay');
+  const btnFinalPayLabel = document.getElementById('spec-btn-final-pay-label');
   const paySummary = document.getElementById('spec-pay-summary');
   const payOptions = document.querySelectorAll('.spec-pay-option');
   const bookStatus = document.getElementById('spec-book-status');
@@ -241,13 +242,13 @@ async function main() {
   let pixPollStop = false;
 
   function updateFinalPayLabel() {
-    if (!btnFinalPay) return;
+    if (!btnFinalPayLabel) return;
     if (selectedPaymentMethod === 'pix') {
-      btnFinalPay.textContent = `Gerar Pix (QR) — ${PRICE_LABEL}`;
+      btnFinalPayLabel.textContent = `Gerar Pix (QR) — ${PRICE_LABEL}`;
     } else if (selectedPaymentMethod === 'credit_card') {
-      btnFinalPay.textContent = `Ir pagar no Mercado Pago — ${PRICE_LABEL}`;
+      btnFinalPayLabel.textContent = `Ir pagar no Mercado Pago — ${PRICE_LABEL}`;
     } else {
-      btnFinalPay.textContent = `Continuar — ${PRICE_LABEL}`;
+      btnFinalPayLabel.textContent = `Continuar — ${PRICE_LABEL}`;
     }
   }
 

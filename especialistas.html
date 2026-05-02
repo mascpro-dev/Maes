@@ -21,6 +21,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="CONTA MÃE" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="aura-layout.css" />
   <link rel="stylesheet" href="especialistas.css" />
 </head>
 
@@ -30,10 +31,57 @@
   <script type="module" src="auth-session-guard.js"></script>
 
   <div class="app-wrapper app-wrapper--especialistas">
+
+    <aside class="aura-rail" aria-label="Menu principal">
+      <a href="index.html" class="aura-rail__brand" aria-label="CONTA MÃE — início">
+        <img src="assets/branding/logohorizontal.svg" alt="" width="180" height="34" decoding="async" />
+      </a>
+      <nav class="aura-rail__nav">
+        <a href="index.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Início
+        </a>
+        <a href="agenda.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Compromissos
+        </a>
+        <a href="reembolsos.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Finanças
+        </a>
+        <a href="especialistas.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4.5 12.5c0-3 2.5-5.5 5.5-6.5"/><path d="M19.5 12.5c0-3-2.5-5.5-5.5-6.5"/><path d="M8 12h8"/><circle cx="12" cy="7" r="2"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+          Especialistas
+        </a>
+        <a href="community.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Comunidade
+        </a>
+        <a href="diario-evolucao.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          Diário
+        </a>
+        <a href="perfil.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Perfil
+        </a>
+      </nav>
+    </aside>
+
     <main class="spec-page-main">
     <header class="spec-hero" role="banner">
       <div class="spec-hero__inner">
-        <a href="index.html" class="spec-back">← Início</a>
+        <div class="spec-hero__toolbar">
+          <button type="button" class="spec-back aura-back" data-back-fallback="index.html">← Voltar</button>
+          <div class="aura-mobile-more-wrap">
+            <button type="button" class="aura-nav-more-btn" aria-label="Mais secções do menu" aria-expanded="false"
+              aria-haspopup="true">⋯</button>
+            <div class="aura-nav-more-panel" hidden>
+              <a href="reembolsos.html">Finanças</a>
+              <a href="diario-evolucao.html">Diário</a>
+            </div>
+          </div>
+        </div>
         <div class="spec-hero__logo">
           <img src="assets/branding/logohorizontal.svg" alt="CONTA MÃE" width="160" height="30" decoding="async" />
         </div>
@@ -106,10 +154,21 @@
             <span class="spec-field__label">Horário (30 min)</span>
             <div class="spec-slots" id="spec-slots"></div>
           </div>
-          <div class="spec-modal__foot">
-            <button type="button" class="spec-btn spec-btn--primary" id="spec-btn-confirm-pay" style="width: 100%"
-              disabled>
-              Confirmar pagamento
+          <div class="spec-modal__foot spec-modal__foot--schedule">
+            <button type="button" class="spec-btn spec-btn--schedule" id="spec-btn-confirm-pay" disabled>
+              <span class="spec-btn__icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+              </span>
+              <span class="spec-btn__text">
+                <span class="spec-btn__title">Agendar consulta</span>
+                <span class="spec-btn__subtitle">Confirma o horário e segue para o pagamento</span>
+              </span>
             </button>
           </div>
         </div>
@@ -137,10 +196,10 @@
             <button type="button" class="spec-btn spec-btn--ghost spec-btn--back" id="spec-btn-back-schedule">
               ← Alterar data e hora
             </button>
-            <div class="spec-modal__foot">
-              <button type="button" class="spec-btn spec-btn--primary" id="spec-btn-final-pay" style="width: 100%"
+            <div class="spec-modal__foot spec-modal__foot--schedule">
+              <button type="button" class="spec-btn spec-btn--primary spec-btn--pay-cta" id="spec-btn-final-pay"
                 disabled>
-                Continuar — R$ 49,90
+                <span id="spec-btn-final-pay-label">Continuar — R$ 49,90</span>
               </button>
             </div>
           </div>
@@ -168,7 +227,7 @@
     </div>
     </main>
 
-    <nav class="bottom-nav bottom-nav--seven" role="navigation" aria-label="Navegação principal">
+    <nav class="bottom-nav bottom-nav--five" role="navigation" aria-label="Navegação principal">
       <a href="index.html" class="sidebar-brand" aria-label="CONTA MÃE — início">
         <span class="sidebar-brand__mark">
           <img class="sidebar-brand__logo" src="assets/branding/logohorizontal.svg" alt="CONTA MÃE" width="200"
@@ -193,14 +252,6 @@
         </svg>
         <span>Compromisso</span>
       </a>
-      <a href="reembolsos.html" class="nav-btn" id="nav-reembolsos" aria-label="Reembolsos">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-          stroke-linecap="round" stroke-linejoin="round">
-          <line x1="12" y1="1" x2="12" y2="23" />
-          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-        </svg>
-        <span>Reembolsos</span>
-      </a>
       <a href="especialistas.html" class="nav-btn nav-btn--active" id="nav-specialists" aria-label="Especialistas"
         aria-current="page">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
@@ -223,14 +274,6 @@
         </svg>
         <span>Comunidade</span>
       </a>
-      <a href="diario-evolucao.html" class="nav-btn" id="nav-diary" aria-label="Diário">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
-        </svg>
-        <span>Diário</span>
-      </a>
       <a href="perfil.html" class="nav-btn" id="nav-profile" aria-label="Perfil">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
           stroke-linecap="round" stroke-linejoin="round">
@@ -242,6 +285,9 @@
     </nav>
   </div>
 
+  <script src="app.js"></script>
+  <script src="aura-nav.js"></script>
+  <script src="aura-back.js"></script>
   <script type="module" src="especialistas.js"></script>
   <script src="pwa.js"></script>
 </body>

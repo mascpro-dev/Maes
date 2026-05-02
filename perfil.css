@@ -24,6 +24,37 @@
   color: var(--terracotta, #e2725b);
 }
 
+.perfil-dash__header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.perfil-dash__back.aura-back {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+  color: var(--terracotta, #c47a5b);
+  font-weight: 600;
+}
+
+.perfil-card--battery .battery__gauge-wrap--perfil {
+  margin: 12px auto;
+  max-width: 200px;
+}
+
+.perfil-card__hint-inline {
+  font-size: 0.78rem;
+  color: var(--ink-mid);
+  font-weight: 500;
+}
+
 .perfil-medic-banner {
   margin: 0 0 14px;
   padding: 12px 14px;

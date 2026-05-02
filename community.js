@@ -1345,6 +1345,51 @@ async function boot() {
     });
   });
 
+  (function setupCommHeaderOverflowMenu() {
+    const btn = document.getElementById("btn-comm-menu");
+    const menu = document.getElementById("comm-header-menu");
+    const wrap = document.getElementById("comm-header-menu-wrap");
+    if (!btn || !menu || !wrap) return;
+
+    function closeMenu() {
+      menu.classList.add("hidden");
+      menu.setAttribute("aria-hidden", "true");
+      wrap.classList.remove("comm-header__menu-wrap--open");
+      btn.setAttribute("aria-expanded", "false");
+    }
+
+    function openMenu() {
+      menu.classList.remove("hidden");
+      menu.setAttribute("aria-hidden", "false");
+      wrap.classList.add("comm-header__menu-wrap--open");
+      btn.setAttribute("aria-expanded", "true");
+    }
+
+    btn.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+      if (menu.classList.contains("hidden")) openMenu();
+      else closeMenu();
+    });
+
+    document.addEventListener("click", function () {
+      closeMenu();
+    });
+
+    menu.addEventListener("click", function (ev) {
+      ev.stopPropagation();
+    });
+
+    menu.querySelectorAll('a[role="menuitem"]').forEach(function (link) {
+      link.addEventListener("click", function () {
+        closeMenu();
+      });
+    });
+
+    document.addEventListener("keydown", function (ev) {
+      if (ev.key === "Escape") closeMenu();
+    });
+  })();
+
   startRecipientNotifier();
 
   void syncRoomsFromDb().catch(function (err) {

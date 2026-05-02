@@ -55,18 +55,18 @@ function renderRefundCard(row, { showRecipient, showOkButton, showRevertButton }
   const amount = amountLine(row);
   const recipient =
     showRecipient && row.recipient_label
-      ? `<p class="reemb-card__recipient">Sugestão de destino (envio por ti): ${esc(row.recipient_label)}</p>`
+      ? `<p class="reemb-card__recipient">Sugestão de envio (por ti): ${esc(row.recipient_label)}</p>`
       : '';
   const okClass = row.status === 'enviado' ? ' reemb-card__status--ok' : '';
   const cardClass = row.status === 'enviado' ? 'reemb-card reemb-card--done' : 'reemb-card reemb-card--pending';
   const rid = row.id ? esc(String(row.id)) : '';
   const okBtn =
     showOkButton && rid
-      ? `<button type="button" class="reemb-card__ok" data-reemb-ok="${rid}">Tudo certo — incluir no relatório</button>`
+      ? `<button type="button" class="reemb-card__ok" data-reemb-ok="${rid}">Incluir no relatório</button>`
       : '';
   const revertBtn =
     showRevertButton && rid
-      ? `<button type="button" class="reemb-card__revert" data-reemb-revert="${rid}">Voltar para Pendentes</button>`
+      ? `<button type="button" class="reemb-card__revert" data-reemb-revert="${rid}">Voltar a conferir</button>`
       : '';
 
   return `<li>
@@ -90,13 +90,13 @@ function setSummary(count) {
 
   if (count === 0) {
     summaryEl.textContent =
-      'Nenhum pedido a conferir. Novos scans ou envios pelo painel aparecem em Pendentes até confirmares com OK.';
+      'Nada por conferir. Novas fotos de recibo aparecem em «A conferir» até confirmares.';
     return;
   }
 
-  const pedido = count === 1 ? 'pedido' : 'pedidos';
+  const pedido = count === 1 ? 'item' : 'itens';
   const verb = count === 1 ? 'aguarda' : 'aguardam';
-  summaryEl.innerHTML = `Tens <strong id="reemb-pending-count">${count}</strong> ${pedido} que ${verb} a tua confirmação (OK) para entrarem no relatório.`;
+  summaryEl.innerHTML = `<strong id="reemb-pending-count">${count}</strong> ${pedido} ${verb} confirmação para o relatório.`;
 }
 
 function renderRefundLists(rows) {
@@ -144,7 +144,7 @@ function openPrintableReport(rows) {
   const list = (rows || []).filter((r) => r.status === 'enviado');
   if (!list.length) {
     window.alert(
-      'Ainda não há pedidos no relatório. Confirma primeiro os itens em Pendentes com «Tudo certo — incluir no relatório».'
+      'Ainda não há nada no relatório. Confirma primeiro os itens em «A conferir» com o botão «Incluir no relatório».'
     );
     return;
   }
@@ -163,7 +163,7 @@ function openPrintableReport(rows) {
     })
     .join('');
 
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"/><title>Relatório de reembolsos — Conta Mãe</title>
+  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="utf-8"/><title>Relatório de despesas — Conta Mãe</title>
 <style>
   body{font-family:system-ui,-apple-system,sans-serif;padding:20px;color:#1a1714;max-width:800px;margin:0 auto;}
   h1{font-size:1.25rem;margin:0 0 8px;}
@@ -175,8 +175,8 @@ function openPrintableReport(rows) {
   .foot{margin-top:24px;font-size:.75rem;color:#555;line-height:1.5;}
   @media print{body{padding:12px}}
 </style></head><body>
-  <h1>Relatório de pedidos de reembolso</h1>
-  <p class="lead">Conta Mãe — resumo gerado pela titular para <strong>impressão</strong>. Junta este documento aos recibos originais e envia <strong>tu</strong> ao teu plano de saúde ou ao genitor, conforme o teu caso. O Conta Mãe não envia estes papéis por ti.</p>
+  <h1>Relatório de despesas e saúde</h1>
+  <p class="lead">Conta Mãe — resumo para <strong>impressão</strong>. Junta aos recibos originais; o envio ao plano ou genitor é sempre teu.</p>
   <p class="meta">Gerado em ${esc(generated)}</p>
   <table>
     <thead><tr><th>Estado</th><th>Tipo</th><th>Prestador</th><th>Data</th><th>Valor</th></tr></thead>
@@ -221,7 +221,7 @@ async function loadRefundsFromSupabase() {
   const auth = await getSupabaseUser();
   if (!auth) {
     if (summaryEl) {
-      summaryEl.textContent = 'Inicia sessão para veres os teus reembolsos.';
+      summaryEl.textContent = 'Inicia sessão para veres as tuas finanças.';
     }
     return;
   }
@@ -240,9 +240,9 @@ async function loadRefundsFromSupabase() {
     if (summaryEl) {
       if (msg.includes('relation') || msg.includes('does not exist')) {
         summaryEl.textContent =
-          'A tabela de reembolsos ainda não está criada no projeto. Executa o SQL em supabase/COLE_REFUNDS_REDE.sql (ou a migração correspondente).';
+          'A tabela de recibos ainda não existe neste projeto. Executa o SQL em supabase/COLE_REFUNDS_REDE.sql (ou a migração correspondente).';
       } else {
-        summaryEl.textContent = 'Não foi possível carregar os reembolsos: ' + esc(error.message);
+        summaryEl.textContent = 'Não foi possível carregar os dados: ' + esc(error.message);
       }
     }
     return;
@@ -286,7 +286,7 @@ document.getElementById('reemb-sent-list')?.addEventListener('click', async (ev)
   if (!btn) return;
   const id = btn.getAttribute('data-reemb-revert');
   if (!id) return;
-  if (!window.confirm('Voltar este pedido para Pendentes? Sai do relatório até voltares a confirmar.')) return;
+  if (!window.confirm('Voltar este item para conferência? Sai do relatório até voltares a confirmar.')) return;
   const auth = await getSupabaseUser();
   if (!auth) {
     window.alert('Sessão expirada. Entra de novo.');
@@ -411,11 +411,12 @@ function getDefaultBaseUrl() {
     commissionPendingEl.textContent = toMoney(Number(state.commission_pending_cents) || 0);
 
     if (state.enabled) {
-      statusEl.textContent = 'Programa ativo: o teu link já pode gerar comissões (3% sobre pagamentos das indicadas diretas no app).';
+      statusEl.textContent =
+        'Programa ativo: comissão de 3% sobre pagamentos das tuas indicadas diretas no app.';
       return;
     }
     statusEl.textContent =
-      'Programa em preparação: o teu link já está pronto; a comissão de 3% sobre o que as tuas indicadas diretas pagarem no app entrará quando o programa estiver ativo.';
+      'Em preparação: o link já funciona; a comissão de 3% entra quando o programa ligar a pagamentos.';
   }
 
   copyBtn.addEventListener('click', async () => {

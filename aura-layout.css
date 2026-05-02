@@ -1,0 +1,282 @@
+/* Barra lateral (desktop) + menu extra (telemóvel) — ver aura-nav.js */
+
+:root {
+  --aura-rail-w: 220px;
+}
+
+/* ── Rail fixo à esquerda (só ≥768px) ───────────────────────── */
+.aura-rail {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .aura-rail {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: var(--aura-rail-w);
+    z-index: 90;
+    background: rgba(245, 239, 228, 0.97);
+    backdrop-filter: blur(16px);
+    border-right: 1px solid rgba(196, 122, 91, 0.15);
+    box-shadow: 4px 0 24px rgba(45, 42, 38, 0.06);
+    padding: 20px 12px 24px;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+
+  .aura-rail__brand {
+    display: block;
+    margin-bottom: 18px;
+    line-height: 0;
+    text-decoration: none;
+  }
+
+  .aura-rail__brand img {
+    max-width: 100%;
+    height: auto;
+    max-height: 34px;
+    object-fit: contain;
+  }
+
+  .aura-rail__nav {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .aura-rail__link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--ink);
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .aura-rail__link:hover,
+  .aura-rail__link:focus-visible {
+    background: rgba(122, 158, 126, 0.14);
+    outline: none;
+  }
+
+  .aura-rail__link--active,
+  .aura-rail__link[aria-current="page"] {
+    background: rgba(122, 158, 126, 0.22);
+    color: var(--ink);
+  }
+
+  .aura-rail__link svg {
+    flex-shrink: 0;
+    opacity: 0.85;
+  }
+
+  /* Empurra conteúdo para a direita da rail */
+  body.aura-has-rail .app-wrapper,
+  body.aura-has-rail .app-shell {
+    padding-left: var(--aura-rail-w);
+    box-sizing: border-box;
+  }
+
+  body.aura-has-rail .app-wrapper:has(> .bottom-nav) {
+    max-width: min(1240px, calc(100vw - var(--aura-rail-w) - 24px));
+  }
+
+  body.aura-has-rail .app-shell:has(> .bottom-nav) {
+    max-width: min(1240px, calc(100vw - var(--aura-rail-w) - 24px));
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Esconde navegação inferior no desktop */
+  body.aura-has-rail .bottom-nav {
+    display: none !important;
+  }
+
+  body.aura-has-rail .app-wrapper,
+  body.aura-has-rail .app-shell {
+    padding-bottom: 24px;
+  }
+
+  body.aura-has-rail .app-wrapper--diario {
+    padding-bottom: calc(104px + 24px);
+  }
+
+  /* Menu ⋯ do telemóvel não faz sentido no desktop */
+  .aura-mobile-more-wrap {
+    display: none !important;
+  }
+}
+
+/* ── Menu extra (telemóvel): ⋯ ao lado de Sair / cabeçalhos ─ */
+.aura-mobile-more-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.aura-nav-more-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid rgba(196, 122, 91, 0.25);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 1.35rem;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.2s ease;
+}
+
+.aura-nav-more-btn:hover,
+.aura-nav-more-btn[aria-expanded="true"] {
+  background: rgba(122, 158, 126, 0.16);
+}
+
+.aura-nav-more-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 200px;
+  padding: 8px;
+  background: var(--cream-card, #fbf8f3);
+  border: 1px solid rgba(196, 122, 91, 0.2);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(45, 42, 38, 0.12);
+  z-index: 200;
+}
+
+.aura-nav-more-panel[hidden] {
+  display: none !important;
+}
+
+.aura-nav-more-panel a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.aura-nav-more-panel a:hover,
+.aura-nav-more-panel a:focus-visible {
+  background: rgba(122, 158, 126, 0.14);
+  outline: none;
+}
+
+@media (min-width: 768px) {
+  .aura-nav-more-panel {
+    display: none !important;
+  }
+}
+
+/* Mesmo deslocamento à base quando só há 5 ícones numa linha */
+.app-wrapper:has(> .bottom-nav.bottom-nav--five),
+.app-shell:has(> .bottom-nav.bottom-nav--five) {
+  padding-bottom: calc(var(--nav-h) + 56px);
+}
+
+.app-wrapper--diario:has(> .bottom-nav.bottom-nav--five),
+.app-shell--diario:has(> .bottom-nav.bottom-nav--five) {
+  padding-bottom: calc(var(--nav-h) + 104px + 52px);
+}
+
+/* Barra inferior: só 5 ícones (telemóvel) */
+.bottom-nav.bottom-nav--five .sidebar-brand {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .bottom-nav.bottom-nav--five .nav-btn {
+    flex: 1 1 18%;
+    max-width: 20%;
+    min-width: 0;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
+
+  .bottom-nav.bottom-nav--five {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    column-gap: 4px;
+    padding-top: 10px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .bottom-nav.bottom-nav--five .nav-btn span:not(.nav-btn__long) {
+    font-size: 0.56rem;
+  }
+
+  .bottom-nav.bottom-nav--five .nav-btn__long {
+    font-size: 0.48rem;
+  }
+}
+
+/* Cartão versículo (home) */
+.verse-card {
+  margin: 10px 16px 14px;
+  padding: 16px 18px;
+  border-radius: var(--radius-lg, 18px);
+  background: linear-gradient(145deg, rgba(255, 252, 248, 0.95) 0%, rgba(235, 228, 214, 0.65) 100%);
+  border: 1px solid rgba(196, 122, 91, 0.18);
+  box-shadow: 0 6px 22px rgba(45, 42, 38, 0.06);
+}
+
+.verse-card__tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--terracotta, #c47a5b);
+  margin-bottom: 10px;
+}
+
+.verse-card__quote {
+  margin: 0;
+  font-family: var(--font-serif, "DM Serif Display", Georgia, serif);
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: var(--ink);
+  font-style: italic;
+}
+
+.verse-card__ref {
+  display: block;
+  margin-top: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink-mid);
+  font-style: normal;
+}
+
+/* Botão voltar (histórico) */
+.aura-back {
+  border: none;
+  background: none;
+  padding: 8px 10px 8px 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--terracotta, #c47a5b);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.aura-back:focus-visible {
+  outline: 2px solid var(--sage);
+  border-radius: 8px;
+}

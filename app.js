@@ -228,9 +228,9 @@ let auraAppointmentCountdownTimer = null;
               const n = parseInt(raw, 10);
               return Number.isFinite(n) && n >= 0 ? n : 0;
             })();
-      if (c === 0) el.textContent = 'Nenhum reembolso pendente';
-      else if (c === 1) el.textContent = '1 reembolso pendente';
-      else el.textContent = `${c} reembolsos pendentes`;
+      if (c === 0) el.textContent = 'Nada por conferir em Finanças';
+      else if (c === 1) el.textContent = '1 recibo a conferir em Finanças';
+      else el.textContent = `${c} recibos a conferir em Finanças`;
       this.refreshHomeNotifications();
     },
 
@@ -241,9 +241,9 @@ let auraAppointmentCountdownTimer = null;
       try {
         localStorage.setItem('aura_refund_pending', String(c));
       } catch (e) { /* ignore */ }
-      if (c === 0) el.textContent = 'Nenhum reembolso pendente';
-      else if (c === 1) el.textContent = '1 reembolso pendente';
-      else el.textContent = `${c} reembolsos pendentes`;
+      if (c === 0) el.textContent = 'Nada por conferir em Finanças';
+      else if (c === 1) el.textContent = '1 recibo a conferir em Finanças';
+      else el.textContent = `${c} recibos a conferir em Finanças`;
       this.refreshHomeNotifications();
     },
 
@@ -290,7 +290,7 @@ let auraAppointmentCountdownTimer = null;
   })();
 })();
 
-/* ── Texto de reembolsos pendentes (localStorage; atualizado após upload) ── */
+/* ── Texto de recibos pendentes (Finanças; localStorage) ── */
 (function initRefundPendingLabel() {
   if (typeof window.AuraDashboard?.refreshRefundPendingLabel === 'function') {
     window.AuraDashboard.refreshRefundPendingLabel();
@@ -377,12 +377,12 @@ let auraAppointmentCountdownTimer = null;
     if (refunds > 0) {
       items.push({
         id: 'refund',
-        title: 'Reembolsos',
+        title: 'Finanças',
         body:
           refunds === 1
-            ? 'Tens 1 recibo a conferir em Meus reembolsos — dá OK em Pendentes para o incluir no relatório.'
-            : `Tens ${refunds} recibos a conferir em Meus reembolsos — confirma cada um com OK antes do relatório.`,
-        actions: [{ label: 'Ver reembolsos', href: 'reembolsos.html', primary: true }],
+            ? 'Tens 1 recibo por conferir — abre Finanças e toca em «Incluir no relatório» quando estiver certo.'
+            : `Tens ${refunds} recibos por conferir — confirma cada um em Finanças antes do relatório.`,
+        actions: [{ label: 'Abrir Finanças', href: 'reembolsos.html', primary: true }],
       });
     }
 

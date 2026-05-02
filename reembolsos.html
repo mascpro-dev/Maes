@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>CONTA MÃE — Reembolsos</title>
+  <title>CONTA MÃE — Finanças</title>
   <meta name="description"
-    content="Organize recibos, gere um relatório para imprimir e envie ao plano de saúde ou genitor — Conta Mãe." />
+    content="Fotografa recibos, confere despesas de saúde e gera relatório para o plano ou para organizar a casa — Conta Mãe." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -42,53 +42,70 @@
         <img src="assets/branding/logohorizontal.svg" alt="" width="168" height="32" decoding="async" />
       </a>
       <div class="reemb-header__titles">
-        <p class="reemb-header__eyebrow">Plano de saúde</p>
-        <h1 class="reemb-header__title">Meus reembolsos</h1>
+        <p class="reemb-header__eyebrow">Finanças</p>
+        <h1 class="reemb-header__title">Despesas &amp; relatório</h1>
       </div>
     </header>
 
     <main class="reemb-main" role="main">
-      <p class="reemb-intro" id="reemb-summary">A carregar os teus reembolsos…</p>
-      <a href="#reemb-affiliate-heading" class="reemb-affiliate-jump">
-        Ver link de indicação e comissões
-      </a>
+      <p class="reemb-lead">Fotografa recibos, confere valores e usa o relatório para o plano de saúde ou para o teu plano de
+        contas em casa.</p>
+      <p class="reemb-intro" id="reemb-summary">A carregar…</p>
 
-      <p class="reemb-analysis-note" id="reemb-analysis-note">
-        <strong>Importante:</strong> o Conta Mãe <strong>não envia</strong> documentos ao teu plano de saúde nem a terceiros.
-        O app <strong>recebe</strong> os teus recibos, <strong>organiza</strong> os dados e permite <strong>gerar um relatório
-        para imprimires</strong> — és <strong>tu</strong> quem entrega o papel ao <strong>convénio</strong> ou ao
-        <strong>genitor</strong>, quando for preciso.
-      </p>
+      <nav class="reemb-hub" aria-label="Atalhos úteis">
+        <a href="scanner.html" class="reemb-hub__tile">
+          <span class="reemb-hub__tile-title">Foto do recibo</span>
+          <span class="reemb-hub__tile-sub">Despesa ou consulta</span>
+        </a>
+        <a href="#reemb-report-block" class="reemb-hub__tile">
+          <span class="reemb-hub__tile-title">Relatório</span>
+          <span class="reemb-hub__tile-sub">Imprimir ou guardar</span>
+        </a>
+        <a href="agenda.html" class="reemb-hub__tile">
+          <span class="reemb-hub__tile-title">Consultas</span>
+          <span class="reemb-hub__tile-sub">Retornos e datas</span>
+        </a>
+        <a href="community.html" class="reemb-hub__tile">
+          <span class="reemb-hub__tile-title">Receitas &amp; dicas</span>
+          <span class="reemb-hub__tile-sub">Na comunidade</span>
+        </a>
+      </nav>
 
-      <button type="button" class="reemb-report-btn" id="btn-reemb-print-report">
-        Gerar relatório para imprimir
-      </button>
-      <p class="reemb-report-hint" id="reemb-report-hint">O relatório lista só pedidos com OK em Pendentes. Junta o papel aos
-        recibos antes de enviar ao plano ou genitor.</p>
+      <a href="#reemb-affiliate-heading" class="reemb-affiliate-jump">Indicação &amp; comissão</a>
+
+      <details class="reemb-details">
+        <summary>Quem envia os papéis ao plano?</summary>
+        <div class="reemb-details__body">
+          <p>O Conta Mãe <strong>não envia</strong> nada por ti. Tu fotografas, confirmas os dados e geras o relatório; a
+            entrega ao convénio ou genitor é sempre tua.</p>
+        </div>
+      </details>
+
+      <div class="reemb-report-block" id="reemb-report-block">
+        <button type="button" class="reemb-report-btn" id="btn-reemb-print-report">Imprimir relatório</button>
+        <p class="reemb-report-hint" id="reemb-report-hint">Só entram itens com OK em «A conferir». Junta o papel aos recibos
+          originais.</p>
+      </div>
 
       <section class="reemb-section" aria-labelledby="reemb-pending-heading">
-        <h2 class="reemb-section__title" id="reemb-pending-heading">Pendentes</h2>
-        <p class="reemb-empty" id="reemb-pending-empty" hidden>Quando escaneares ou enviares um recibo pelo painel, ele
-          aparece aqui primeiro. Confere valor, data e prestador e toca em <strong>Tudo certo — incluir no relatório</strong>
-          para o mover à secção de baixo.</p>
+        <h2 class="reemb-section__title" id="reemb-pending-heading">A conferir</h2>
+        <p class="reemb-empty" id="reemb-pending-empty" hidden>Novo scan aparece aqui. Confere data, valor e prestador e toca
+          em <strong>Incluir no relatório</strong> quando estiver certo.</p>
         <ul class="reemb-list" id="reemb-pending-list" role="list"></ul>
       </section>
 
       <section class="reemb-section" aria-labelledby="reemb-sent-heading">
-        <h2 class="reemb-section__title" id="reemb-sent-heading">Registados (relatório)</h2>
-        <p class="reemb-sent-hint" id="reemb-sent-hint">
-          Só entram aqui os pedidos em que deste <strong>OK em Pendentes</strong> (após conferir o scan). Estes entram no
-          <strong>relatório para impressão</strong> — a entrega ao plano ou ao genitor é sempre feita por ti. Se enganares,
-          podes <strong>voltar para Pendentes</strong> no próprio cartão.
-        </p>
-        <p class="reemb-empty" id="reemb-sent-empty" hidden>Ainda não há pedidos nesta lista.</p>
+        <h2 class="reemb-section__title" id="reemb-sent-heading">No relatório</h2>
+        <p class="reemb-sent-hint" id="reemb-sent-hint">Itens que já confirmaste — entram no PDF. No cartão podes <strong>voltar
+            a conferir</strong> se precisares.</p>
+        <p class="reemb-empty" id="reemb-sent-empty" hidden>Nada aqui ainda.</p>
         <ul class="reemb-list" id="reemb-sent-list" role="list"></ul>
       </section>
 
       <section class="reemb-section reemb-section--affiliate" aria-labelledby="reemb-affiliate-heading">
-        <h2 class="reemb-section__title" id="reemb-affiliate-heading">Indicações e comissão</h2>
+        <h2 class="reemb-section__title" id="reemb-affiliate-heading">Indicação</h2>
         <p class="reemb-affiliate__intro" id="reemb-affiliate-status">
-          Estamos a preparar o programa de parceiros. Já deixamos o teu link pronto para ativar.
+          Programa de parceiros em preparação — o teu link já fica guardado aqui.
         </p>
 
         <div class="reemb-affiliate__box">
@@ -97,10 +114,8 @@
             <input id="reemb-affiliate-link" class="reemb-affiliate__input" type="text" readonly value="" />
             <button type="button" class="reemb-affiliate__copy" id="btn-copy-affiliate-link">Copiar</button>
           </div>
-          <p class="reemb-affiliate__hint">
-            Comissão de <strong>3%</strong> sobre tudo o que as tuas indicadas <strong>diretas</strong> pagarem pelo app,
-            quando o programa estiver ativo e ligado a pagamentos.
-          </p>
+          <p class="reemb-affiliate__hint"><strong>3%</strong> sobre o que as tuas indicadas <strong>diretas</strong>
+            pagarem no app, quando o programa estiver ativo.</p>
         </div>
 
         <div class="reemb-affiliate__stats" aria-label="Resumo de comissão e rede">
@@ -148,7 +163,7 @@
           <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
           <circle cx="12" cy="13" r="4" />
         </svg>
-        Escanear novo recibo
+        Fotografar recibo
       </a>
     </footer>
   </div>

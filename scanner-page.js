@@ -562,7 +562,7 @@ async function main() {
 
         if (insErr) {
           console.warn('[scanner] refunds insert:', insErr.message);
-          showToast('Upload ok, mas falhou ao registar o pedido. Aplica a migração SQL dos reembolsos.');
+          showToast('Upload ok, mas falhou ao registar o recibo. Aplica a migração SQL dos refunds.');
           return;
         }
 

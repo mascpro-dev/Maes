@@ -146,6 +146,17 @@ a {
   -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 4px 24px rgba(42, 38, 32, 0.08);
   transition: transform 0.25s var(--ex-ease), box-shadow 0.25s ease;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.explore-back.aura-back {
+  text-decoration: none;
+  color: var(--ex-ink-soft);
+  outline: none;
 }
 
 .explore-back:hover,
