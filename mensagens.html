@@ -168,8 +168,26 @@
 
       <section class="dm-layout">
         <aside class="dm-users">
-          <h2>Conversar com</h2>
-          <div id="dm-users-list"></div>
+          <div class="dm-users__toolbar">
+            <div class="dm-users__title-row">
+              <h2 id="dm-users-heading" class="dm-users__title">Quem você segue</h2>
+              <span id="dm-users-count" class="dm-users__count" aria-live="polite"></span>
+            </div>
+            <label class="dm-users__search-label">
+              <span class="visually-hidden">Pesquisar pelo nome</span>
+              <input
+                type="search"
+                id="dm-users-filter"
+                class="dm-users__search"
+                placeholder="Pesquisar pelo nome…"
+                autocomplete="off"
+                enterkeyhint="search"
+              />
+            </label>
+          </div>
+          <div id="dm-users-scroll" class="dm-users__scroll" role="listbox" aria-labelledby="dm-users-heading">
+            <div id="dm-users-list" class="dm-users__list"></div>
+          </div>
         </aside>
 
         <section class="dm-chat">

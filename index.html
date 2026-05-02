@@ -204,15 +204,11 @@
       </div>
     </section>
 
-    <a id="daily-verse-link" class="verse-card verse-card--passage" href="#"
-      aria-haspopup="dialog" aria-controls="aura-bible-sheet" aria-expanded="false"
-      aria-labelledby="verse-heading daily-verse-ref"
-      title="Abre a Bíblia NVI-PT aqui na app (sem sair) — com opção de temas para mulheres.">
+    <section class="verse-card" id="daily-verse-card" aria-labelledby="verse-heading">
       <p class="verse-card__tag" id="verse-heading">Palavra para o seu dia</p>
       <blockquote class="verse-card__quote" id="daily-verse-text">«Carregando uma mensagem para você…»</blockquote>
       <cite class="verse-card__ref" id="daily-verse-ref"></cite>
-      <span class="verse-card__cta" aria-hidden="true">Abrir na Bíblia NVI (aqui na app)</span>
-    </a>
+    </section>
 
     <!-- ========== MURAL DE HISTÓRIAS ========== -->
     <section class="home-mural" id="mural-de-historias" aria-labelledby="mural-heading">
@@ -286,33 +282,7 @@
 
   </div><!-- /app-wrapper -->
 
-  <!-- Bíblia NVI dentro da app (iframe) -->
-  <div class="aura-bible-sheet" id="aura-bible-sheet" hidden aria-hidden="true">
-    <div class="aura-bible-sheet__backdrop" id="aura-bible-backdrop" aria-hidden="true"></div>
-    <div class="aura-bible-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="aura-bible-title"
-      id="aura-bible-panel">
-      <header class="aura-bible-sheet__head">
-        <button type="button" class="aura-bible-sheet__close" id="aura-bible-close" aria-label="Fechar Bíblia">✕</button>
-        <h2 class="aura-bible-sheet__title" id="aura-bible-title">Bíblia NVI</h2>
-        <div class="aura-bible-sheet__tabs" role="tablist" aria-label="Conteúdo">
-          <button type="button" class="aura-bible-sheet__tab aura-bible-sheet__tab--active" role="tab"
-            id="aura-bible-tab-passage" data-bible-tab="passage" aria-selected="true">Passagem do dia</button>
-          <button type="button" class="aura-bible-sheet__tab" role="tab" id="aura-bible-tab-women" data-bible-tab="women"
-            aria-selected="false">Para mulheres (NVI)</button>
-        </div>
-      </header>
-      <iframe class="aura-bible-sheet__frame" id="aura-bible-frame" title="Bíblia — Bible Gateway"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads"
-        loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-      <p class="aura-bible-sheet__foot">
-        Nova Versão Internacional (NVI-PT) via Bible Gateway. Se a página não aparecer, o site pode bloquear vista
-        incorporada — nesse caso use o menu do telemóvel “Abrir no browser” sobre a página.
-      </p>
-    </div>
-  </div>
-
   <script src="app.js"></script>
-  <script src="bible-in-app.js"></script>
   <script src="aura-app-bar.js"></script>
   <script src="aura-nav.js"></script>
   <script type="module" src="dashboard-supabase.js"></script>

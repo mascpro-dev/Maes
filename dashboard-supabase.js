@@ -185,12 +185,6 @@ function pickDailyVerse(profile) {
   return DAILY_VERSES[idx];
 }
 
-/** Passagem na NVI-PT (Bible Gateway) — mesma tradução das edições de estudo «Bíblia da Mulher» (NVI). */
-function bibleGatewayNviUrl(ref) {
-  const q = encodeURIComponent(String(ref || '').trim());
-  return `https://www.biblegateway.com/passage/?search=${q}&version=NVI-PT`;
-}
-
 function greetingForHour() {
   const h = new Date().getHours();
   if (h < 12) return 'Bom dia';
@@ -373,20 +367,12 @@ async function hydrateDashboardContext(supabase, userId) {
     if (cdLabel) cdLabel.textContent = '';
   }
 
-  const verseLink = document.getElementById('daily-verse-link');
   const verseQuote = document.getElementById('daily-verse-text');
   const verseRefEl = document.getElementById('daily-verse-ref');
   if (verseQuote && verseRefEl) {
     const v = pickDailyVerse(profile);
     verseQuote.textContent = `"${v.text}"`;
     verseRefEl.textContent = v.ref;
-    if (verseLink) {
-      verseLink.dataset.bibleUrl = bibleGatewayNviUrl(v.ref);
-      verseLink.setAttribute(
-        'aria-label',
-        `Abrir ${v.ref} na Nova Versão Internacional dentro da app Aura`
-      );
-    }
   }
 
   const tipEl = document.getElementById('tip-text');
