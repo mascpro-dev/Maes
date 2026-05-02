@@ -82,6 +82,23 @@ a { text-decoration: none; }
 
 .hidden { display: none !important; }
 
+.app-wrapper--scanner {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100dvh;
+  background: var(--cam-bg);
+  align-items: stretch;
+}
+
+.app-wrapper--scanner .app-shell {
+  flex: 1;
+  min-height: 0;
+  max-width: var(--app-max-w);
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
 /* ── App Shell ───────────────────────────────────────────── */
 .app-shell {
   width: 100%;
@@ -907,4 +924,24 @@ a { text-decoration: none; }
     border-right: 1px solid var(--cam-border);
     box-shadow: 0 0 60px rgba(0,0,0,.5);
   }
+}
+
+/* Navegação global (barra inferior): espaço por baixo no telemóvel */
+@media (max-width: 767px) {
+  .app-wrapper--scanner:has(> .bottom-nav.bottom-nav--five) .app-shell {
+    padding-bottom: var(--nav-h, 80px);
+  }
+}
+
+.scan-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.btn-back.aura-back {
+  text-decoration: none;
+  color: var(--white);
+  outline: none;
 }

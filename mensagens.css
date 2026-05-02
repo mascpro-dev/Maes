@@ -5,10 +5,17 @@ body {
   color: #2f2b27;
 }
 
+.app-wrapper--mensagens {
+  max-width: min(980px, 100%);
+}
+
 .dm-shell {
+  width: 100%;
   max-width: 980px;
   margin: 0 auto;
-  padding: 20px 14px 30px;
+  padding: 20px 14px 12px;
+  flex: 1;
+  min-width: 0;
 }
 
 .dm-header {
@@ -16,6 +23,38 @@ body {
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 10px 12px;
+}
+
+.dm-header--aura {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.dm-header--aura .dm-header__title {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.dm-back {
+  flex-shrink: 0;
+  padding: 8px 4px 8px 0;
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #7a9e7e;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dm-back.aura-back {
+  text-decoration: none;
+  background: none;
+  border: none;
 }
 
 .dm-header .dm-header__title {

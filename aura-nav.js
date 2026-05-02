@@ -5,7 +5,13 @@
   function normPage() {
     let p = (location.pathname || "").split("/").pop() || "index.html";
     if (!p || p === "") p = "index.html";
-    return p.toLowerCase();
+    p = p.toLowerCase();
+    /* Secções que partilham o mesmo destaque que outra rota */
+    if (p === "perfil-usuario.html") p = "community.html";
+    if (p === "especialista-agenda.html") p = "especialistas.html";
+    if (p === "scanner.html" || p === "indicados.html") p = "reembolsos.html";
+    if (p === "mensagens.html") p = "community.html";
+    return p;
   }
 
   function matchHref(href, page) {

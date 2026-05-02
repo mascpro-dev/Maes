@@ -19,10 +19,17 @@ body {
   min-height: 100dvh;
 }
 
+.app-wrapper--pu-user {
+  max-width: min(440px, 100%);
+}
+
 .pu-shell {
+  width: 100%;
   max-width: 440px;
   margin: 0 auto;
-  padding: 16px 18px 32px;
+  padding: 16px 18px 12px;
+  flex: 1;
+  min-width: 0;
 }
 
 .pu-header {
@@ -31,6 +38,20 @@ body {
   align-items: center;
   gap: 10px 12px;
   margin-bottom: 20px;
+}
+
+.pu-header--aura {
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.pu-header--aura .pu-title {
+  flex: 1;
+  text-align: center;
+  margin: 0;
+  min-width: 0;
 }
 
 .pu-header__brand {
@@ -55,6 +76,17 @@ body {
   font-weight: 700;
   text-decoration: none;
   font-size: 0.95rem;
+  flex-shrink: 0;
+  padding: 4px 4px 4px 0;
+  font: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pu-back.aura-back {
+  color: var(--pu-sage);
 }
 
 .pu-title {

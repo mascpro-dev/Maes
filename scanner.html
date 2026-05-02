@@ -8,7 +8,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
   <link rel="stylesheet" href="scanner.css" />
+  <link rel="stylesheet" href="aura-layout.css" />
   <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" sizes="any" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="apple-touch-icon" href="assets/branding/logohorizontal.svg" />
@@ -23,13 +25,51 @@
   <script src="auth.js"></script>
   <script type="module" src="auth-session-guard.js"></script>
 
-  <div class="app-shell">
+  <div class="app-wrapper app-wrapper--scanner">
+
+    <aside class="aura-rail" aria-label="Menu principal">
+      <a href="index.html" class="aura-rail__brand" aria-label="CONTA MÃE — início">
+        <img src="assets/branding/logohorizontal.svg" alt="" width="180" height="34" decoding="async" />
+      </a>
+      <nav class="aura-rail__nav">
+        <a href="index.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Início
+        </a>
+        <a href="agenda.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Compromissos
+        </a>
+        <a href="reembolsos.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Finanças
+        </a>
+        <a href="especialistas.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4.5 12.5c0-3 2.5-5.5 5.5-6.5"/><path d="M19.5 12.5c0-3-2.5-5.5-5.5-6.5"/><path d="M8 12h8"/><circle cx="12" cy="7" r="2"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+          Especialistas
+        </a>
+        <a href="community.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Comunidade
+        </a>
+        <a href="diario-evolucao.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          Diário
+        </a>
+        <a href="perfil.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Perfil
+        </a>
+      </nav>
+    </aside>
+
+    <div class="app-shell">
 
     <!-- ══ HEADER ══════════════════════════════════════════ -->
     <header class="scan-header" role="banner">
-      <a href="index.html" class="btn-back" id="btn-back" aria-label="Voltar ao Dashboard">
+      <button type="button" class="btn-back aura-back" id="btn-back" data-back-fallback="reembolsos.html" aria-label="Voltar">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-      </a>
+      </button>
       <div class="header-center">
         <a href="index.html" class="scan-header__brand" aria-label="CONTA MÃE — início">
           <img src="assets/branding/logohorizontal.svg" alt="" width="112" height="21" decoding="async" />
@@ -40,10 +80,20 @@
         </span>
         <h1 class="header-title">Escanear Recibo</h1>
       </div>
-      <button class="btn-flash" id="btn-flash" aria-label="Ativar flash" aria-pressed="false">
-        <svg id="icon-flash-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        <svg id="icon-flash-on"  width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="display:none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-      </button>
+      <div class="scan-header__actions">
+        <button class="btn-flash" id="btn-flash" aria-label="Ativar flash" aria-pressed="false">
+          <svg id="icon-flash-off" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <svg id="icon-flash-on"  width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="display:none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </button>
+        <div class="aura-mobile-more-wrap">
+          <button type="button" class="aura-nav-more-btn" aria-label="Mais secções do menu" aria-expanded="false"
+            aria-haspopup="true">⋯</button>
+          <div class="aura-nav-more-panel" hidden>
+            <a href="reembolsos.html">Finanças</a>
+            <a href="diario-evolucao.html">Diário</a>
+          </div>
+        </div>
+      </div>
     </header>
 
     <!-- ══ INSTRUCTION BAR ══════════════════════════════════ -->
@@ -241,13 +291,74 @@
       </div>
     </div>
 
-  </div><!-- /app-shell -->
+    </div><!-- /app-shell -->
+
+    <nav class="bottom-nav bottom-nav--five" role="navigation" aria-label="Navegação principal">
+      <a href="index.html" class="sidebar-brand" aria-label="CONTA MÃE — início">
+        <span class="sidebar-brand__mark">
+          <img class="sidebar-brand__logo" src="assets/branding/logohorizontal.svg" alt="CONTA MÃE" width="200"
+            height="38" decoding="async" />
+        </span>
+      </a>
+      <a href="index.html" class="nav-btn" id="nav-home" aria-label="Home">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+        <span>Home</span>
+      </a>
+      <a href="agenda.html" class="nav-btn" id="nav-appointment" aria-label="Compromissos">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+        <span>Compromisso</span>
+      </a>
+      <a href="especialistas.html" class="nav-btn" id="nav-specialists" aria-label="Especialistas">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4.5 12.5c0-3 2.5-5.5 5.5-6.5" />
+          <path d="M19.5 12.5c0-3-2.5-5.5-5.5-6.5" />
+          <path d="M8 12h8" />
+          <circle cx="12" cy="7" r="2" />
+          <path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2" />
+        </svg>
+        <span class="nav-btn__long">Especialistas</span>
+      </a>
+      <a href="community.html" class="nav-btn" id="nav-community" aria-label="Comunidade">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+        <span>Comunidade</span>
+      </a>
+      <a href="perfil.html" class="nav-btn" id="nav-profile" aria-label="Perfil">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+        <span>Perfil</span>
+      </a>
+    </nav>
+
+  </div><!-- /app-wrapper -->
 
   <!-- INPUT OCULTO: abre câmera traseira do celular -->
   <input type="file" id="input-camera"  accept="image/*" capture="environment" style="display:none" aria-hidden="true" />
   <!-- INPUT OCULTO: abre galeria de fotos -->
   <input type="file" id="input-gallery" accept="image/*" style="display:none" aria-hidden="true" />
 
+  <script src="app.js"></script>
+  <script src="aura-nav.js"></script>
+  <script src="aura-back.js"></script>
   <script type="module" src="scanner-page.js"></script>
   <script src="pwa.js"></script>
 </body>

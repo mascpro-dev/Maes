@@ -2282,6 +2282,20 @@ a.btn-scan {
   padding-bottom: 100px;
 }
 
+.app-wrapper--reemb:has(> .bottom-nav.bottom-nav--five) {
+  padding-bottom: calc(var(--nav-h) + 56px + env(safe-area-inset-bottom, 0px));
+}
+
+.app-wrapper--reemb:has(> .bottom-nav.bottom-nav--five) .reemb-footer {
+  bottom: var(--nav-h);
+}
+
+@media (min-width: 768px) {
+  body.aura-has-rail .app-wrapper--reemb .reemb-footer {
+    bottom: 0;
+  }
+}
+
 /* Logo horizontal em cabeçalhos (reembolsos, etc.) */
 .reemb-header__logo-link {
   display: inline-flex;
@@ -2300,11 +2314,15 @@ a.btn-scan {
 }
 
 .reemb-header {
+  padding: 16px 20px 12px;
+  animation: fade-up .45s var(--ease) both;
+}
+
+.reemb-header__top {
   display: flex;
   align-items: flex-start;
   gap: 14px;
-  padding: 16px 20px 12px;
-  animation: fade-up .45s var(--ease) both;
+  width: 100%;
 }
 
 .reemb-header__back {
@@ -2320,6 +2338,17 @@ a.btn-scan {
   color: var(--ink-mid);
   box-shadow: var(--shadow-sm);
   transition: all var(--dur) var(--ease);
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.reemb-header__back.aura-back {
+  text-decoration: none;
+  color: var(--ink-mid);
+  outline: none;
 }
 
 .reemb-header__back:hover,

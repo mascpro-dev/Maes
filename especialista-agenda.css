@@ -1,29 +1,53 @@
-/* Página agenda médico — fora do .app-wrapper flex do style.css */
+/* Página agenda médico */
 body.specialist-agenda-page {
   display: block;
   overflow-x: hidden;
+}
+
+.app-wrapper--esp-agenda {
+  max-width: min(430px, 100%);
 }
 
 .esp-agenda-wrap {
   width: 100%;
   max-width: min(430px, 100%);
   margin: 0 auto;
-  padding: 20px max(16px, env(safe-area-inset-left, 0px)) 48px
+  padding: 20px max(16px, env(safe-area-inset-left, 0px)) 16px
     max(16px, env(safe-area-inset-right, 0px));
-  min-height: 100dvh;
   box-sizing: border-box;
+  flex: 1;
+  min-width: 0;
 }
 
 .esp-agenda-head {
   margin-bottom: 16px;
 }
 
+.esp-agenda-head__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
 .esp-agenda-back {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   font-size: 0.9rem;
   color: var(--ink-mid, #5a5550);
   text-decoration: none;
-  margin-bottom: 8px;
+  margin: 0;
+  padding: 0;
+  font: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.esp-agenda-back.aura-back {
+  color: var(--ink-mid, #5a5550);
 }
 
 .esp-agenda-back:hover {
