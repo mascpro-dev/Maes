@@ -810,10 +810,10 @@
   box-sizing: border-box;
 }
 
-/* Entre “Termos” e o resto dos links */
+/* Último bloco da coluna (após todos os links), antes do “Sair” */
 .perfil-completion--sidebar {
   flex-shrink: 0;
-  margin: 8px 0;
+  margin: 12px 0 0;
   padding: 14px 10px;
   border-radius: 14px;
   border: 1px solid rgba(45, 42, 38, 0.08);
