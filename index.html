@@ -207,11 +207,11 @@
     <a id="daily-verse-link" class="verse-card verse-card--passage" href="#"
       aria-haspopup="dialog" aria-controls="aura-bible-sheet" aria-expanded="false"
       aria-labelledby="verse-heading daily-verse-ref"
-      title="Abre a passagem do dia aqui na app (texto via internet) — opção de temas para mulheres no browser.">
+      title="Abre a Bíblia NVI-PT aqui na app (sem sair) — com opção de temas para mulheres.">
       <p class="verse-card__tag" id="verse-heading">Palavra para o seu dia</p>
       <blockquote class="verse-card__quote" id="daily-verse-text">«Carregando uma mensagem para você…»</blockquote>
       <cite class="verse-card__ref" id="daily-verse-ref"></cite>
-      <span class="verse-card__cta" aria-hidden="true">Abrir a passagem (aqui na app)</span>
+      <span class="verse-card__cta" aria-hidden="true">Abrir na Bíblia NVI (aqui na app)</span>
     </a>
 
     <!-- ========== MURAL DE HISTÓRIAS ========== -->
@@ -286,42 +286,27 @@
 
   </div><!-- /app-wrapper -->
 
-  <!-- Bíblia: texto carregado na app (API JSON + CORS), sem iframe -->
+  <!-- Bíblia NVI dentro da app (iframe) -->
   <div class="aura-bible-sheet" id="aura-bible-sheet" hidden aria-hidden="true">
     <div class="aura-bible-sheet__backdrop" id="aura-bible-backdrop" aria-hidden="true"></div>
     <div class="aura-bible-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="aura-bible-title"
       id="aura-bible-panel">
       <header class="aura-bible-sheet__head">
         <button type="button" class="aura-bible-sheet__close" id="aura-bible-close" aria-label="Fechar Bíblia">✕</button>
-        <h2 class="aura-bible-sheet__title" id="aura-bible-title">Bíblia — passagem</h2>
+        <h2 class="aura-bible-sheet__title" id="aura-bible-title">Bíblia NVI</h2>
         <div class="aura-bible-sheet__tabs" role="tablist" aria-label="Conteúdo">
           <button type="button" class="aura-bible-sheet__tab aura-bible-sheet__tab--active" role="tab"
             id="aura-bible-tab-passage" data-bible-tab="passage" aria-selected="true">Passagem do dia</button>
           <button type="button" class="aura-bible-sheet__tab" role="tab" id="aura-bible-tab-women" data-bible-tab="women"
-            aria-selected="false">Temas — mulheres</button>
+            aria-selected="false">Para mulheres (NVI)</button>
         </div>
       </header>
-      <div class="aura-bible-sheet__body">
-        <div class="aura-bible-sheet__pane" id="aura-bible-pane-passage" role="tabpanel"
-          aria-labelledby="aura-bible-tab-passage">
-          <p class="aura-bible-sheet__status" id="aura-bible-status" hidden></p>
-          <div class="aura-bible-sheet__reader" id="aura-bible-reader" tabindex="0"></div>
-        </div>
-        <div class="aura-bible-sheet__pane" id="aura-bible-pane-women" role="tabpanel" hidden
-          aria-labelledby="aura-bible-tab-women">
-          <p class="aura-bible-sheet__women-lead">
-            A pesquisa temática abre o Bible Gateway <strong>num separador do browser</strong> (muitos sites bloqueiam
-            vista incorporada).
-          </p>
-          <a class="aura-bible-sheet__external" id="aura-bible-women-link" href="#" target="_blank" rel="noopener noreferrer">
-            Abrir pesquisa «mulher» — NVI-PT
-          </a>
-        </div>
-      </div>
+      <iframe class="aura-bible-sheet__frame" id="aura-bible-frame" title="Bíblia — Bible Gateway"
+        sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads"
+        loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
       <p class="aura-bible-sheet__foot">
-        Texto da passagem: <strong>Almeida Atualizada</strong> (projeto getBible). O cartão do dia resume a NVI; o texto
-        completo aqui segue outra tradução livremente disponível na API.
-        <a class="aura-bible-sheet__foot-link" id="aura-bible-nvi-link" href="#" target="_blank" rel="noopener noreferrer">Comparar na NVI-PT (browser)</a>
+        Nova Versão Internacional (NVI-PT) via Bible Gateway. Se a página não aparecer, o site pode bloquear vista
+        incorporada — nesse caso use o menu do telemóvel “Abrir no browser” sobre a página.
       </p>
     </div>
   </div>

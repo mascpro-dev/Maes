@@ -381,11 +381,10 @@ async function hydrateDashboardContext(supabase, userId) {
     verseQuote.textContent = `"${v.text}"`;
     verseRefEl.textContent = v.ref;
     if (verseLink) {
-      verseLink.dataset.bibleRef = v.ref;
       verseLink.dataset.bibleUrl = bibleGatewayNviUrl(v.ref);
       verseLink.setAttribute(
         'aria-label',
-        `Abrir ${v.ref} na app — texto completo (Almeida via internet); NVI no browser opcional`
+        `Abrir ${v.ref} na Nova Versão Internacional dentro da app Aura`
       );
     }
   }

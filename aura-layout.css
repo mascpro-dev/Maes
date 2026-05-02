@@ -692,7 +692,7 @@ button.comm-header__dropdown-item {
   border-radius: 8px;
 }
 
-/* ── Bíblia na app (leitor + fetch JSON; sem iframe) ─────── */
+/* ── Bíblia NVI dentro da app (iframe) ───────────────────── */
 .aura-bible-sheet {
   position: fixed;
   inset: 0;
@@ -810,98 +810,12 @@ button.comm-header__dropdown-item {
   outline-offset: 2px;
 }
 
-.aura-bible-sheet__body {
+.aura-bible-sheet__frame {
   flex: 1 1 auto;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  width: 100%;
+  border: none;
   background: var(--white, #fff);
-}
-
-.aura-bible-sheet__pane {
-  flex: 1 1 auto;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.aura-bible-sheet__status {
-  margin: 0;
-  padding: 10px 14px 0;
-  font-size: 0.8rem;
-  color: var(--ink-mid, #5a5550);
-}
-
-.aura-bible-sheet__status--error {
-  color: #a63d3d;
-}
-
-.aura-bible-sheet__reader {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 12px 16px 16px;
-  font-family: var(--font-body, "Source Sans 3", system-ui, sans-serif);
-  font-size: 0.95rem;
-  line-height: 1.55;
-  color: var(--ink, #2d2a26);
-}
-
-.aura-bible-sheet__ref-heading {
-  margin: 0 0 14px;
-  font-family: var(--font-serif, "DM Serif Display", Georgia, serif);
-  font-size: 1.05rem;
-  font-weight: 400;
-  color: var(--terracotta, #c47a5b);
-}
-
-.aura-bible-sheet__verse {
-  margin: 0 0 12px;
-}
-
-.aura-bible-sheet__verse sup {
-  font-size: 0.65em;
-  font-weight: 700;
-  color: var(--sage, #7a9e7e);
-  margin-right: 2px;
-}
-
-.aura-bible-sheet__women-lead {
-  margin: 0;
-  padding: 14px 16px 10px;
-  font-size: 0.88rem;
-  line-height: 1.5;
-  color: var(--ink-mid, #5a5550);
-}
-
-.aura-bible-sheet__external {
-  display: inline-block;
-  margin: 0 16px 16px;
-  padding: 12px 16px;
-  border-radius: 14px;
-  background: rgba(122, 158, 126, 0.16);
-  border: 1.5px solid rgba(122, 158, 126, 0.45);
-  color: var(--ink, #2d2a26);
-  font-weight: 600;
-  font-size: 0.85rem;
-  text-decoration: none;
-}
-
-.aura-bible-sheet__external:hover,
-.aura-bible-sheet__external:focus-visible {
-  background: rgba(122, 158, 126, 0.26);
-  outline: 2px solid var(--sage, #7a9e7e);
-  outline-offset: 2px;
-}
-
-.aura-bible-sheet__foot-link {
-  display: inline-block;
-  margin-top: 6px;
-  font-weight: 600;
-  color: var(--terracotta, #c47a5b);
 }
 
 .aura-bible-sheet__foot {
