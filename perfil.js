@@ -88,29 +88,28 @@ async function loadPublicTerms(supabase) {
   }
 }
 
-function applyPerfilRoute(supabase) {
+function applyPerfilRoute() {
   const hash = (window.location.hash || '').toLowerCase();
   const isTerms = hash === '#termos';
   const content = document.getElementById('perfil-content');
-  const termsPanel = document.getElementById('perfil-terms-panel');
   const title = document.querySelector('.perfil-dash__title');
   const completion = document.querySelector('.perfil-completion');
   const linkDados = document.getElementById('perfil-sidebar-dados');
   const linkTermos = document.getElementById('perfil-sidebar-termos');
-  if (!content || !termsPanel) return;
+  const termosSection = document.getElementById('termos');
+  if (!content) return;
+  content.hidden = false;
   if (isTerms) {
-    content.hidden = true;
-    termsPanel.hidden = false;
     if (title) title.textContent = 'Termos e condições';
     if (completion) completion.hidden = true;
     linkDados?.classList.remove('perfil-sidebar__link--active');
     linkDados?.removeAttribute('aria-current');
     linkTermos?.classList.add('perfil-sidebar__link--active');
     linkTermos?.setAttribute('aria-current', 'page');
-    if (supabase) loadPublicTerms(supabase);
+    requestAnimationFrame(() => {
+      termosSection?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   } else {
-    content.hidden = false;
-    termsPanel.hidden = true;
     if (title) title.textContent = 'Editar perfil';
     if (completion) completion.hidden = false;
     linkTermos?.classList.remove('perfil-sidebar__link--active');
@@ -451,8 +450,9 @@ function renderProfile(profile, children) {
   };
 
   renderProfile(merged, children || []);
-  applyPerfilRoute(supabase);
-  window.addEventListener('hashchange', () => applyPerfilRoute(supabase));
+  applyPerfilRoute();
+  void loadPublicTerms(supabase);
+  window.addEventListener('hashchange', () => applyPerfilRoute());
 
   try {
     const { data: linkedSpecId, error: linkErr } = await supabase.rpc('my_specialist_id');

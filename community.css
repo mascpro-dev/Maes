@@ -39,7 +39,7 @@
   --dur: 0.28s;
 
   --app-max-w: 430px;
-  --nav-h: 80px;
+  --nav-h: 96px;
 }
 
 *, *::before, *::after {
@@ -83,7 +83,7 @@ button {
   min-height: 100dvh;
   position: relative;
   padding-bottom: calc(var(--nav-h) + 12px);
-  overflow-x: hidden;
+  overflow: visible;
 }
 
 /* ── Header + chips ─────────────────────────────────────── */
@@ -171,7 +171,8 @@ button {
   min-width: 0;
 }
 
-.comm-header__menu-wrap--open .btn-header-icon#btn-comm-menu {
+.comm-header__menu-wrap--open .btn-header-icon#aura-btn-overflow,
+.aura-menu-wrap--open .btn-header-icon#aura-btn-overflow {
   border-color: var(--sage-light);
   color: var(--sage);
 }
@@ -1363,8 +1364,8 @@ button.nav-btn {
 }
 
 .nav-btn svg {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   stroke: currentColor;
   stroke-width: 1.8;
 }
@@ -1412,7 +1413,7 @@ button.nav-btn {
     margin-right: auto;
   }
 
-  .app-shell:has(> .bottom-nav.bottom-nav--five) {
+  .app-shell:has(> .bottom-nav.bottom-nav--four) {
     padding-bottom: calc(var(--nav-h) + 56px);
   }
 

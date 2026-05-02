@@ -198,6 +198,11 @@ a {
   animation: spark-twinkle 3s ease-in-out infinite;
 }
 
+.explore-header .aura-app-actions {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
 @keyframes spark-twinkle {
   50% {
     opacity: 1;

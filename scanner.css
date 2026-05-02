@@ -928,7 +928,7 @@ a { text-decoration: none; }
 
 /* Navegação global (barra inferior): espaço por baixo no telemóvel */
 @media (max-width: 767px) {
-  .app-wrapper--scanner:has(> .bottom-nav.bottom-nav--five) .app-shell {
+  .app-wrapper--scanner:has(> .bottom-nav.bottom-nav--four) .app-shell {
     padding-bottom: var(--nav-h, 80px);
   }
 }

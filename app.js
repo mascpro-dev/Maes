@@ -527,13 +527,15 @@ let auraAppointmentCountdownTimer = null;
 
 /* ── Sair (logout) ─────────────────────────────────────── */
 (function initLogout() {
-  const btn = document.getElementById('btn-logout');
-  if (!btn || typeof window.AuraAuth === 'undefined') return;
-
-  btn.addEventListener('click', () => {
-    if (navigator.vibrate) navigator.vibrate(25);
-    window.AuraAuth.logout();
-  });
+  function bindLogout(btn) {
+    if (!btn || typeof window.AuraAuth === "undefined") return;
+    btn.addEventListener("click", () => {
+      if (navigator.vibrate) navigator.vibrate(25);
+      window.AuraAuth.logout();
+    });
+  }
+  bindLogout(document.getElementById("btn-logout"));
+  bindLogout(document.getElementById("btn-logout-rail"));
 })();
 
 /* ── Toast Utility ──────────────────────────────────────── */

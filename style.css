@@ -48,7 +48,7 @@ html.aura-auth-checking .app-wrapper {
 
   /* App dimensions */
   --app-max-w:  430px;
-  --nav-h:      80px;
+  --nav-h:      96px;
 
   /* Fontes */
   --font-sans:   'DM Sans', system-ui, sans-serif;
@@ -87,6 +87,13 @@ body {
     radial-gradient(ellipse 600px 500px at -10% 90%, rgba(226, 114, 91, 0.09) 0%, transparent 70%);
 }
 
+@media (max-width: 767px) {
+  html,
+  body {
+    overflow-x: hidden;
+  }
+}
+
 button {
   font-family: var(--font-sans);
   cursor: pointer;
@@ -104,7 +111,8 @@ button {
   flex-direction: column;
   position: relative;
   padding-bottom: calc(var(--nav-h) + 16px);
-  overflow: hidden;
+  /* Não usar overflow:hidden: em iOS/Android fixa bottom-nav / rodapés ao scroll do conteúdo */
+  overflow: visible;
 }
 
 /* ── Faixa pós-onboarding (Comunidade / salas) ───────────── */
@@ -1307,8 +1315,8 @@ a.btn-scan {
 }
 
 .nav-btn svg {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   flex-shrink: 0;
   stroke: currentColor;
   stroke-width: 1.8;
@@ -1321,7 +1329,7 @@ a.btn-scan {
   top: 4px;
   left: 50%;
   transform: translateX(-50%) scale(0);
-  width: 24px;
+  width: 28px;
   height: 3px;
   border-radius: 3px;
   background: var(--ink);
@@ -1488,7 +1496,7 @@ a.btn-scan {
 }
 
 /* Diário + barra com 5 ícones: nav mais alta (duas filas em telemóvel) */
-.app-wrapper--diario:has(> .bottom-nav.bottom-nav--five) {
+.app-wrapper--diario:has(> .bottom-nav.bottom-nav--four) {
   padding-bottom: calc(var(--nav-h) + 104px + 52px);
 }
 
@@ -1810,10 +1818,14 @@ a.btn-scan {
 /* FAB + menu */
 .diario-fab-backdrop {
   position: fixed;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
   max-width: var(--app-max-w);
-  left: 50%;
-  transform: translateX(-50%);
+  margin-left: auto;
+  margin-right: auto;
   background: rgba(45,42,38,.25);
   z-index: 180;
   backdrop-filter: blur(2px);
@@ -1920,10 +1932,12 @@ a.btn-scan {
 .diario-report-bar {
   position: fixed;
   bottom: var(--nav-h);
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
   width: 100%;
   max-width: var(--app-max-w);
+  margin-left: auto;
+  margin-right: auto;
   padding: 10px 20px 12px;
   background: rgba(250,246,239,.94);
   backdrop-filter: blur(16px) saturate(180%);
@@ -1938,13 +1952,13 @@ a.btn-scan {
  * Sem este offset, "Gerar relatório" fica por cima do menu.
  */
 @media (max-width: 767px) {
-  .app-wrapper--diario:has(> .bottom-nav.bottom-nav--five) .diario-report-bar,
+  .app-wrapper--diario:has(> .bottom-nav.bottom-nav--four) .diario-report-bar,
   .app-wrapper--diario:has(> .bottom-nav.bottom-nav--six) .diario-report-bar,
   .app-wrapper--diario:has(> .bottom-nav.bottom-nav--seven) .diario-report-bar {
     bottom: calc(var(--nav-h) + 58px + env(safe-area-inset-bottom, 0px));
   }
 
-  .app-wrapper--diario:has(> .bottom-nav.bottom-nav--five) .diario-fab-stack,
+  .app-wrapper--diario:has(> .bottom-nav.bottom-nav--four) .diario-fab-stack,
   .app-wrapper--diario:has(> .bottom-nav.bottom-nav--six) .diario-fab-stack,
   .app-wrapper--diario:has(> .bottom-nav.bottom-nav--seven) .diario-fab-stack {
     bottom: calc(var(--nav-h) + 58px + 86px + env(safe-area-inset-bottom, 0px));
@@ -2282,11 +2296,11 @@ a.btn-scan {
   padding-bottom: 100px;
 }
 
-.app-wrapper--reemb:has(> .bottom-nav.bottom-nav--five) {
+.app-wrapper--reemb:has(> .bottom-nav.bottom-nav--four) {
   padding-bottom: calc(var(--nav-h) + 56px + env(safe-area-inset-bottom, 0px));
 }
 
-.app-wrapper--reemb:has(> .bottom-nav.bottom-nav--five) .reemb-footer {
+.app-wrapper--reemb:has(> .bottom-nav.bottom-nav--four) .reemb-footer {
   bottom: var(--nav-h);
 }
 
@@ -2361,6 +2375,12 @@ a.btn-scan {
 .reemb-header__titles {
   flex: 1;
   min-width: 0;
+}
+
+.reemb-header__top .aura-app-actions {
+  margin-left: auto;
+  flex-shrink: 0;
+  align-self: flex-start;
 }
 
 .reemb-header__eyebrow {
@@ -2957,10 +2977,12 @@ a.btn-scan {
 .reemb-footer {
   position: fixed;
   bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
   width: 100%;
   max-width: var(--app-max-w);
+  margin-left: auto;
+  margin-right: auto;
   padding: 14px 20px calc(14px + env(safe-area-inset-bottom, 0));
   background: rgba(250,246,239,.94);
   backdrop-filter: blur(16px);
