@@ -215,7 +215,7 @@ async function hydrateDashboardContext(supabase, userId) {
   const { data: profile, error: pErr } = await supabase
     .from('profiles')
     .select(
-      'full_name, email, phone, onboarding_challenges, avatar_url, bio, nome_crianca, next_appointment_at, next_appointment_title, next_appointment_location'
+      'full_name, email, phone, cidade, estado, onboarding_challenges, avatar_url, bio, nome_crianca, next_appointment_at, next_appointment_title, next_appointment_location'
     )
     .eq('id', userId)
     .maybeSingle();
@@ -262,6 +262,8 @@ async function hydrateDashboardContext(supabase, userId) {
     if (profile.full_name) patch.nomeCompleto = profile.full_name;
     if (profile.email) patch.email = profile.email;
     if (profile.phone != null && profile.phone !== '') patch.phone = profile.phone;
+    if (profile.cidade != null && String(profile.cidade).trim() !== '') patch.cidade = String(profile.cidade).trim();
+    if (profile.estado != null && String(profile.estado).trim() !== '') patch.estado = String(profile.estado).trim().toUpperCase().slice(0, 2);
     if (profile.onboarding_challenges && profile.onboarding_challenges.length) {
       patch.onboardingChallenges = profile.onboarding_challenges;
     }

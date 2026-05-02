@@ -4,6 +4,12 @@
  */
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm';
 
+/** Bio mínima alinhada com Explorar / perfil (rede de apoio). */
+export const SIGNUP_MIN_BIO_LENGTH = 20;
+
+const AVATAR_BUCKET = 'avatars';
+const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
+
 export const SIGNUP_SCHEMA = {
   profiles: {
     table: 'profiles',
@@ -89,6 +95,98 @@ export async function getSessionUserId(client) {
     data: { session },
   } = await client.auth.getSession();
   return session?.user?.id || null;
+}
+
+function extFromAvatarFile(file) {
+  const t = (file.type || '').toLowerCase();
+  if (t.includes('png')) return 'png';
+  if (t.includes('webp')) return 'webp';
+  if (t.includes('gif')) return 'gif';
+  return 'jpg';
+}
+
+function validateAvatarFileForSignup(file) {
+  const t = (file.type || '').toLowerCase();
+  const ok = /^image\/(jpeg|jpg|png|webp|gif)$/i.test(t);
+  if (!ok) return { ok: false, message: 'Formato inválido. Usa JPG, PNG, WebP ou GIF.' };
+  if (file.size > AVATAR_MAX_BYTES) return { ok: false, message: 'A imagem deve ter no máximo 5 MB.' };
+  return { ok: true };
+}
+
+/**
+ * Valida cidade, UF, bio e ficheiro de avatar antes de concluir o cadastro (passo 3).
+ * @returns {{ ok: true, cidade: string, estado: string, bio: string } | { ok: false, message: string }}
+ */
+export function validateSignupProfileFields({ cidade, estado, bio, avatarFile }) {
+  const c = String(cidade ?? '').trim();
+  if (c.length < 2) return { ok: false, message: 'Indica a cidade.' };
+
+  const e = String(estado ?? '')
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z]/g, '')
+    .slice(0, 2);
+  if (e.length !== 2) {
+    return { ok: false, message: 'Indica o estado com 2 letras (UF), ex.: SP.' };
+  }
+
+  const b = String(bio ?? '').trim();
+  if (b.length < SIGNUP_MIN_BIO_LENGTH) {
+    return {
+      ok: false,
+      message: `Escreve uma bio com pelo menos ${SIGNUP_MIN_BIO_LENGTH} caracteres (para te apresentares na comunidade).`,
+    };
+  }
+
+  if (!avatarFile || !(avatarFile instanceof Blob)) {
+    return { ok: false, message: 'Escolhe uma foto de perfil.' };
+  }
+
+  const av = validateAvatarFileForSignup(avatarFile);
+  if (!av.ok) return av;
+
+  return { ok: true, cidade: c, estado: e, bio: b };
+}
+
+/**
+ * Storage público `avatars` → URL (sem gravar em profiles; uso em completeSignupStep3).
+ */
+export async function uploadSignupAvatarToStorage(client, userId, file) {
+  const av = validateAvatarFileForSignup(file);
+  if (!av.ok) return { ok: false, message: av.message };
+
+  const ext = extFromAvatarFile(file);
+  const path = `${userId}/avatar.${ext}`;
+  const { error: upErr } = await client.storage.from(AVATAR_BUCKET).upload(path, file, {
+    upsert: true,
+    cacheControl: '86400',
+    contentType: file.type || 'image/jpeg',
+  });
+
+  if (upErr) {
+    const m = String(upErr.message || '');
+    if (/bucket|not found|404/i.test(m)) {
+      return {
+        ok: false,
+        message:
+          'Bucket de fotos em falta. No Supabase, corre o SQL em supabase/COLE_STORAGE_AVATARS.sql (bucket avatars).',
+      };
+    }
+    if (/row-level security|RLS|policy|403|permission/i.test(m)) {
+      return {
+        ok: false,
+        message: 'Sem permissão para enviar a foto. Verifica as políticas do bucket avatars no Supabase.',
+      };
+    }
+    return { ok: false, message: 'Não foi possível enviar a foto: ' + m };
+  }
+
+  const { data: pub } = client.storage.from(AVATAR_BUCKET).getPublicUrl(path);
+  const base = pub?.publicUrl;
+  if (!base) return { ok: false, message: 'Upload ok mas falhou o URL público da foto.' };
+
+  const avatar_url = `${base.split('?')[0]}?v=${Date.now()}`;
+  return { ok: true, avatar_url };
 }
 
 /**
@@ -237,9 +335,12 @@ export async function signupStep2Child({ nome, dataNascimento, diagnosticos }) {
 }
 
 /**
- * Passo 3: desafios → profiles + support_network (tenta colunas alternativas).
+ * Passo 3: cidade, UF, bio, foto + desafios → profiles + support_network.
  */
-export async function signupStep3Challenges(challengeSlugs) {
+export async function completeSignupStep3({ challengeSlugs, cidade, estado, bio, avatarFile }) {
+  const v = validateSignupProfileFields({ cidade, estado, bio, avatarFile });
+  if (!v.ok) return v;
+
   const { client, error } = getSignupClient();
   if (error) return { ok: false, message: error };
 
@@ -248,15 +349,37 @@ export async function signupStep3Challenges(challengeSlugs) {
     return { ok: false, message: 'Sessão expirada. Entra de novo em login.html.' };
   }
 
+  const up = await uploadSignupAvatarToStorage(client, userId, avatarFile);
+  if (!up.ok) return up;
+
   const arr = Array.isArray(challengeSlugs) ? challengeSlugs : [];
+  if (!arr.length) {
+    return { ok: false, message: 'Escolhe pelo menos um desafio para personalizarmos a experiência.' };
+  }
+
   const P = SIGNUP_SCHEMA.profiles;
 
   const { error: pErr } = await client
     .from(P.table)
-    .update({ [P.onboardingChallenges]: arr })
+    .update({
+      cidade: v.cidade,
+      estado: v.estado,
+      bio: v.bio,
+      avatar_url: up.avatar_url,
+      [P.onboardingChallenges]: arr,
+    })
     .eq('id', userId);
 
-  if (pErr) return { ok: false, message: `profiles: ${pErr.message}` };
+  if (pErr) {
+    const msg = pErr.message || '';
+    return {
+      ok: false,
+      message:
+        msg.includes('column') || pErr.code === '42703'
+          ? 'Faltam colunas no perfil (cidade, estado, bio ou avatar_url). Corre os SQL em supabase (profiles).'
+          : `profiles: ${msg}`,
+    };
+  }
 
   const SN = SIGNUP_SCHEMA.supportNetwork;
   const snRow = { [SN.userId]: userId, [SN.challenges]: arr };
@@ -266,7 +389,13 @@ export async function signupStep3Challenges(challengeSlugs) {
   }
 
   if (typeof window.AuraAuth !== 'undefined') {
-    window.AuraAuth.saveProfile({ onboardingChallenges: arr });
+    window.AuraAuth.saveProfile({
+      cidade: v.cidade,
+      estado: v.estado,
+      bio: v.bio,
+      avatarUrl: up.avatar_url,
+      onboardingChallenges: arr,
+    });
     window.AuraAuth.setLoggedIn(true);
   }
 

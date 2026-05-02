@@ -64,14 +64,46 @@
           <div class="fluxo-progress__fill"></div>
         </div>
       </div>
-      <p class="fluxo-hint">Passo 3 de 3 — Personalização</p>
-      <h1 class="personalizacao-title" id="titulo-desafios">Quais os maiores desafios hoje?</h1>
+      <p class="fluxo-hint">Passo 3 de 3 — Perfil e personalização</p>
+      <h1 class="personalizacao-title" id="titulo-desafios">Perfil, foto e desafios</h1>
     </header>
 
     <main class="personalizacao-main" role="main">
       <div class="signup-msg signup-msg--error" id="signup-error" role="alert" hidden></div>
 
-      <form class="personalizacao-form" id="form-passo3" novalidate>
+      <form class="personalizacao-form" id="form-passo3">
+
+        <p class="chip-hint" id="hint-perfil-publico">
+          Cidade, estado (UF), bio e foto são obrigatórios — assim a comunidade e o Explorar mostram o teu perfil corretamente.
+        </p>
+
+        <div class="field">
+          <label class="field__label" for="cadastro-cidade">Cidade</label>
+          <input class="field__input" type="text" id="cadastro-cidade" name="cidade" required minlength="2"
+            maxlength="120" autocomplete="address-level2" placeholder="Ex.: Campinas" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cadastro-estado">Estado (UF)</label>
+          <input class="field__input" type="text" id="cadastro-estado" name="estado" required minlength="2"
+            maxlength="2" pattern="[a-zA-Z]{2}" autocomplete="address-level1" title="Duas letras, ex.: SP"
+            placeholder="Ex.: SP" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cadastro-bio">Bio</label>
+          <textarea class="field__input field__input--textarea" id="cadastro-bio" name="bio" required minlength="20"
+            maxlength="600" rows="4"
+            placeholder="Conta um pouco sobre ti e sobre o teu contexto como mãe atípica…"></textarea>
+          <span class="field__optional">Mínimo 20 caracteres (igual ao perfil / Explorar).</span>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="cadastro-avatar">Foto de perfil</label>
+          <input class="field__input field__input--file" type="file" id="cadastro-avatar" name="avatar" required
+            accept="image/jpeg,image/png,image/webp,image/gif" />
+          <span class="field__optional">JPG, PNG, WebP ou GIF — máx. 5 MB.</span>
+        </div>
 
         <fieldset class="chip-fieldset">
           <legend class="visually-hidden">Desafios atuais</legend>
@@ -120,7 +152,7 @@
   <script src="supabase-config.js"></script>
   <script src="auth.js"></script>
   <script type="module">
-    import { getSignupClient, getSessionUserId, signupStep3Challenges } from './signup-flow.js';
+    import { getSignupClient, getSessionUserId, completeSignupStep3 } from './signup-flow.js';
     import { persistWelcomeExperience } from './onboarding-inteligente.js';
 
     const errEl = document.getElementById('signup-error');
@@ -146,6 +178,10 @@
       e.preventDefault();
       errEl.hidden = true;
 
+      if (typeof form.reportValidity === 'function' && !form.reportValidity()) {
+        return;
+      }
+
       const fd = new FormData(form);
       const desafios = fd.getAll('desafio');
       if (!desafios.length) {
@@ -153,8 +189,20 @@
         return;
       }
 
+      const cidade = document.getElementById('cadastro-cidade').value;
+      const estado = document.getElementById('cadastro-estado').value;
+      const bio = document.getElementById('cadastro-bio').value;
+      const avatarInput = document.getElementById('cadastro-avatar');
+      const avatarFile = avatarInput && avatarInput.files && avatarInput.files[0] ? avatarInput.files[0] : null;
+
       btn.disabled = true;
-      const res = await signupStep3Challenges(desafios);
+      const res = await completeSignupStep3({
+        challengeSlugs: desafios,
+        cidade,
+        estado,
+        bio,
+        avatarFile,
+      });
       btn.disabled = false;
 
       if (!res.ok) {

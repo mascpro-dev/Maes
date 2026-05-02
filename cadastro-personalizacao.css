@@ -310,6 +310,17 @@ a {
   box-shadow: 0 0 0 3px var(--sage-ring), var(--shadow-soft);
 }
 
+textarea.field__input {
+  min-height: 120px;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+input.field__input[type='file'] {
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
 /* ── Botão final ─────────────────────────────────────────── */
 .btn-concluir {
   margin-top: 8px;

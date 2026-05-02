@@ -209,18 +209,53 @@
   object-fit: contain;
 }
 
+.perfil-sidebar__context {
+  width: 100%;
+  padding-bottom: 12px;
+  margin-bottom: 2px;
+  border-bottom: 1px solid rgba(45, 42, 38, 0.08);
+}
+
+.perfil-sidebar__context .perfil-dash__title,
+.perfil-sidebar__page-title {
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  margin: 0 0 8px;
+  line-height: 1.22;
+  letter-spacing: 0.02em;
+}
+
+.perfil-admin-entry--sidebar {
+  margin: 0;
+}
+
+.perfil-admin-entry--sidebar .perfil-admin-entry__hint {
+  font-size: 0.74rem;
+  line-height: 1.45;
+  margin-top: 6px;
+}
+
+.perfil-sidebar__nav-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 .perfil-sidebar__nav {
-  display: contents;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
 }
 
 @media (min-width: 768px) {
-  .perfil-sidebar__nav {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    flex: 1;
-    width: 100%;
+  .perfil-sidebar__nav-stack {
     margin-top: 8px;
+    min-height: 0;
   }
 }
 
@@ -253,11 +288,7 @@
     margin-top: 4px;
   }
 
-  .perfil-sidebar__nav {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: nowrap;
-    gap: 2px;
+  .perfil-sidebar__nav-stack {
     width: 100%;
   }
 
@@ -348,7 +379,7 @@
 }
 
 .perfil-dash__header {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .perfil-dash__back {
@@ -762,10 +793,10 @@
   box-sizing: border-box;
 }
 
-/* Widget na sidebar: compacto; situa-se depois dos links (resumo antes do rodapé / Sair) */
+/* Entre “Termos” e o resto dos links */
 .perfil-completion--sidebar {
   flex-shrink: 0;
-  margin-top: 10px;
+  margin: 8px 0;
   padding: 14px 10px;
   border-radius: 14px;
   border: 1px solid rgba(45, 42, 38, 0.08);

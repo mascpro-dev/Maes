@@ -95,7 +95,16 @@
             width="220" height="42" decoding="async" />
         </a>
 
-        <nav class="perfil-sidebar__nav">
+        <div class="perfil-sidebar__context">
+          <h1 class="perfil-dash__title perfil-sidebar__page-title" id="perfil-page-heading">Editar perfil</h1>
+          <p class="perfil-admin-entry perfil-admin-entry--sidebar">
+            <a href="admin.html" class="perfil-dash__back perfil-admin-entry__link">Painel admin</a>
+            <span class="perfil-admin-entry__hint">Especialistas, reservas e checkouts — só contas em aura_admins.</span>
+          </p>
+        </div>
+
+        <div class="perfil-sidebar__nav-stack">
+          <nav class="perfil-sidebar__nav" aria-label="Secções principais do perfil">
           <p class="perfil-sidebar__group-label">Perfil</p>
           <a href="perfil.html" class="perfil-sidebar__link perfil-sidebar__link--active" id="perfil-sidebar-dados"
             aria-current="page">
@@ -117,6 +126,22 @@
             </svg>
             Termos e condições
           </a>
+          </nav>
+
+          <div class="perfil-completion perfil-completion--sidebar" role="complementary" aria-labelledby="perfil-completion-heading">
+            <h2 class="perfil-completion__title" id="perfil-completion-heading">Perfil completo</h2>
+            <div class="perfil-completion__chart" aria-hidden="true">
+              <svg class="perfil-donut" viewBox="0 0 120 120" width="120" height="120">
+                <circle class="perfil-donut__track" cx="60" cy="60" r="46" fill="none" stroke-width="12" />
+                <circle class="perfil-donut__progress" id="perfil-donut-progress" cx="60" cy="60" r="46" fill="none"
+                  stroke-width="12" stroke-linecap="round" transform="rotate(-90 60 60)" />
+              </svg>
+              <span class="perfil-completion__pct" id="perfil-completion-pct">0%</span>
+            </div>
+            <ul class="perfil-completion__list" id="perfil-completion-list"></ul>
+          </div>
+
+          <nav class="perfil-sidebar__nav" aria-label="Mais opções do perfil">
           <a href="index.html" class="perfil-sidebar__link">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               aria-hidden="true">
@@ -190,19 +215,7 @@
             </svg>
             Palavra-passe
           </a>
-        </nav>
-
-        <div class="perfil-completion perfil-completion--sidebar" role="complementary" aria-labelledby="perfil-completion-heading">
-          <h2 class="perfil-completion__title" id="perfil-completion-heading">Perfil completo</h2>
-          <div class="perfil-completion__chart" aria-hidden="true">
-            <svg class="perfil-donut" viewBox="0 0 120 120" width="120" height="120">
-              <circle class="perfil-donut__track" cx="60" cy="60" r="46" fill="none" stroke-width="12" />
-              <circle class="perfil-donut__progress" id="perfil-donut-progress" cx="60" cy="60" r="46" fill="none"
-                stroke-width="12" stroke-linecap="round" transform="rotate(-90 60 60)" />
-            </svg>
-            <span class="perfil-completion__pct" id="perfil-completion-pct">0%</span>
-          </div>
-          <ul class="perfil-completion__list" id="perfil-completion-list"></ul>
+          </nav>
         </div>
 
         <div class="perfil-sidebar__footer">
@@ -287,7 +300,6 @@
         </div>
 
           </div>
-          <h1 class="perfil-dash__title">Editar perfil</h1>
         </header>
   <div class="notif-panel" id="notif-panel" hidden aria-hidden="true">
     <button type="button" class="notif-panel__backdrop" id="notif-panel-backdrop" tabindex="-1"
@@ -302,11 +314,6 @@
       <p class="notif-panel__empty" id="notif-panel-empty" hidden>Nada por aqui — está tudo em dia ✨</p>
     </div>
   </div>
-
-        <p class="perfil-admin-entry">
-          <a href="admin.html" class="perfil-dash__back perfil-admin-entry__link">Painel admin</a>
-          <span class="perfil-admin-entry__hint">Especialistas, reservas e checkouts — só contas em aura_admins.</span>
-        </p>
 
         <p class="perfil-loading" id="perfil-loading">A carregar o teu perfil…</p>
 
