@@ -31,7 +31,7 @@ function tabSwitch(root, name) {
     btn.classList.toggle('admin-tab--active', on);
     btn.setAttribute('aria-selected', on ? 'true' : 'false');
   });
-  ['spec', 'book', 'chk', 'reg'].forEach((k) => {
+  ['spec', 'book', 'chk', 'par', 'reg'].forEach((k) => {
     const panel = document.getElementById(`panel-${k}`);
     if (panel) panel.hidden = k !== name;
   });
@@ -211,6 +211,52 @@ function renderIntents(rows, tbody, specNameById) {
   });
 }
 
+const PARTNER_STATUS_LABEL = {
+  pending: 'Pendente',
+  reviewing: 'Em análise',
+  approved: 'Aprovado',
+  rejected: 'Recusado',
+};
+
+async function loadPartnerApplications(sb) {
+  const { data, error } = await sb.rpc('admin_list_partner_professional_applications', {
+    p_limit: 300,
+  });
+  if (error) throw error;
+  return Array.isArray(data) ? data : [];
+}
+
+function renderPartnerApplications(rows, tbody) {
+  tbody.innerHTML = '';
+  if (!rows.length) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="7" class="admin-muted">Nenhuma candidatura encontrada.</td>`;
+    tbody.appendChild(tr);
+    return;
+  }
+  rows.forEach((r) => {
+    const st = r.status || 'pending';
+    const stLabel = PARTNER_STATUS_LABEL[st] || st;
+    const rawArea = r.area_atuacao != null ? String(r.area_atuacao) : '';
+    const area = rawArea.length > 40 ? `${rawArea.slice(0, 40)}…` : rawArea;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${escapeHtml(fmtDate(r.created_at))}</td>
+      <td>${escapeHtml(r.full_name || '—')}</td>
+      <td>${escapeHtml(r.email || '—')}</td>
+      <td>${escapeHtml(r.whatsapp || '—')}</td>
+      <td>${escapeHtml(area || '—')}</td>
+      <td>${escapeHtml(stLabel)}</td>
+      <td class="btn-cell" style="white-space: normal">
+        <button type="button" class="admin-btn" data-par-status="${r.id}" data-par-next="reviewing">Analisar</button>
+        <button type="button" class="admin-btn admin-btn--primary" data-par-status="${r.id}" data-par-next="approved">Aprovar</button>
+        <button type="button" class="admin-btn" data-par-status="${r.id}" data-par-next="rejected">Recusar</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
 async function main() {
   const denied = document.getElementById('admin-denied');
   const app = document.getElementById('admin-app');
@@ -244,7 +290,9 @@ async function main() {
   const tbodyBook = document.getElementById('adm-book-tbody');
   const tbodyChk = document.getElementById('adm-chk-tbody');
   const tbodyMothers = document.getElementById('adm-mothers-tbody');
+  const tbodyPar = document.getElementById('adm-par-tbody');
   let regDataLoaded = false;
+  let parAppsLoaded = false;
   const durWrap = document.getElementById('adm-m-consult-dur-wrap');
   const durHint = document.getElementById('adm-m-consult-dur-hint');
 
@@ -370,39 +418,87 @@ async function main() {
     }
   }
 
-  document.querySelectorAll('.admin-tab').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const name = btn.dataset.tab;
+  async function refreshPartnerApplicationsPanel() {
+    const hint = document.getElementById('adm-par-hint');
+    if (!tbodyPar) return;
+    if (hint) hint.textContent = 'A carregar…';
+    try {
+      const rows = await loadPartnerApplications(sb);
+      renderPartnerApplications(rows, tbodyPar);
+      if (hint) hint.textContent = `${rows.length} candidatura(s).`;
+    } catch (e) {
+      if (hint) hint.textContent = formatSbError(e) || e.message || String(e);
+    }
+  }
+
+  const adminAppEl = document.getElementById('admin-app');
+  if (adminAppEl) {
+    adminAppEl.addEventListener('click', (ev) => {
+      const tabBtn = ev.target.closest('button.admin-tab[data-tab]');
+      if (!tabBtn) return;
+      const name = tabBtn.dataset.tab;
+      if (!name) return;
       tabSwitch(document, name);
       if (name === 'reg' && !regDataLoaded) {
         regDataLoaded = true;
-        refreshCadastrosTab();
+        void refreshCadastrosTab();
+      }
+      if (name === 'par' && !parAppsLoaded) {
+        parAppsLoaded = true;
+        void refreshPartnerApplicationsPanel();
       }
     });
+  }
+
+  if (tbodySpec) {
+    tbodySpec.addEventListener('click', async (ev) => {
+      const id = ev.target?.dataset?.edit;
+      if (!id) return;
+      const { data: row, error } = await sb.from('specialists').select('*').eq('id', id).maybeSingle();
+      if (error) {
+        setStatus(statusEl, error.message, true);
+        return;
+      }
+      if (!row) return;
+      document.getElementById('adm-spec-id').value = row.id;
+      document.getElementById('adm-spec-name').value = row.display_name || '';
+      document.getElementById('adm-spec-specialty').value = row.specialty || '';
+      document.getElementById('adm-spec-bio').value = row.bio || '';
+      document.getElementById('adm-spec-photo').value = row.photo_url || '';
+      document.getElementById('adm-spec-sort').value = String(row.sort_order ?? 0);
+      document.getElementById('adm-spec-active').checked = !!row.active;
+      const durMin = Number(row.consultation_duration_minutes) === 60 ? '60' : '30';
+      document.querySelectorAll('input[name="adm-spec-duration"]').forEach((inp) => {
+        inp.checked = inp.value === durMin;
+      });
+      tabSwitch(document, 'spec');
+      setStatus(statusEl, 'Formulário preenchido — altera e guarda.', false);
+    });
+  }
+
+  document.getElementById('adm-par-refresh')?.addEventListener('click', () => {
+    void refreshPartnerApplicationsPanel();
   });
 
-  tbodySpec.addEventListener('click', async (ev) => {
-    const id = ev.target?.dataset?.edit;
-    if (!id) return;
-    const { data: row, error } = await sb.from('specialists').select('*').eq('id', id).maybeSingle();
-    if (error) {
-      setStatus(statusEl, error.message, true);
-      return;
+  tbodyPar?.addEventListener('click', async (ev) => {
+    const b = ev.target.closest('[data-par-status][data-par-next]');
+    if (!b) return;
+    const id = b.dataset.parStatus;
+    const next = b.dataset.parNext;
+    if (!id || !next) return;
+    const hint = document.getElementById('adm-par-hint');
+    if (hint) hint.textContent = 'A guardar…';
+    try {
+      const { error } = await sb.rpc('admin_set_partner_application_status', {
+        p_id: id,
+        p_status: next,
+      });
+      if (error) throw error;
+      if (hint) hint.textContent = 'Estado atualizado.';
+      await refreshPartnerApplicationsPanel();
+    } catch (e) {
+      if (hint) hint.textContent = formatSbError(e) || e.message || String(e);
     }
-    if (!row) return;
-    document.getElementById('adm-spec-id').value = row.id;
-    document.getElementById('adm-spec-name').value = row.display_name || '';
-    document.getElementById('adm-spec-specialty').value = row.specialty || '';
-    document.getElementById('adm-spec-bio').value = row.bio || '';
-    document.getElementById('adm-spec-photo').value = row.photo_url || '';
-    document.getElementById('adm-spec-sort').value = String(row.sort_order ?? 0);
-    document.getElementById('adm-spec-active').checked = !!row.active;
-    const durMin = Number(row.consultation_duration_minutes) === 60 ? '60' : '30';
-    document.querySelectorAll('input[name="adm-spec-duration"]').forEach((inp) => {
-      inp.checked = inp.value === durMin;
-    });
-    tabSwitch(document, 'spec');
-    setStatus(statusEl, 'Formulário preenchido — altera e guarda.', false);
   });
 
   document.getElementById('adm-spec-clear').addEventListener('click', () => {
@@ -644,19 +740,21 @@ async function main() {
     tabSwitch(document, 'spec');
   });
 
-  tbodyBook.addEventListener('click', async (ev) => {
-    const bid = ev.target?.dataset?.cancelBooking;
-    if (!bid) return;
-    if (!window.confirm('Cancelar esta reserva? O horário volta a ficar livre.')) return;
-    setStatus(statusEl, 'A cancelar…', false);
-    try {
-      const { error } = await sb.from('consultation_bookings').update({ status: 'cancelled' }).eq('id', bid);
-      if (error) throw error;
-      await refreshAll();
-    } catch (e) {
-      setStatus(statusEl, e.message || String(e), true);
-    }
-  });
+  if (tbodyBook) {
+    tbodyBook.addEventListener('click', async (ev) => {
+      const bid = ev.target?.dataset?.cancelBooking;
+      if (!bid) return;
+      if (!window.confirm('Cancelar esta reserva? O horário volta a ficar livre.')) return;
+      setStatus(statusEl, 'A cancelar…', false);
+      try {
+        const { error } = await sb.from('consultation_bookings').update({ status: 'cancelled' }).eq('id', bid);
+        if (error) throw error;
+        await refreshAll();
+      } catch (e) {
+        setStatus(statusEl, e.message || String(e), true);
+      }
+    });
+  }
 
   await refreshAll();
 }

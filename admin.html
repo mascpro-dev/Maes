@@ -182,6 +182,7 @@
           aria-selected="true">Especialistas</button>
         <button type="button" class="admin-tab" data-tab="book" role="tab" aria-selected="false">Reservas</button>
         <button type="button" class="admin-tab" data-tab="chk" role="tab" aria-selected="false">Checkouts MP</button>
+        <button type="button" class="admin-tab" data-tab="par" role="tab" aria-selected="false">Parceiros</button>
         <button type="button" class="admin-tab" data-tab="reg" role="tab" aria-selected="false">Cadastros</button>
       </nav>
 
@@ -313,6 +314,37 @@
                 </tr>
               </thead>
               <tbody id="adm-chk-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="panel-par" class="admin-panel" role="tabpanel" hidden>
+        <div class="admin-card">
+          <h2>Candidaturas — profissional parceiro</h2>
+          <p class="admin-muted" style="margin-bottom: 12px">
+            Pedidos enviados pelo formulário <strong>cadastro-profissional.html</strong>. Aprovar aqui só altera o
+            <strong>estado da candidatura</strong> na base de dados — depois cria o utilizador em Auth (se ainda não
+            existir), marca como médico em <strong>Cadastros</strong> e completa o registo em <strong>Especialistas</strong>.
+          </p>
+          <div style="margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+            <button type="button" class="admin-btn admin-btn--primary" id="adm-par-refresh">Atualizar lista</button>
+            <span class="admin-muted" id="adm-par-hint" style="margin: 0"></span>
+          </div>
+          <div class="admin-table-wrap">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Nome</th>
+                  <th>E-mail</th>
+                  <th>WhatsApp</th>
+                  <th>Área</th>
+                  <th>Estado</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="adm-par-tbody"></tbody>
             </table>
           </div>
         </div>

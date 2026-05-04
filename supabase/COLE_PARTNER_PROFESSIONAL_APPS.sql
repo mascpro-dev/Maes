@@ -2,7 +2,7 @@
 -- CONTA MÃE — Candidaturas «Profissional parceiro» (formulário público)
 -- Cole no Supabase → SQL Editor → Run (podes correr mais de uma vez)
 -- =============================================================================
--- Table Editor → partner_professional_applications (ver dados com conta admin.)
+-- Table Editor → partner_professional_applications (ou painel admin.html → aba Parceiros, após migração RPC).
 -- =============================================================================
 
 CREATE TABLE IF NOT EXISTS public.partner_professional_applications (
