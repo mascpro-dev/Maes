@@ -22,12 +22,27 @@
 </head>
 
 <body>
-  <script src="auth.js"></script>
-  <script>
-    if (typeof AuraAuth !== 'undefined' && !AuraAuth.isLoggedIn()) {
+  <script src="supabase-config.js"></script>
+  <script type="module">
+    import { getSignupClient } from './signup-flow.js';
+    import { computeMotherSignupRedirect } from './mother-onboarding-guard.js';
+
+    const { client } = getSignupClient();
+    if (!client) {
       window.location.replace('login.html');
+    } else {
+      const {
+        data: { session },
+      } = await client.auth.getSession();
+      if (!session?.user?.id) {
+        window.location.replace('login.html');
+      } else {
+        const next = await computeMotherSignupRedirect(client, session.user.id, 'onboarding-boasvindas.html');
+        if (next) window.location.replace(next);
+      }
     }
   </script>
+  <script src="auth.js"></script>
 
   <div class="onboarding-bv" id="root">
     <div class="onboarding-bv__card" id="card" hidden>

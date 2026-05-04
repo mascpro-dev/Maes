@@ -71,17 +71,18 @@
     <main class="personalizacao-main" role="main">
       <div class="signup-msg signup-msg--error" id="signup-error" role="alert" hidden></div>
 
-      <form class="personalizacao-form" id="form-passo2" novalidate>
+      <form class="personalizacao-form" id="form-passo2">
 
         <div class="field">
           <label class="field__label" for="nome-crianca">Nome da criança</label>
           <input class="field__input" type="text" id="nome-crianca" name="nome_crianca" autocomplete="given-name"
-            required placeholder="Nome ou como prefere chamar" />
+            required minlength="2" maxlength="120" placeholder="Nome ou como prefere chamar" />
         </div>
 
         <div class="field">
           <label class="field__label" for="data-nascimento">Data de nascimento</label>
-          <input class="field__input" type="date" id="data-nascimento" name="data_nascimento" />
+          <input class="field__input" type="date" id="data-nascimento" name="data_nascimento" required
+            max="2100-12-31" />
         </div>
 
         <fieldset class="chip-fieldset">
@@ -128,10 +129,13 @@
   <script src="auth.js"></script>
   <script type="module">
     import { getSignupClient, getSessionUserId, signupStep2Child } from './signup-flow.js';
+    import { computeMotherSignupRedirect } from './mother-onboarding-guard.js';
 
     const errEl = document.getElementById('signup-error');
     const form = document.getElementById('form-passo2');
     const btn = document.getElementById('btn-submit');
+    const dn = document.getElementById('data-nascimento');
+    if (dn) dn.max = new Date().toISOString().slice(0, 10);
 
     function showError(msg) {
       errEl.textContent = msg;
@@ -145,6 +149,9 @@
       const uid = await getSessionUserId(client);
       if (!uid) {
         window.location.href = 'login.html';
+      } else {
+        const next = await computeMotherSignupRedirect(client, uid, 'cadastro-passo2.html');
+        if (next) window.location.replace(next);
       }
     }
 
@@ -152,13 +159,21 @@
       e.preventDefault();
       errEl.hidden = true;
 
+      if (typeof form.reportValidity === 'function' && !form.reportValidity()) {
+        return;
+      }
+
       const nome = document.getElementById('nome-crianca').value.trim();
       const data = document.getElementById('data-nascimento').value;
       const fd = new FormData(form);
       const diagnosticos = fd.getAll('diagnostico');
 
-      if (!nome) {
+      if (!nome || nome.length < 2) {
         showError('Indica o nome da criança.');
+        return;
+      }
+      if (!data) {
+        showError('Indica a data de nascimento da criança.');
         return;
       }
       if (!diagnosticos.length) {

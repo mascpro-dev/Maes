@@ -4,6 +4,7 @@
  * window.__auraAuthReady: Promise<boolean> — outros módulos devem await antes de usar o cliente.
  */
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm';
+import { enforceMotherSignupForAppPages } from './mother-onboarding-guard.js';
 
 async function syncOAuthAvatarToProfile(supabase, session) {
   const uid = session?.user?.id;
@@ -58,6 +59,8 @@ window.__auraAuthReady = (async function auraSessionGuard() {
   }
 
   await syncOAuthAvatarToProfile(supabase, session);
+
+  await enforceMotherSignupForAppPages(supabase, session.user.id);
 
   document.documentElement.classList.remove('aura-auth-checking');
   return true;

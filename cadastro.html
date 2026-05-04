@@ -106,6 +106,7 @@
   <script src="auth.js"></script>
   <script type="module">
     import { getSignupClient, signupStep1Mother } from './signup-flow.js';
+    import { computeMotherSignupRedirect } from './mother-onboarding-guard.js';
 
     try {
       const p = new URLSearchParams(window.location.search);
@@ -135,6 +136,20 @@
     const { client, error: cfgErr } = getSignupClient();
     if (cfgErr) {
       showSignupMessage(cfgErr + ' Depois disso, recarrega a página.');
+    }
+
+    if (client) {
+      try {
+        const {
+          data: { session },
+        } = await client.auth.getSession();
+        if (session?.user?.id) {
+          const next = await computeMotherSignupRedirect(client, session.user.id, 'cadastro.html');
+          if (next) window.location.replace(next);
+        }
+      } catch (_) {
+        /* ignore */
+      }
     }
 
     form.addEventListener('submit', async function (e) {

@@ -29,6 +29,71 @@ function getAnonClient() {
  * Monta objeto da linha a partir dos campos do formulário já validados no HTML.
  * @param {Record<string, unknown>} raw
  */
+const PARTNER_MIN_MOTIVACAO = 20;
+const PARTNER_MIN_CURRICULO = 40;
+
+/**
+ * Validação adicional no cliente (além do HTML) para não enviar registos vazios ou insuficientes.
+ * @param {ReturnType<typeof buildPartnerApplicationRow>} row
+ */
+export function validatePartnerApplicationStrict(row) {
+  const nome = String(row.full_name || '').trim();
+  if (nome.length < 3) return { ok: false, message: 'Indica o nome completo.' };
+
+  const doc = String(row.cpf_or_rg || '').trim();
+  if (doc.length > 0 && doc.length < 5) {
+    return { ok: false, message: 'Se preencher CPF/RG, usa um valor com pelo menos 5 caracteres ou deixa em branco.' };
+  }
+
+  const wa = String(row.whatsapp || '').replace(/\D/g, '');
+  if (wa.length < 10) return { ok: false, message: 'Indica WhatsApp com DDD (mínimo 10 dígitos).' };
+
+  const em = String(row.email || '').trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return { ok: false, message: 'Indica um e-mail válido.' };
+
+  if (String(row.cidade_estado_atuacao || '').trim().length < 4) {
+    return { ok: false, message: 'Indica cidade e estado de atuação com mais detalhe.' };
+  }
+
+  if (String(row.area_atuacao || '').trim().length < 2) return { ok: false, message: 'Indica a área de atuação.' };
+
+  if (String(row.tempo_experiencia || '').trim().length < 2) {
+    return { ok: false, message: 'Indica o tempo de experiência na área.' };
+  }
+
+  const mot = String(row.motivacao_parceria || '').trim();
+  if (mot.length < PARTNER_MIN_MOTIVACAO) {
+    return {
+      ok: false,
+      message: `Escreve pelo menos ${PARTNER_MIN_MOTIVACAO} caracteres em «Por que deseja ser parceiro».`,
+    };
+  }
+
+  const cv = String(row.mini_curriculo || '').trim();
+  if (cv.length < PARTNER_MIN_CURRICULO) {
+    return {
+      ok: false,
+      message: `O mini currículo deve ter pelo menos ${PARTNER_MIN_CURRICULO} caracteres.`,
+    };
+  }
+
+  if (!row.periodos || !row.periodos.length) {
+    return { ok: false, message: 'Seleciona pelo menos um período (manhã, tarde ou noite).' };
+  }
+  if (!row.dias_semana || !row.dias_semana.length) {
+    return { ok: false, message: 'Marca pelo menos um dia da semana.' };
+  }
+
+  if (!row.aceita_precificacao) {
+    return { ok: false, message: 'É necessário aceitar o modelo de valores (R$49,90 / repasse R$40).' };
+  }
+  if (!row.consentimento_triagem) {
+    return { ok: false, message: 'Marca o termo de consentimento.' };
+  }
+
+  return { ok: true };
+}
+
 export function buildPartnerApplicationRow(raw) {
   return {
     full_name: String(raw.full_name || '').trim(),
@@ -106,6 +171,9 @@ async function insertApplication(client, row) {
  * @returns {Promise<{ ok: boolean; message: string }>}
  */
 export async function submitPartnerProfessionalApplication(payload) {
+  const strict = validatePartnerApplicationStrict(payload);
+  if (!strict.ok) return { ok: false, message: strict.message };
+
   let savedDb = false;
   let emailed = false;
 

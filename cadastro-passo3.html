@@ -153,6 +153,7 @@
   <script src="auth.js"></script>
   <script type="module">
     import { getSignupClient, getSessionUserId, completeSignupStep3 } from './signup-flow.js';
+    import { computeMotherSignupRedirect } from './mother-onboarding-guard.js';
     import { persistWelcomeExperience } from './onboarding-inteligente.js';
 
     const errEl = document.getElementById('signup-error');
@@ -171,6 +172,9 @@
       const uid = await getSessionUserId(client);
       if (!uid) {
         window.location.href = 'login.html';
+      } else {
+        const next = await computeMotherSignupRedirect(client, uid, 'cadastro-passo3.html');
+        if (next) window.location.replace(next);
       }
     }
 
