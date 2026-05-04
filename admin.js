@@ -433,21 +433,55 @@ async function main() {
 
   const adminAppEl = document.getElementById('admin-app');
   if (adminAppEl) {
-    adminAppEl.addEventListener('click', (ev) => {
-      const tabBtn = ev.target.closest('button.admin-tab[data-tab]');
-      if (!tabBtn) return;
-      const name = tabBtn.dataset.tab;
-      if (!name) return;
-      tabSwitch(document, name);
-      if (name === 'reg' && !regDataLoaded) {
-        regDataLoaded = true;
-        void refreshCadastrosTab();
-      }
-      if (name === 'par' && !parAppsLoaded) {
-        parAppsLoaded = true;
-        void refreshPartnerApplicationsPanel();
-      }
-    });
+    adminAppEl.addEventListener(
+      'click',
+      (ev) => {
+        const parBtn = ev.target.closest('#adm-par-tbody [data-par-next]');
+        if (parBtn && parBtn.hasAttribute('data-par-status')) {
+          const id = parBtn.getAttribute('data-par-status');
+          const next = parBtn.getAttribute('data-par-next');
+          if (id && next) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            void (async () => {
+              setStatus(statusEl, 'A atualizar candidatura…', false);
+              const hint = document.getElementById('adm-par-hint');
+              if (hint) hint.textContent = 'A guardar…';
+              try {
+                const { error } = await sb.rpc('admin_set_partner_application_status', {
+                  p_id: id,
+                  p_status: next,
+                });
+                if (error) throw error;
+                setStatus(statusEl, 'Candidatura atualizada com sucesso.', false);
+                if (hint) hint.textContent = 'Estado guardado.';
+                await refreshPartnerApplicationsPanel();
+              } catch (e) {
+                const msg = formatSbError(e) || e.message || String(e);
+                setStatus(statusEl, msg, true);
+                if (hint) hint.textContent = msg.slice(0, 200);
+              }
+            })();
+          }
+          return;
+        }
+
+        const tabBtn = ev.target.closest('button.admin-tab[data-tab]');
+        if (!tabBtn) return;
+        const name = tabBtn.getAttribute('data-tab');
+        if (!name) return;
+        tabSwitch(document, name);
+        if (name === 'reg' && !regDataLoaded) {
+          regDataLoaded = true;
+          void refreshCadastrosTab();
+        }
+        if (name === 'par' && !parAppsLoaded) {
+          parAppsLoaded = true;
+          void refreshPartnerApplicationsPanel();
+        }
+      },
+      true
+    );
   }
 
   if (tbodySpec) {
@@ -478,27 +512,6 @@ async function main() {
 
   document.getElementById('adm-par-refresh')?.addEventListener('click', () => {
     void refreshPartnerApplicationsPanel();
-  });
-
-  tbodyPar?.addEventListener('click', async (ev) => {
-    const b = ev.target.closest('[data-par-status][data-par-next]');
-    if (!b) return;
-    const id = b.dataset.parStatus;
-    const next = b.dataset.parNext;
-    if (!id || !next) return;
-    const hint = document.getElementById('adm-par-hint');
-    if (hint) hint.textContent = 'A guardar…';
-    try {
-      const { error } = await sb.rpc('admin_set_partner_application_status', {
-        p_id: id,
-        p_status: next,
-      });
-      if (error) throw error;
-      if (hint) hint.textContent = 'Estado atualizado.';
-      await refreshPartnerApplicationsPanel();
-    } catch (e) {
-      if (hint) hint.textContent = formatSbError(e) || e.message || String(e);
-    }
   });
 
   document.getElementById('adm-spec-clear').addEventListener('click', () => {
