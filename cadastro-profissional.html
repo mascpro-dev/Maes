@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>CONTA MÃE — Profissionais parceiros (cadastro)</title>
+  <meta name="description"
+    content="Candidatura de profissional parceiro — rede de apoio Conta Mãe Atípica." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="cadastro.css" />
+  <link rel="stylesheet" href="cadastro-parceiro.css" />
+  <link rel="stylesheet" href="cadastro-fluxo.css" />
+  <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" sizes="any" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="theme-color" content="#7a9e7e" />
+</head>
+
+<body class="parceiro-cadastro">
+
+  <div class="cadastro-shell">
+
+    <header class="cadastro-header" role="banner">
+      <a href="cadastro-escolha.html" class="cadastro-header__brand" aria-label="Voltar à escolha de cadastro">
+        <img src="assets/branding/logohorizontal.svg" alt="CONTA MÃE" width="260" height="49" decoding="async" />
+      </a>
+      <p class="fluxo-hint">Profissional parceiro</p>
+      <h1 class="cadastro-title">Profissionais parceiros · Cadastro</h1>
+    </header>
+
+    <main class="cadastro-main" role="main">
+      <div class="parceiro-success" id="parceiro-success" role="status" hidden></div>
+      <div class="signup-msg signup-msg--error" id="signup-error" role="alert" hidden></div>
+
+      <div class="parceiro-intro" id="parceiro-intro">
+        <p>
+          Este cadastro busca criar uma <strong>rede de apoio qualificada e empática</strong>.
+          As informações serão analisadas pela equipa para garantir um atendimento alinhado ao acolhimento
+          do <strong>Conta Mãe Atípica</strong>.
+        </p>
+        <p>
+          As mães terão disponível a <strong>agenda</strong> para consultas ou sessões com profissionais
+          registados — valor fixo inicial <strong>R$&nbsp;49,90</strong>
+          (<strong>R$&nbsp;9,90</strong> para o projeto · <strong>R$&nbsp;40,00</strong> para o profissional).
+        </p>
+        <p>
+          Ao preencher este formulário, ficam cientes de que na plataforma o foco é o
+          <strong>compromisso ético com a causa atípica</strong>: reduzir barreiras ao suporte, com
+          sustentabilidade para o projeto e condição digna para o parceiro.
+        </p>
+        <p><strong>Obrigada pelo interesse.</strong> Juntos fortalecemos milhares de mães. Preenche os dados abaixo.</p>
+      </div>
+
+      <form class="cadastro-form" id="form-parceiro" novalidate>
+        <label class="parceiro-hp" aria-hidden="true">
+          Empresa / website corporativo <input type="text" name="_hp_partner" tabindex="-1" autocomplete="off" />
+        </label>
+
+        <div class="field">
+          <label class="field__label" for="pp-nome">Nome completo</label>
+          <input class="field__input" type="text" id="pp-nome" name="full_name" required minlength="3"
+            maxlength="160" autocomplete="name" placeholder="Nome como pretende aparecer após homologação" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="pp-doc">CPF ou RG</label>
+          <input class="field__input" type="text" id="pp-doc" name="cpf_rg" maxlength="32" autocomplete="off"
+            placeholder="Documento para triagem interna" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="pp-wa">WhatsApp com DDD</label>
+          <input class="field__input" type="tel" id="pp-wa" name="whatsapp" required inputmode="numeric"
+            minlength="10" maxlength="18" autocomplete="tel" placeholder="(00) 00000-0000" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="pp-email">E-mail</label>
+          <input class="field__input" type="email" id="pp-email" name="email" required inputmode="email"
+            maxlength="254" autocomplete="email" placeholder="profissional@email.com" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="pp-local">Cidade / Estado de atuação</label>
+          <input class="field__input" type="text" id="pp-local" name="cidade_estado" required minlength="3"
+            maxlength="200" placeholder="Ex.: Campinas, SP" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="pp-links">Link para redes sociais ou site profissional</label>
+          <input class="field__input" type="text" id="pp-links" name="links_redes" maxlength="500"
+            inputmode="url" autocapitalize="none" autocorrect="off" placeholder="https://… ou @instagram …" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="pp-area">Área de atuação</label>
+          <input class="field__input" type="text" id="pp-area" name="area_atuacao" required minlength="2"
+            maxlength="200" placeholder="Ex.: Psicologia, Fonoaudiologia, Terapia Ocupacional…" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="pp-exp">Tempo de experiência na área</label>
+          <input class="field__input" type="text" id="pp-exp" name="tempo_experiencia" required minlength="2"
+            maxlength="200" placeholder="Ex.: 8 anos em clínica infantil; 3 anos só TEA…" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="pp-foco">Qual o foco de especialização?</label>
+          <input class="field__input" type="text" id="pp-foco" name="foco_especializacao" maxlength="300"
+            placeholder="Ex.: Autismo (TEA), TDAH, doenças raras…" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="pp-reg">Número de registro profissional (se houver)</label>
+          <input class="field__input" type="text" id="pp-reg" name="registro_profissional" maxlength="120"
+            placeholder="Conselho / registro ou “não aplicável”" />
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="pp-mot">Por que deseja ser parceira(o) do Conta Mãe Atípica?</label>
+          <textarea class="field__input" id="pp-mot" name="motivacao" required rows="4" minlength="20"
+            maxlength="2000"></textarea>
+        </div>
+
+        <fieldset class="parceiro-fieldset">
+          <legend class="parceiro-legend">Para atendimento · período preferido</legend>
+          <p class="field__label" style="margin-bottom:8px;font-weight:500;color:var(--ink-light);font-size:0.8rem;">
+            Escolha um ou mais períodos.</p>
+          <div class="parceiro-chip-row" role="group" aria-label="Períodos">
+            <label class="parceiro-chip">
+              <input type="checkbox" name="periodo" value="manha" /> <span>Manhã</span>
+            </label>
+            <label class="parceiro-chip">
+              <input type="checkbox" name="periodo" value="tarde" /> <span>Tarde</span>
+            </label>
+            <label class="parceiro-chip">
+              <input type="checkbox" name="periodo" value="noite" /> <span>Noite</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <fieldset class="parceiro-fieldset">
+          <legend class="parceiro-legend">Dias da semana</legend>
+          <div class="parceiro-chip-row" role="group" aria-label="Dias">
+            <label class="parceiro-chip"><input type="checkbox" name="dia" value="seg" /><span>Seg</span></label>
+            <label class="parceiro-chip"><input type="checkbox" name="dia" value="ter" /><span>Ter</span></label>
+            <label class="parceiro-chip"><input type="checkbox" name="dia" value="qua" /><span>Qua</span></label>
+            <label class="parceiro-chip"><input type="checkbox" name="dia" value="qui" /><span>Qui</span></label>
+            <label class="parceiro-chip"><input type="checkbox" name="dia" value="sex" /><span>Sex</span></label>
+            <label class="parceiro-chip"><input type="checkbox" name="dia" value="sab" /><span>Sáb</span></label>
+          </div>
+        </fieldset>
+
+        <div class="parceiro-callout" role="note">
+          O valor cobrado das participantes será de <strong>R$&nbsp;49,90</strong>; o repasse ao profissional será de
+          <strong>R$&nbsp;40,00</strong>. Concorda com este modelo?
+        </div>
+
+        <fieldset class="parceiro-fieldset">
+          <legend class="parceiro-legend visually-hidden">Aceitação do valor</legend>
+          <div class="parceiro-radio-row">
+            <label class="parceiro-radio">
+              <input type="radio" name="aceita_preco" value="sim" required /><span>Sim</span>
+            </label>
+            <label class="parceiro-radio">
+              <input type="radio" name="aceita_preco" value="nao" /><span>Não</span>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="field">
+          <label class="field__label" for="pp-cv">Mini currículo</label>
+          <textarea class="field__input" id="pp-cv" name="mini_curriculo" required rows="5" minlength="40"
+            maxlength="4000"
+            placeholder="Formação principal, experiência com público infantil ou neurodivergente, cursos ou linhas terapêuticas…"></textarea>
+        </div>
+
+        <div class="field field--checkbox">
+          <label class="checkbox-label">
+            <input class="checkbox-input" type="checkbox" name="consentimento" id="pp-consent" required value="1" />
+            <span class="checkbox-box" aria-hidden="true"></span>
+            <span class="checkbox-text">
+              Termo de consentimento:
+              Estou ciente de que os dados fornecidos serão utilizados para fins de triagem e contato para a parceria.
+            </span>
+          </label>
+        </div>
+
+        <button type="submit" class="btn-proximo" id="btn-parceiro-submit">Enviar candidatura</button>
+      </form>
+
+      <p class="login-footer-text" style="margin-top:24px;text-align:center;font-size:0.9rem;color:#5a5550;">
+        Cadastro de mãe? <a href="cadastro.html" class="inline-link" style="font-weight:600">Voltar ao fluxo mãe atípica</a>
+        · <a href="cadastro-escolha.html" class="inline-link">Escolher tipo de conta</a>
+      </p>
+    </main>
+  </div>
+
+  <script src="supabase-config.js"></script>
+  <script type="module">
+    import {
+      submitPartnerProfessionalApplication,
+      buildPartnerApplicationRow,
+    } from './partner-professional-submit.js';
+
+    const form = document.getElementById('form-parceiro');
+    const errEl = document.getElementById('signup-error');
+    const okEl = document.getElementById('parceiro-success');
+    const introEl = document.getElementById('parceiro-intro');
+    const btn = document.getElementById('btn-parceiro-submit');
+
+    function showErr(msg) {
+      errEl.textContent = msg;
+      errEl.hidden = false;
+    }
+    function clearMsgs() {
+      errEl.hidden = true;
+      errEl.textContent = '';
+      okEl.hidden = true;
+    }
+
+    form.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      clearMsgs();
+
+      const hp = form.querySelector('input[name="_hp_partner"]');
+      if (hp && String(hp.value || '').trim()) {
+        return;
+      }
+
+      if (!form.reportValidity()) return;
+
+      const fd = new FormData(form);
+      const periodos = fd.getAll('periodo');
+      const dias_semana = fd.getAll('dia');
+      const aceita_preco_radio = fd.get('aceita_preco');
+      const aceita_precificacao = aceita_preco_radio === 'sim';
+
+      if (!periodos.length) {
+        showErr('Indica pelo menos um período (manhã, tarde ou noite).');
+        return;
+      }
+      if (!dias_semana.length) {
+        showErr('Marca pelo menos um dia da semana.');
+        return;
+      }
+      if (!aceita_precificacao) {
+        showErr('Para continuar nesta fase é necessário aceitar o modelo de valores (R$49,90 / repasse R$40).');
+        return;
+      }
+      const wa = String(fd.get('whatsapp') || '').replace(/\D/g, '');
+      if (wa.length < 10) {
+        showErr('Indica WhatsApp válido com DDD (mínimo 10 dígitos).');
+        return;
+      }
+
+      let links_redes_site = String(fd.get('links_redes') || '').trim();
+      if (links_redes_site) {
+        try {
+          const u = new URL(
+            /^https?:\/\//i.test(links_redes_site) ? links_redes_site : 'https://' + links_redes_site,
+          );
+          links_redes_site = u.href;
+        } catch {
+          showErr('O link das redes/site não parece válido. Copia um URL começando com https:// …');
+          return;
+        }
+      }
+
+      const raw = {
+        full_name: fd.get('full_name'),
+        cpf_or_rg: fd.get('cpf_rg'),
+        whatsapp: String(fd.get('whatsapp') || '').trim(),
+        email: fd.get('email'),
+        cidade_estado_atuacao: fd.get('cidade_estado'),
+        links_redes_site: links_redes_site || null,
+        area_atuacao: fd.get('area_atuacao'),
+        tempo_experiencia: fd.get('tempo_experiencia'),
+        foco_especializacao: fd.get('foco_especializacao'),
+        registro_profissional: fd.get('registro_profissional'),
+        motivacao_parceria: fd.get('motivacao'),
+        periodos,
+        dias_semana,
+        aceita_precificacao,
+        mini_curriculo: fd.get('mini_curriculo'),
+        consentimento_triagem: fd.get('consentimento') === '1',
+      };
+
+      const payload = buildPartnerApplicationRow(raw);
+      if (!payload.consentimento_triagem) {
+        showErr('Marca o termo de consentimento para enviar.');
+        return;
+      }
+
+      btn.disabled = true;
+      const res = await submitPartnerProfessionalApplication(payload);
+      btn.disabled = false;
+
+      if (!res.ok) {
+        showErr(res.message || 'Algo correu mal. Tenta de novo mais tarde.');
+        return;
+      }
+
+      okEl.textContent = res.message;
+      okEl.hidden = false;
+      form.hidden = true;
+      if (introEl) introEl.hidden = true;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  </script>
+  <script src="pwa.js"></script>
+</body>
+
+</html>

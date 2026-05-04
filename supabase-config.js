@@ -8,3 +8,6 @@ window.AURA_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOi
  * Em HTTPS, a app também envia window.location.origin automaticamente.
  */
 window.AURA_APP_PUBLIC_URL = 'https://maes-pi.vercel.app';
+
+/** E-mail de triagem das candidaturas «Profissional parceiro» (FormSubmit); omite para usar conelheiros@gmail.com no código */
+// window.AURA_PARTNER_TRIAGE_EMAIL = '';
