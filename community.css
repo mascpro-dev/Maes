@@ -129,17 +129,13 @@ button {
   flex-shrink: 0;
 }
 
+/* .comm-header__dropdown: estilos visuais definidos em aura-layout.css.
+   z-index e position são geridos pelo JS (position:fixed via aura-app-bar.js). */
 .comm-header__dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  min-width: 220px;
-  padding: 8px 0;
   background: var(--cream-card);
   border: 1.5px solid var(--cream-deep);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
-  z-index: 30;
 }
 
 .comm-header__dropdown-item {

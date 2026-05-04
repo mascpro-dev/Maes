@@ -417,7 +417,9 @@ button.btn-header-icon {
 
 .aura-overflow-menu,
 .comm-header__dropdown {
-  position: absolute;
+  /* position e coordenadas definidas em aura-app-bar.js (position:fixed) para escapar
+     de qualquer contexto de empilhamento criado por transform/animation nos ancestrais */
+  position: absolute; /* fallback; sobrescrito em inline style pelo JS */
   top: calc(100% + 8px);
   right: 0;
   min-width: 220px;
@@ -426,7 +428,7 @@ button.btn-header-icon {
   border: 1.5px solid var(--cream-deep, #ebe3d6);
   border-radius: var(--radius-md, 20px);
   box-shadow: var(--shadow-md, 0 6px 24px rgba(45, 42, 38, 0.1));
-  z-index: 300;
+  z-index: 9999;
 }
 
 /* Painel ⋯ fechado: não depender de .hidden noutros CSS (ex.: só style.css) */

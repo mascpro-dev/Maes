@@ -2,6 +2,8 @@
  * Barra superior unificada: pesquisar → notificações → menu ⋯
  * — Esconde no menu suspenso o destino da página atual.
  * — Pesquisar: comportamento por página (mural, comunidade, explorar…).
+ * — Dropdown posicionado em position:fixed via JS: não fica atrás de elementos
+ *   com animation/transform em nenhuma página.
  */
 (function () {
   function normPage() {
@@ -32,12 +34,42 @@
     });
   }
 
+  /**
+   * Posiciona o dropdown como fixed exactamente abaixo do botão.
+   * Evita ser enterrado por contextos de empilhamento de ancestrais com transform.
+   */
+  function positionFixed(btn, menu) {
+    var rect = btn.getBoundingClientRect();
+    var gap = 8;
+    var menuW = menu.offsetWidth || 220;
+    var vpW = window.innerWidth;
+    var top = rect.bottom + gap;
+    /* Garantir que não sai pela direita nem pela esquerda */
+    var right = vpW - rect.right;
+    if (right < 8) right = 8;
+    /* Se não cabe à direita, alinhar à esquerda */
+    var wouldLeft = rect.right - menuW;
+    if (wouldLeft < 8) right = vpW - Math.min(rect.right, vpW - 8);
+
+    menu.style.cssText =
+      "position:fixed !important;" +
+      "top:" + top + "px !important;" +
+      "right:" + right + "px !important;" +
+      "left:auto !important;" +
+      "bottom:auto !important;";
+  }
+
+  function resetPosition(menu) {
+    menu.style.cssText = "";
+  }
+
   function closeAllOverflowMenus(exceptWrap) {
     document.querySelectorAll(".aura-menu-wrap").forEach(function (wrap) {
       if (wrap === exceptWrap) return;
       const btn = wrap.querySelector("[aria-controls]");
       const menu = wrap.querySelector(".aura-overflow-menu, #aura-overflow-menu");
       if (!btn || !menu) return;
+      resetPosition(menu);
       menu.classList.add("hidden");
       menu.setAttribute("aria-hidden", "true");
       wrap.classList.remove("aura-menu-wrap--open", "comm-header__menu-wrap--open");
@@ -56,6 +88,7 @@
         const open = btn.getAttribute("aria-expanded") === "true";
         closeAllOverflowMenus(open ? null : wrap);
         if (open) {
+          resetPosition(menu);
           menu.classList.add("hidden");
           menu.setAttribute("aria-hidden", "true");
           wrap.classList.remove("aura-menu-wrap--open", "comm-header__menu-wrap--open");
@@ -65,15 +98,21 @@
           menu.setAttribute("aria-hidden", "false");
           wrap.classList.add("aura-menu-wrap--open", "comm-header__menu-wrap--open");
           btn.setAttribute("aria-expanded", "true");
+          /* Posicionar fixed DEPOIS de tornar visível para obter offsetWidth correcto */
+          requestAnimationFrame(function () {
+            positionFixed(btn, menu);
+          });
         }
       });
 
+      /* Fechar ao clicar num item de menu */
       menu.addEventListener("click", function (ev) {
         ev.stopPropagation();
       });
 
-      menu.querySelectorAll('a[role="menuitem"]').forEach(function (link) {
-        link.addEventListener("click", function () {
+      menu.querySelectorAll('a[role="menuitem"], button[role="menuitem"]').forEach(function (item) {
+        item.addEventListener("click", function () {
+          resetPosition(menu);
           menu.classList.add("hidden");
           menu.setAttribute("aria-hidden", "true");
           wrap.classList.remove("aura-menu-wrap--open", "comm-header__menu-wrap--open");
@@ -91,7 +130,22 @@
       if (ev.key === "Escape") closeAllOverflowMenus(null);
     });
 
-    /* Ao passar para desktop o ⋯ some do DOM visual — fechar estado para não ficar “aberto” ao voltar ao telemóvel */
+    /* Reposicionar se a janela mudar de tamanho enquanto o menu está aberto */
+    window.addEventListener("resize", function () {
+      document.querySelectorAll(".aura-menu-wrap").forEach(function (wrap) {
+        const btn = wrap.querySelector("#aura-btn-overflow");
+        const menu = wrap.querySelector("#aura-overflow-menu");
+        if (!btn || !menu || menu.classList.contains("hidden")) return;
+        positionFixed(btn, menu);
+      });
+    });
+
+    /* Fechar ao fazer scroll (para não ficar desalinhado) */
+    window.addEventListener("scroll", function () {
+      closeAllOverflowMenus(null);
+    }, { passive: true });
+
+    /* Ao passar para desktop o ⋯ some do DOM visual — fechar estado para não ficar "aberto" ao voltar ao telemóvel */
     try {
       var mqDesk = window.matchMedia("(min-width: 768px)");
       function onViewportRail() {
