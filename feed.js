@@ -199,7 +199,7 @@ function render(posts) {
   lastPosts = posts || [];
   if (!lastPosts.length) {
     el.list.innerHTML =
-      '<article class="feed-post">Sem postagens ainda. Siga alguém no Explorar para ver histórias aqui.</article>';
+      '<article class="feed-post">Ainda não há postagens. Seja a primeira a partilhar algo com a comunidade!</article>';
     return;
   }
   el.list.innerHTML = lastPosts

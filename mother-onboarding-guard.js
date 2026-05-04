@@ -24,8 +24,8 @@ export function isProfileMotherStep1Ready(profile) {
   if (!profile) return false;
   const phoneDigits = String(profile.phone || '').replace(/\D/g, '');
   const nameOk = String(profile.full_name || '').trim().length >= 3;
-  const hasTerms = !!(profile.terms_accepted_at && String(profile.terms_accepted_at).trim());
-  return hasTerms && nameOk && phoneDigits.length >= 10;
+  // terms_accepted_at é opcional para contas criadas antes deste campo existir
+  return nameOk && phoneDigits.length >= 8;
 }
 
 /** Passo 3 (explorar / rede): cidade, UF, bio, foto, desafios. */
@@ -90,9 +90,7 @@ export async function computeMotherSignupRedirect(supabase, userId, currentFileO
 
   const isMedicOrOther = profile?.account_type === 'medic';
   if (isMedicOrOther) {
-    if (MOTHER_SIGNUP_PAGES.has(cur)) {
-      return 'index.html';
-    }
+    if (MOTHER_SIGNUP_PAGES.has(cur)) return 'index.html';
     return null;
   }
 
@@ -102,12 +100,19 @@ export async function computeMotherSignupRedirect(supabase, userId, currentFileO
   const full = step1 && step2 && step3;
 
   if (full) {
-    if (MOTHER_SIGNUP_PAGES.has(cur)) {
-      return 'index.html';
-    }
+    if (MOTHER_SIGNUP_PAGES.has(cur)) return 'index.html';
     return null;
   }
 
+  // Contas existentes que já têm nome preenchido podem aceder à app livremente.
+  // Apenas redireccionamos utilizadoras verdadeiramente novas (sem qualquer perfil).
+  const hasBasicProfile = String(profile?.full_name || '').trim().length >= 2;
+  if (hasBasicProfile) {
+    if (MOTHER_SIGNUP_PAGES.has(cur)) return 'index.html';
+    return null;
+  }
+
+  // Conta nova sem perfil — forçar conclusão do fluxo de cadastro.
   let target = null;
   if (!step1) target = 'cadastro.html';
   else if (!step2) target = 'cadastro-passo2.html';
