@@ -3,9 +3,22 @@
  */
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm';
 import { humanizeAuthError } from './signup-flow.js';
+import { computeMotherSignupRedirect } from './mother-onboarding-guard.js';
 
-function redirectAfterLogin(remember) {
+async function redirectAfterLogin(remember, supabase) {
   if (typeof AuraAuth !== 'undefined') AuraAuth.setLoggedIn(remember);
+  try {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (session?.user?.id) {
+      const next = await computeMotherSignupRedirect(supabase, session.user.id, 'login.html');
+      window.location.href = next || 'index.html';
+      return;
+    }
+  } catch (_) {
+    /* ignore */
+  }
   window.location.href = 'index.html';
 }
 
@@ -25,8 +38,9 @@ function redirectAfterLogin(remember) {
   const {
     data: { session },
   } = await supabase.auth.getSession();
-  if (session?.user) {
-    window.location.replace('index.html');
+  if (session?.user?.id) {
+    const next = await computeMotherSignupRedirect(supabase, session.user.id, 'login.html');
+    window.location.replace(next || 'index.html');
     return;
   }
 
@@ -71,7 +85,7 @@ function redirectAfterLogin(remember) {
           AuraAuth.saveProfile({ email });
         }
       }
-      redirectAfterLogin(remember);
+      await redirectAfterLogin(remember, supabase);
     });
   }
 })();

@@ -24,8 +24,8 @@ export function isProfileMotherStep1Ready(profile) {
   if (!profile) return false;
   const phoneDigits = String(profile.phone || '').replace(/\D/g, '');
   const nameOk = String(profile.full_name || '').trim().length >= 3;
-  // terms_accepted_at é opcional para contas criadas antes deste campo existir
-  return nameOk && phoneDigits.length >= 8;
+  const hasTerms = !!(profile.terms_accepted_at && String(profile.terms_accepted_at).trim());
+  return hasTerms && nameOk && phoneDigits.length >= 10;
 }
 
 /** Passo 3 (explorar / rede): cidade, UF, bio, foto, desafios. */
@@ -107,15 +107,6 @@ export async function computeMotherSignupRedirect(supabase, userId, currentFileO
     return null;
   }
 
-  // Contas existentes que já têm nome preenchido podem aceder à app livremente.
-  // Apenas redireccionamos utilizadoras verdadeiramente novas (sem qualquer perfil).
-  const hasBasicProfile = String(profile?.full_name || '').trim().length >= 2;
-  if (hasBasicProfile) {
-    if (isMotherSignupPage && !allowSignupPageAccess) return 'index.html';
-    return null;
-  }
-
-  // Conta nova sem perfil — forçar conclusão do fluxo de cadastro.
   let target = null;
   if (!step1) target = 'cadastro.html';
   else if (!step2) target = 'cadastro-passo2.html';

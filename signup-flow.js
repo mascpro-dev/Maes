@@ -9,6 +9,8 @@ export const SIGNUP_MIN_BIO_LENGTH = 20;
 
 const AVATAR_BUCKET = 'avatars';
 const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
+const AVATAR_RAW_MAX_BYTES = 25 * 1024 * 1024;
+const AVATAR_MAX_DIMENSION = 1600;
 
 export const SIGNUP_SCHEMA = {
   profiles: {
@@ -109,8 +111,78 @@ function validateAvatarFileForSignup(file) {
   const t = (file.type || '').toLowerCase();
   const ok = /^image\/(jpeg|jpg|png|webp|gif)$/i.test(t);
   if (!ok) return { ok: false, message: 'Formato inválido. Usa JPG, PNG, WebP ou GIF.' };
-  if (file.size > AVATAR_MAX_BYTES) return { ok: false, message: 'A imagem deve ter no máximo 5 MB.' };
+  if (file.size > AVATAR_RAW_MAX_BYTES) {
+    return { ok: false, message: 'Imagem muito grande (máx. 25 MB). Escolhe uma foto menor.' };
+  }
   return { ok: true };
+}
+
+async function loadImageFromBlob(blob) {
+  if (typeof createImageBitmap === 'function') {
+    return createImageBitmap(blob);
+  }
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(blob);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('image_decode_failed'));
+    };
+    img.src = url;
+  });
+}
+
+function canvasToBlob(canvas, type, quality) {
+  return new Promise((resolve) => {
+    canvas.toBlob((b) => resolve(b), type, quality);
+  });
+}
+
+/**
+ * Redimensiona/comprime imagem para reduzir peso automaticamente (mobile-friendly).
+ * Retorna sempre um Blob <= 5MB quando possível.
+ */
+async function normalizeAvatarBlobForUpload(file) {
+  const needsResize = file.size > AVATAR_MAX_BYTES;
+  const bitmap = await loadImageFromBlob(file);
+  const srcW = bitmap.width || 0;
+  const srcH = bitmap.height || 0;
+  if (!srcW || !srcH) return { ok: false, message: 'Não foi possível processar a foto.' };
+
+  const ratio = Math.min(1, AVATAR_MAX_DIMENSION / Math.max(srcW, srcH));
+  const targetW = Math.max(1, Math.round(srcW * ratio));
+  const targetH = Math.max(1, Math.round(srcH * ratio));
+  const mustDraw = needsResize || ratio < 1;
+
+  if (!mustDraw && file.size <= AVATAR_MAX_BYTES) {
+    return { ok: true, blob: file, type: file.type || 'image/jpeg' };
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = targetW;
+  canvas.height = targetH;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return { ok: false, message: 'Falha ao preparar a imagem para upload.' };
+  ctx.drawImage(bitmap, 0, 0, targetW, targetH);
+
+  const outType = 'image/jpeg';
+  const qualities = [0.9, 0.82, 0.74, 0.66, 0.58, 0.5, 0.42];
+  for (const q of qualities) {
+    const blob = await canvasToBlob(canvas, outType, q);
+    if (blob && blob.size <= AVATAR_MAX_BYTES) {
+      return { ok: true, blob, type: outType };
+    }
+  }
+
+  const fallback = await canvasToBlob(canvas, outType, 0.38);
+  if (fallback && fallback.size <= AVATAR_MAX_BYTES) {
+    return { ok: true, blob: fallback, type: outType };
+  }
+  return { ok: false, message: 'A foto continua grande demais após ajuste automático. Escolhe outra imagem.' };
 }
 
 /**
@@ -155,12 +227,17 @@ export async function uploadSignupAvatarToStorage(client, userId, file) {
   const av = validateAvatarFileForSignup(file);
   if (!av.ok) return { ok: false, message: av.message };
 
-  const ext = extFromAvatarFile(file);
+  const normalized = await normalizeAvatarBlobForUpload(file);
+  if (!normalized.ok) return normalized;
+
+  const blob = normalized.blob;
+  const contentType = normalized.type || file.type || 'image/jpeg';
+  const ext = extFromAvatarFile({ type: contentType });
   const path = `${userId}/avatar.${ext}`;
-  const { error: upErr } = await client.storage.from(AVATAR_BUCKET).upload(path, file, {
+  const { error: upErr } = await client.storage.from(AVATAR_BUCKET).upload(path, blob, {
     upsert: true,
     cacheControl: '86400',
-    contentType: file.type || 'image/jpeg',
+    contentType,
   });
 
   if (upErr) {
@@ -175,7 +252,8 @@ export async function uploadSignupAvatarToStorage(client, userId, file) {
     if (/row-level security|RLS|policy|403|permission/i.test(m)) {
       return {
         ok: false,
-        message: 'Sem permissão para enviar a foto. Verifica as políticas do bucket avatars no Supabase.',
+        message:
+          'Sem permissão para enviar a foto. Verifica as políticas do bucket avatars no Supabase. Detalhe: ' + m,
       };
     }
     return { ok: false, message: 'Não foi possível enviar a foto: ' + m };

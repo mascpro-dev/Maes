@@ -608,7 +608,13 @@ async function main() {
       tabSwitch(document, 'spec');
       const specFormCard = document.getElementById('panel-spec')?.querySelector('.admin-card');
       if (specFormCard) {
+        specFormCard.classList.remove('admin-card--focus');
+        void specFormCard.offsetWidth;
+        specFormCard.classList.add('admin-card--focus');
         specFormCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        window.setTimeout(() => {
+          specFormCard.classList.remove('admin-card--focus');
+        }, 1400);
       } else {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
