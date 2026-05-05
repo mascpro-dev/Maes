@@ -220,8 +220,8 @@ function render(posts) {
       const bodyHtml = linkifyAtsToHtml(p.content, mentionList);
       return `<article class="feed-post" data-post-id="${p.id}">
         <div class="feed-post__meta"><strong>${esc(p.author_name || "Participante")}</strong> · ${when}</div>
-        <div class="feed-post__body">${bodyHtml}</div>
         ${img}
+        <div class="feed-post__body">${bodyHtml}</div>
         <div class="feed-post__actions" role="group" aria-label="Interações">
           <button type="button" class="feed-post__like${liked ? " feed-post__like--on" : ""}" data-like-post="${p.id}" aria-pressed="${liked ? "true" : "false"}" title="Curtir" aria-label="${liked ? "Descurtir" : "Curtir"}">
             <span class="feed-post__like-icon" aria-hidden="true">♥</span>
