@@ -152,6 +152,12 @@
   margin-bottom: 12px;
 }
 
+.spec-row__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .spec-row__title {
   font-size: 1.05rem;
   font-weight: 700;
@@ -164,6 +170,34 @@
   color: var(--ink-light, #a09a92);
   text-transform: uppercase;
   letter-spacing: 0.08em;
+}
+
+.spec-row__btn,
+.spec-row__all {
+  border: 1px solid var(--sage-light, #c5d4b8);
+  background: var(--white, #fff);
+  color: var(--ink, #2d2a26);
+  cursor: pointer;
+}
+
+.spec-row__btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.spec-row__all {
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.spec-row__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .spec-rail {

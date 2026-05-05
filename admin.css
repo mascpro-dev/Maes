@@ -133,10 +133,15 @@ body.admin-page .app-wrapper {
   border-bottom: 1px solid var(--sage-light);
   padding-bottom: 2px;
   position: relative;
-  z-index: 5;
+  z-index: 30;
+  pointer-events: auto;
 }
 
 .admin-tab {
+  position: relative;
+  z-index: 31;
+  pointer-events: auto;
+  user-select: none;
   padding: 10px 16px;
   border: none;
   background: transparent;

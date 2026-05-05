@@ -190,6 +190,9 @@ function jitsiIframeUrl(roomSlug, displayName) {
 
 async function main() {
   const rail = document.getElementById('spec-rail');
+  const railPrev = document.getElementById('spec-rail-prev');
+  const railNext = document.getElementById('spec-rail-next');
+  const railAll = document.getElementById('spec-rail-all');
   const heroStatus = document.getElementById('spec-hero-status');
   const nextBlock = document.getElementById('spec-next-booking');
   const nextTitle = document.getElementById('spec-next-title');
@@ -240,6 +243,24 @@ async function main() {
   let selectedPaymentMethod = null;
   let lastBookingRoom = null;
   let pixPollStop = false;
+
+  function railStep() {
+    if (!rail) return 220;
+    return Math.max(220, Math.floor(rail.clientWidth * 0.85));
+  }
+
+  function updateRailControls() {
+    if (!rail) return;
+    const max = Math.max(0, rail.scrollWidth - rail.clientWidth);
+    const left = rail.scrollLeft;
+    if (railPrev) railPrev.disabled = left <= 4;
+    if (railNext) railNext.disabled = left >= max - 4;
+  }
+
+  function scrollRailBy(delta) {
+    if (!rail) return;
+    rail.scrollBy({ left: delta, behavior: 'smooth' });
+  }
 
   function updateFinalPayLabel() {
     if (!btnFinalPayLabel) return;
@@ -389,6 +410,7 @@ async function main() {
       btn.addEventListener('click', () => openSpecialistModal(s));
       rail.appendChild(btn);
     });
+    updateRailControls();
     if (heroStatus && !urlParams.get('mp')) {
       heroStatus.textContent = '';
     }
@@ -674,6 +696,22 @@ async function main() {
     });
   }
 
+  if (railPrev && rail) {
+    railPrev.addEventListener('click', () => scrollRailBy(-railStep()));
+  }
+  if (railNext && rail) {
+    railNext.addEventListener('click', () => scrollRailBy(railStep()));
+  }
+  if (railAll && rail) {
+    railAll.addEventListener('click', () => {
+      rail.scrollTo({ left: rail.scrollWidth, behavior: 'smooth' });
+    });
+  }
+  if (rail) {
+    rail.addEventListener('scroll', updateRailControls, { passive: true });
+    window.addEventListener('resize', updateRailControls);
+  }
+
   function mountJitsi(roomSlug) {
     if (!jitsiMount || !roomSlug) return;
     jitsiMount.innerHTML = '';
@@ -709,6 +747,7 @@ async function main() {
   });
 
   await loadSpecialists();
+  updateRailControls();
 
   if (mpReturn === 'success' && mpIntentId && heroStatus) {
     heroStatus.textContent = 'A confirmar o pagamento no Mercado Pago…';

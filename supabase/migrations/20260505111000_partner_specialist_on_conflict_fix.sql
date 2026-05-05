@@ -1,28 +1,9 @@
 -- =============================================================================
--- Parceiros: exigir foto no fluxo e, ao aprovar candidatura, criar specialist.
--- O specialist nasce inativo para revisão final na aba Especialistas.
+-- Fix: ON CONFLICT de specialists por candidatura parceira
+-- Erro alvo: "there is no unique or exclusion constraint matching..."
 -- =============================================================================
 
-ALTER TABLE public.partner_professional_applications
-  ADD COLUMN IF NOT EXISTS photo_url text;
-
-ALTER TABLE public.specialists
-  ADD COLUMN IF NOT EXISTS origin_partner_application_id uuid;
-
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1
-    FROM pg_constraint
-    WHERE conname = 'specialists_origin_partner_application_fkey'
-  ) THEN
-    ALTER TABLE public.specialists
-      ADD CONSTRAINT specialists_origin_partner_application_fkey
-      FOREIGN KEY (origin_partner_application_id)
-      REFERENCES public.partner_professional_applications (id)
-      ON DELETE SET NULL;
-  END IF;
-END $$;
+DROP INDEX IF EXISTS public.specialists_origin_partner_application_uidx;
 
 DO $$
 BEGIN
@@ -93,6 +74,3 @@ BEGIN
   END IF;
 END;
 $$;
-
-COMMENT ON FUNCTION public.admin_set_partner_application_status(uuid, text) IS
-  'Admin parceiros: altera status; ao aprovar, cria/atualiza specialist inativo vinculado à candidatura.';

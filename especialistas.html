@@ -198,7 +198,12 @@
     <section class="spec-row" aria-labelledby="spec-row-title">
       <div class="spec-row__head">
         <h2 class="spec-row__title" id="spec-row-title">Em destaque</h2>
-        <span class="spec-row__hint">Toque na capa</span>
+        <div class="spec-row__actions">
+          <span class="spec-row__hint">Toque na capa</span>
+          <button type="button" class="spec-row__btn" id="spec-rail-prev" aria-label="Ver especialistas anteriores">‹</button>
+          <button type="button" class="spec-row__btn" id="spec-rail-next" aria-label="Ver mais especialistas">›</button>
+          <button type="button" class="spec-row__all" id="spec-rail-all">Ver todos</button>
+        </div>
       </div>
       <div class="spec-rail" id="spec-rail" role="list"></div>
     </section>

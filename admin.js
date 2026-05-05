@@ -67,7 +67,10 @@ function renderSpecialists(rows, tbody, specNameById) {
       <td>${escapeHtml(r.specialty || '')}</td>
       <td>${escapeHtml(dur)}</td>
       <td>${r.active ? 'sim' : 'não'}</td>
-      <td class="btn-cell"><button type="button" class="admin-btn" data-edit="${r.id}">Editar</button></td>
+      <td class="btn-cell">
+        <button type="button" class="admin-btn" data-edit="${r.id}">Editar</button>
+        <button type="button" class="admin-btn" data-del-spec="${r.id}">Excluir</button>
+      </td>
     `;
     tbody.appendChild(tr);
   });
@@ -454,6 +457,33 @@ async function main() {
     }
   }
 
+  function openAdminTab(name) {
+    if (!name) return;
+    tabSwitch(document, name);
+    if (name === 'reg' && !regDataLoaded) {
+      regDataLoaded = true;
+      void refreshCadastrosTab();
+    }
+    if (name === 'par' && !parAppsLoaded) {
+      parAppsLoaded = true;
+      void refreshPartnerApplicationsPanel();
+    }
+  }
+
+  document.querySelectorAll('button.admin-tab[data-tab]').forEach((btn) => {
+    const onTab = (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const name = btn.getAttribute('data-tab');
+      openAdminTab(name);
+    };
+    btn.addEventListener('click', onTab);
+    btn.addEventListener('pointerup', onTab);
+    btn.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter' || ev.key === ' ') onTab(ev);
+    });
+  });
+
   const adminAppEl = document.getElementById('admin-app');
   if (adminAppEl) {
     adminAppEl.addEventListener(
@@ -529,19 +559,7 @@ async function main() {
         }
 
         const tabBtn = el.closest('button.admin-tab[data-tab]');
-        if (tabBtn && adminAppEl.contains(tabBtn)) {
-          const name = tabBtn.getAttribute('data-tab');
-          if (!name) return;
-          tabSwitch(document, name);
-          if (name === 'reg' && !regDataLoaded) {
-            regDataLoaded = true;
-            void refreshCadastrosTab();
-          }
-          if (name === 'par' && !parAppsLoaded) {
-            parAppsLoaded = true;
-            void refreshPartnerApplicationsPanel();
-          }
-        }
+        if (tabBtn && adminAppEl.contains(tabBtn)) return;
       },
       true
     );
@@ -551,7 +569,24 @@ async function main() {
     tbodySpec.addEventListener('click', async (ev) => {
       const el = clickEventTargetElement(ev);
       const btn = el?.closest?.('button[data-edit]');
+      const delBtn = el?.closest?.('button[data-del-spec]');
       const id = btn?.getAttribute('data-edit');
+      const delId = delBtn?.getAttribute('data-del-spec');
+
+      if (delId) {
+        if (!window.confirm('Excluir este especialista da lista? Esta ação remove o perfil público.')) return;
+        setStatus(statusEl, 'A excluir especialista…', false);
+        try {
+          const { error } = await sb.from('specialists').delete().eq('id', delId);
+          if (error) throw error;
+          await refreshAll();
+          setStatus(statusEl, 'Especialista excluído com sucesso.', false);
+        } catch (e) {
+          setStatus(statusEl, formatSbError(e) || e.message || String(e), true);
+        }
+        return;
+      }
+
       if (!id) return;
       const { data: row, error } = await sb.from('specialists').select('*').eq('id', id).maybeSingle();
       if (error) {
@@ -571,6 +606,12 @@ async function main() {
         inp.checked = inp.value === durMin;
       });
       tabSwitch(document, 'spec');
+      const specFormCard = document.getElementById('panel-spec')?.querySelector('.admin-card');
+      if (specFormCard) {
+        specFormCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
       setStatus(statusEl, 'Formulário preenchido — altera e guarda.', false);
     });
   }
