@@ -41,6 +41,10 @@ function clearSpecForm(root) {
   root.querySelector('#adm-spec-id').value = '';
   const idView = root.querySelector('#adm-spec-id-view');
   if (idView) idView.value = '';
+  const contact = root.querySelector('#adm-spec-contact');
+  if (contact) contact.value = '';
+  const contactHint = root.querySelector('#adm-spec-contact-hint');
+  if (contactHint) contactHint.textContent = '';
   root.querySelector('#adm-spec-name').value = '';
   root.querySelector('#adm-spec-specialty').value = '';
   root.querySelector('#adm-spec-bio').value = '';
@@ -55,6 +59,45 @@ async function loadSpecialists(sb) {
   const { data, error } = await sb.from('specialists').select('*').order('sort_order', { ascending: true });
   if (error) throw error;
   return data || [];
+}
+
+async function fillSpecialistAdminContact(sb, specialistRow) {
+  const inp = document.getElementById('adm-spec-contact');
+  const hint = document.getElementById('adm-spec-contact-hint');
+  if (!inp) return;
+  inp.value = '';
+  if (hint) hint.textContent = '';
+
+  const appId = specialistRow?.origin_partner_application_id;
+  if (!appId) {
+    if (hint) hint.textContent = 'Sem origem em candidatura parceira. Usa «Ligar conta do médico» com UUID Auth.';
+    return;
+  }
+
+  try {
+    const { data, error } = await sb
+      .from('partner_professional_applications')
+      .select('whatsapp,email,cidade_estado_atuacao,links_redes_site')
+      .eq('id', appId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) {
+      if (hint) hint.textContent = 'Candidatura de origem não encontrada.';
+      return;
+    }
+    const whatsapp = String(data.whatsapp || '').trim();
+    const email = String(data.email || '').trim();
+    const local = String(data.cidade_estado_atuacao || '').trim();
+    inp.value = [whatsapp && `WhatsApp: ${whatsapp}`, email && `E-mail: ${email}`]
+      .filter(Boolean)
+      .join(' · ');
+    if (hint) {
+      const link = String(data.links_redes_site || '').trim();
+      hint.textContent = [local && `Atuação: ${local}`, link && `Link: ${link}`].filter(Boolean).join(' · ');
+    }
+  } catch (e) {
+    if (hint) hint.textContent = 'Falha ao carregar contato: ' + (e.message || String(e));
+  }
 }
 
 function renderSpecialists(rows, tbody, specNameById) {
@@ -267,6 +310,8 @@ function renderPartnerApplications(rows, tbody) {
     const stLabel = PARTNER_STATUS_LABEL[st] || st;
     const rawArea = r.area_atuacao != null ? String(r.area_atuacao) : '';
     const area = rawArea.length > 40 ? `${rawArea.slice(0, 40)}…` : rawArea;
+    const periodos = Array.isArray(r.periodos) ? r.periodos.join(', ') : '';
+    const dias = Array.isArray(r.dias_semana) ? r.dias_semana.join(', ') : '';
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${escapeHtml(fmtDate(r.created_at))}</td>
@@ -279,6 +324,23 @@ function renderPartnerApplications(rows, tbody) {
         <button type="button" class="admin-btn" data-par-status="${r.id}" data-par-next="reviewing">Analisar</button>
         <button type="button" class="admin-btn admin-btn--primary" data-par-status="${r.id}" data-par-next="approved">Aprovar</button>
         <button type="button" class="admin-btn" data-par-status="${r.id}" data-par-next="rejected">Recusar</button>
+        <details style="margin-top:8px;text-align:left">
+          <summary style="cursor:pointer;font-size:.8rem;color:#5a5550">Ver dados completos</summary>
+          <div style="margin-top:6px;font-size:.8rem;line-height:1.45;color:#2d2a26">
+            <div><strong>CPF/RG:</strong> ${escapeHtml(r.cpf_or_rg || '—')}</div>
+            <div><strong>Cidade/Estado:</strong> ${escapeHtml(r.cidade_estado_atuacao || '—')}</div>
+            <div><strong>Links:</strong> ${escapeHtml(r.links_redes_site || '—')}</div>
+            <div><strong>Tempo experiência:</strong> ${escapeHtml(r.tempo_experiencia || '—')}</div>
+            <div><strong>Foco especialização:</strong> ${escapeHtml(r.foco_especializacao || '—')}</div>
+            <div><strong>Registro profissional:</strong> ${escapeHtml(r.registro_profissional || '—')}</div>
+            <div><strong>Períodos:</strong> ${escapeHtml(periodos || '—')}</div>
+            <div><strong>Dias:</strong> ${escapeHtml(dias || '—')}</div>
+            <div><strong>Aceita preço:</strong> ${r.aceita_precificacao ? 'Sim' : 'Não'}</div>
+            <div><strong>Consentimento:</strong> ${r.consentimento_triagem ? 'Sim' : 'Não'}</div>
+            <div><strong>Motivação:</strong> ${escapeHtml(r.motivacao_parceria || '—')}</div>
+            <div><strong>Mini currículo:</strong> ${escapeHtml(r.mini_curriculo || '—')}</div>
+          </div>
+        </details>
       </td>
     `;
     tbody.appendChild(tr);
@@ -472,7 +534,9 @@ async function main() {
     }
   }
 
-  document.querySelectorAll('button.admin-tab[data-tab]').forEach((btn) => {
+  window.__adminOpenTab = openAdminTab;
+
+  document.querySelectorAll('.admin-tab[data-tab]').forEach((btn) => {
     const onTab = (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
@@ -485,6 +549,22 @@ async function main() {
       if (ev.key === 'Enter' || ev.key === ' ') onTab(ev);
     });
   });
+
+  const adminTabsEl = document.querySelector('.admin-tabs');
+  if (adminTabsEl) {
+    adminTabsEl.addEventListener(
+      'click',
+      (ev) => {
+        const el = clickEventTargetElement(ev);
+        const tabBtn = el?.closest?.('.admin-tab[data-tab]');
+        if (!tabBtn) return;
+        ev.preventDefault();
+        ev.stopPropagation();
+        openAdminTab(tabBtn.getAttribute('data-tab'));
+      },
+      true
+    );
+  }
 
   const adminAppEl = document.getElementById('admin-app');
   if (adminAppEl) {
@@ -599,6 +679,7 @@ async function main() {
       document.getElementById('adm-spec-id').value = row.id;
       const idView = document.getElementById('adm-spec-id-view');
       if (idView) idView.value = row.id || '';
+      await fillSpecialistAdminContact(sb, row);
       document.getElementById('adm-spec-name').value = row.display_name || '';
       document.getElementById('adm-spec-specialty').value = row.specialty || '';
       document.getElementById('adm-spec-bio').value = row.bio || '';
@@ -684,6 +765,14 @@ async function main() {
         if (idView) idView.value = newId;
       }
       await refreshAll();
+      if (id) {
+        const { data: row } = await sb
+          .from('specialists')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+        if (row) await fillSpecialistAdminContact(sb, row);
+      }
       setStatus(statusEl, 'Especialista guardado. UUID pronto para copiar e vincular.', false);
     } catch (e) {
       setStatus(statusEl, e.message || String(e), true);
