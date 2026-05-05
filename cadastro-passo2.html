@@ -131,11 +131,15 @@
     import { getSignupClient, getSessionUserId, signupStep2Child } from './signup-flow.js';
     import { computeMotherSignupRedirect } from './mother-onboarding-guard.js';
 
+    const params = new URLSearchParams(window.location.search || '');
+    const isEditMode = params.get('edit') === '1' || params.get('from') === 'perfil';
     const errEl = document.getElementById('signup-error');
     const form = document.getElementById('form-passo2');
     const btn = document.getElementById('btn-submit');
+    const backLink = document.querySelector('.personalizacao-back');
     const dn = document.getElementById('data-nascimento');
     if (dn) dn.max = new Date().toISOString().slice(0, 10);
+    if (isEditMode && backLink) backLink.href = 'perfil.html';
 
     function showError(msg) {
       errEl.textContent = msg;
@@ -150,7 +154,9 @@
       if (!uid) {
         window.location.href = 'login.html';
       } else {
-        const next = await computeMotherSignupRedirect(client, uid, 'cadastro-passo2.html');
+        const next = await computeMotherSignupRedirect(client, uid, 'cadastro-passo2.html', {
+          allowSignupPageAccess: isEditMode,
+        });
         if (next) window.location.replace(next);
       }
     }
@@ -194,7 +200,11 @@
         return;
       }
 
-      window.location.href = 'cadastro-passo3.html';
+      if (isEditMode) {
+        window.location.href = 'perfil.html';
+      } else {
+        window.location.href = 'cadastro-passo3.html';
+      }
     });
   </script>
   <script src="pwa.js"></script>

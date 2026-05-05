@@ -87,6 +87,29 @@ function formatSbError(err) {
   return parts.join(' — ');
 }
 
+/** Clique no texto dentro do botão dá `target` = TextNode — `closest` falha sem isto. */
+function clickEventTargetElement(ev) {
+  const t = ev.target;
+  if (t instanceof Element) return t;
+  if (t && t.nodeType === Node.TEXT_NODE && t.parentElement) return t.parentElement;
+  return null;
+}
+
+function promiseWithTimeout(promise, ms, timeoutMsg) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(timeoutMsg)), ms);
+    Promise.resolve(promise)
+      .then((v) => {
+        clearTimeout(timer);
+        resolve(v);
+      })
+      .catch((e) => {
+        clearTimeout(timer);
+        reject(e);
+      });
+  });
+}
+
 function rpcMissing(err) {
   const m = String(err?.message || err || '');
   return (
@@ -425,56 +448,93 @@ async function main() {
     try {
       const rows = await loadPartnerApplications(sb);
       renderPartnerApplications(rows, tbodyPar);
-      tbodyPar.querySelectorAll('button[data-par-status][data-par-next]').forEach((btn) => {
-        btn.addEventListener('click', async (ev) => {
-          ev.preventDefault();
-          ev.stopPropagation();
-          const id = btn.getAttribute('data-par-status');
-          const next = btn.getAttribute('data-par-next');
-          if (!id || !next) return;
-          setStatus(statusEl, 'A atualizar candidatura…', false);
-          if (hint) hint.textContent = 'A guardar…';
-          try {
-            const { error } = await sb.rpc('admin_set_partner_application_status', {
-              p_id: id,
-              p_status: next,
-            });
-            if (error) throw error;
-            setStatus(statusEl, 'Candidatura atualizada com sucesso.', false);
-            if (hint) hint.textContent = 'Estado guardado.';
-            await refreshPartnerApplicationsPanel();
-          } catch (e) {
-            const msg = formatSbError(e) || e.message || String(e);
-            setStatus(statusEl, msg, true);
-            if (hint) hint.textContent = msg.slice(0, 200);
-          }
-        });
-      });
       if (hint) hint.textContent = `${rows.length} candidatura(s).`;
     } catch (e) {
       if (hint) hint.textContent = formatSbError(e) || e.message || String(e);
     }
   }
 
-  document.querySelectorAll('button.admin-tab[data-tab]').forEach((tabBtn) => {
-    tabBtn.addEventListener('click', () => {
-      const name = tabBtn.getAttribute('data-tab');
-      if (!name) return;
-      tabSwitch(document, name);
-      if (name === 'reg' && !regDataLoaded) {
-        regDataLoaded = true;
-        void refreshCadastrosTab();
-      }
-      if (name === 'par' && !parAppsLoaded) {
-        parAppsLoaded = true;
-        void refreshPartnerApplicationsPanel();
-      }
-    });
-  });
+  const adminAppEl = document.getElementById('admin-app');
+  if (adminAppEl) {
+    adminAppEl.addEventListener(
+      'click',
+      (ev) => {
+        const el = clickEventTargetElement(ev);
+        if (!el) return;
+
+        const parBtn = el.closest('button[data-par-next][data-par-status]');
+        if (parBtn && tbodyPar && tbodyPar.contains(parBtn)) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          const id = parBtn.getAttribute('data-par-status');
+          const next = parBtn.getAttribute('data-par-next');
+          if (!id || !next) return;
+
+          void (async () => {
+            const hint = document.getElementById('adm-par-hint');
+            parBtn.disabled = true;
+            setStatus(statusEl, 'A atualizar candidatura…', false);
+            if (hint) hint.textContent = 'A guardar na base de dados…';
+            try {
+              const res = await promiseWithTimeout(
+                sb.rpc('admin_set_partner_application_status', { p_id: id, p_status: next }),
+                35000,
+                'O pedido expirou (rede ou Supabase). Tenta outra vez.'
+              );
+              if (res.error) throw res.error;
+
+              const rowsCheck = await loadPartnerApplications(sb);
+              const rowOk = rowsCheck.find((r) => String(r.id) === String(id));
+              if (!rowOk || rowOk.status !== next) {
+                throw new Error(
+                  `O estado não foi confirmado após gravar (esperado «${next}», lido «${
+                    rowOk?.status || '—'
+                  }»). Aplica no Supabase o SQL da função admin_set_partner_application_status ou verifica se estás no projeto certo.`
+                );
+              }
+
+              setStatus(statusEl, 'Candidatura atualizada com sucesso.', false);
+              if (hint) hint.textContent = 'Estado guardado.';
+              if (typeof showToast === 'function') {
+                showToast('Candidatura atualizada.');
+              }
+              await refreshPartnerApplicationsPanel();
+            } catch (e) {
+              const msg = formatSbError(e) || e.message || String(e);
+              setStatus(statusEl, msg, true);
+              if (hint) hint.textContent = msg.slice(0, 220);
+              console.warn('[admin] partner status:', e);
+            } finally {
+              parBtn.disabled = false;
+            }
+          })();
+          return;
+        }
+
+        const tabBtn = el.closest('button.admin-tab[data-tab]');
+        if (tabBtn && adminAppEl.contains(tabBtn)) {
+          const name = tabBtn.getAttribute('data-tab');
+          if (!name) return;
+          tabSwitch(document, name);
+          if (name === 'reg' && !regDataLoaded) {
+            regDataLoaded = true;
+            void refreshCadastrosTab();
+          }
+          if (name === 'par' && !parAppsLoaded) {
+            parAppsLoaded = true;
+            void refreshPartnerApplicationsPanel();
+          }
+        }
+      },
+      true
+    );
+  }
 
   if (tbodySpec) {
     tbodySpec.addEventListener('click', async (ev) => {
-      const id = ev.target?.dataset?.edit;
+      const el = clickEventTargetElement(ev);
+      const btn = el?.closest?.('button[data-edit]');
+      const id = btn?.getAttribute('data-edit');
       if (!id) return;
       const { data: row, error } = await sb.from('specialists').select('*').eq('id', id).maybeSingle();
       if (error) {
@@ -603,7 +663,9 @@ async function main() {
   });
 
   tbodyMothers?.addEventListener('click', async (ev) => {
-    const id = ev.target?.dataset?.editMother;
+    const el = clickEventTargetElement(ev);
+    const btn = el?.closest?.('button[data-edit-mother]');
+    const id = btn?.getAttribute('data-edit-mother');
     if (!id) return;
     const editor = document.getElementById('adm-mother-editor');
     setStatus(statusEl, 'A carregar perfil…', false);
@@ -743,7 +805,9 @@ async function main() {
 
   if (tbodyBook) {
     tbodyBook.addEventListener('click', async (ev) => {
-      const bid = ev.target?.dataset?.cancelBooking;
+      const el = clickEventTargetElement(ev);
+      const btn = el?.closest?.('button[data-cancel-booking]');
+      const bid = btn?.getAttribute('data-cancel-booking');
       if (!bid) return;
       if (!window.confirm('Cancelar esta reserva? O horário volta a ficar livre.')) return;
       setStatus(statusEl, 'A cancelar…', false);

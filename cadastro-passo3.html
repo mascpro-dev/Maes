@@ -156,9 +156,13 @@
     import { computeMotherSignupRedirect } from './mother-onboarding-guard.js';
     import { persistWelcomeExperience } from './onboarding-inteligente.js';
 
+    const params = new URLSearchParams(window.location.search || '');
+    const isEditMode = params.get('edit') === '1' || params.get('from') === 'perfil';
     const errEl = document.getElementById('signup-error');
     const form = document.getElementById('form-passo3');
     const btn = document.getElementById('btn-submit');
+    const backLink = document.querySelector('.personalizacao-back');
+    if (isEditMode && backLink) backLink.href = 'perfil.html';
 
     function showError(msg) {
       errEl.textContent = msg;
@@ -173,7 +177,9 @@
       if (!uid) {
         window.location.href = 'login.html';
       } else {
-        const next = await computeMotherSignupRedirect(client, uid, 'cadastro-passo3.html');
+        const next = await computeMotherSignupRedirect(client, uid, 'cadastro-passo3.html', {
+          allowSignupPageAccess: isEditMode,
+        });
         if (next) window.location.replace(next);
       }
     }
@@ -214,11 +220,15 @@
         return;
       }
 
-      var perf =
-        typeof window.AuraAuth !== 'undefined' ? window.AuraAuth.getProfile() : {};
-      var nomeMae = (perf.nomeCompleto && String(perf.nomeCompleto).trim()) || '';
-      persistWelcomeExperience({ fullName: nomeMae, challengeSlugs: desafios });
-      window.location.href = 'onboarding-boasvindas.html';
+      if (isEditMode) {
+        window.location.href = 'perfil.html';
+      } else {
+        var perf =
+          typeof window.AuraAuth !== 'undefined' ? window.AuraAuth.getProfile() : {};
+        var nomeMae = (perf.nomeCompleto && String(perf.nomeCompleto).trim()) || '';
+        persistWelcomeExperience({ fullName: nomeMae, challengeSlugs: desafios });
+        window.location.href = 'onboarding-boasvindas.html';
+      }
     });
   </script>
   <script src="pwa.js"></script>

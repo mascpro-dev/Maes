@@ -81,16 +81,19 @@ export async function fetchMotherSignupState(supabase, userId) {
 
 /**
  * Decide redireccionamento quando uma mãe ainda deve completar o cadastro (ou já não deve estar numa página de signup).
+ * @param {{ allowSignupPageAccess?: boolean }} [options]
  * @returns {null|string} novo ficheiro (ex.: cadastro-passo3.html) ou index.html quando aplicável.
  */
-export async function computeMotherSignupRedirect(supabase, userId, currentFileOpt) {
+export async function computeMotherSignupRedirect(supabase, userId, currentFileOpt, options = {}) {
   const cur = currentFileOpt || currentPageName();
+  const allowSignupPageAccess = options.allowSignupPageAccess === true;
+  const isMotherSignupPage = MOTHER_SIGNUP_PAGES.has(cur);
   const state = await fetchMotherSignupState(supabase, userId);
   const { profile, childrenCount } = state;
 
   const isMedicOrOther = profile?.account_type === 'medic';
   if (isMedicOrOther) {
-    if (MOTHER_SIGNUP_PAGES.has(cur)) return 'index.html';
+    if (isMotherSignupPage && !allowSignupPageAccess) return 'index.html';
     return null;
   }
 
@@ -100,7 +103,7 @@ export async function computeMotherSignupRedirect(supabase, userId, currentFileO
   const full = step1 && step2 && step3;
 
   if (full) {
-    if (MOTHER_SIGNUP_PAGES.has(cur)) return 'index.html';
+    if (isMotherSignupPage && !allowSignupPageAccess) return 'index.html';
     return null;
   }
 
@@ -108,7 +111,7 @@ export async function computeMotherSignupRedirect(supabase, userId, currentFileO
   // Apenas redireccionamos utilizadoras verdadeiramente novas (sem qualquer perfil).
   const hasBasicProfile = String(profile?.full_name || '').trim().length >= 2;
   if (hasBasicProfile) {
-    if (MOTHER_SIGNUP_PAGES.has(cur)) return 'index.html';
+    if (isMotherSignupPage && !allowSignupPageAccess) return 'index.html';
     return null;
   }
 

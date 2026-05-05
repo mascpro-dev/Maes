@@ -3,10 +3,17 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="refresh" content="0; url=cadastro-passo2.html" />
   <title>CONTA MÃE — Redirecionando…</title>
   <script>
-    window.location.replace('cadastro-passo2.html');
+    (function () {
+      var q = window.location.search || '';
+      var target = 'cadastro-passo2.html' + q;
+      var refresh = document.createElement('meta');
+      refresh.httpEquiv = 'refresh';
+      refresh.content = '0; url=' + target;
+      document.head.appendChild(refresh);
+      window.location.replace(target);
+    })();
   </script>
   <link rel="icon" href="assets/branding/favicon.svg" type="image/svg+xml" sizes="any" />
   <link rel="manifest" href="manifest.webmanifest" />
@@ -19,7 +26,14 @@
 </head>
 
 <body>
-  <p style="font-family: system-ui, sans-serif; padding: 1.5rem;">A redirecionar para o <a href="cadastro-passo2.html">passo 2 do cadastro</a>…</p>
+  <p style="font-family: system-ui, sans-serif; padding: 1.5rem;">A redirecionar para o <a id="legacy-cadastro-link" href="cadastro-passo2.html">passo 2 do cadastro</a>…</p>
+  <script>
+    (function () {
+      var a = document.getElementById('legacy-cadastro-link');
+      if (!a) return;
+      a.href = 'cadastro-passo2.html' + (window.location.search || '');
+    })();
+  </script>
   <script src="pwa.js"></script>
 </body>
 

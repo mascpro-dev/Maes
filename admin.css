@@ -9,6 +9,11 @@ body.admin-page {
   overflow-x: hidden;
 }
 
+/* Barra inferior fixa (z-index alto): garante que a última linha da tabela não fica por baixo dela em telemóvel. */
+body.admin-page .app-wrapper {
+  padding-bottom: calc(var(--nav-h) + 40px);
+}
+
 .app-wrapper--admin {
   width: 100%;
   max-width: 100%;
