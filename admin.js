@@ -47,6 +47,7 @@ function clearSpecForm(root) {
   if (contactHint) contactHint.textContent = '';
   root.querySelector('#adm-spec-name').value = '';
   root.querySelector('#adm-spec-specialty').value = '';
+  root.querySelector('#adm-spec-phone').value = '';
   root.querySelector('#adm-spec-bio').value = '';
   root.querySelector('#adm-spec-photo').value = '';
   root.querySelector('#adm-spec-sort').value = '0';
@@ -110,6 +111,7 @@ function renderSpecialists(rows, tbody, specNameById) {
       <td>${r.sort_order ?? 0}</td>
       <td>${escapeHtml(r.display_name || '')}</td>
       <td>${escapeHtml(r.specialty || '')}</td>
+      <td>${escapeHtml(r.phone || '—')}</td>
       <td>${escapeHtml(dur)}</td>
       <td>${r.active ? 'sim' : 'não'}</td>
       <td class="btn-cell">
@@ -682,6 +684,7 @@ async function main() {
       await fillSpecialistAdminContact(sb, row);
       document.getElementById('adm-spec-name').value = row.display_name || '';
       document.getElementById('adm-spec-specialty').value = row.specialty || '';
+      document.getElementById('adm-spec-phone').value = row.phone || '';
       document.getElementById('adm-spec-bio').value = row.bio || '';
       document.getElementById('adm-spec-photo').value = row.photo_url || '';
       document.getElementById('adm-spec-sort').value = String(row.sort_order ?? 0);
@@ -739,6 +742,7 @@ async function main() {
     const payload = {
       display_name: document.getElementById('adm-spec-name').value.trim(),
       specialty: document.getElementById('adm-spec-specialty').value.trim(),
+      phone: document.getElementById('adm-spec-phone').value.trim() || null,
       bio: document.getElementById('adm-spec-bio').value.trim() || null,
       photo_url: document.getElementById('adm-spec-photo').value.trim() || null,
       sort_order: parseInt(document.getElementById('adm-spec-sort').value, 10) || 0,
