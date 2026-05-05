@@ -133,11 +133,13 @@
 
     const params = new URLSearchParams(window.location.search || '');
     const isEditMode = params.get('edit') === '1' || params.get('from') === 'perfil';
+    const childId = (params.get('child_id') || '').trim();
     const errEl = document.getElementById('signup-error');
     const form = document.getElementById('form-passo2');
     const btn = document.getElementById('btn-submit');
     const backLink = document.querySelector('.personalizacao-back');
     const dn = document.getElementById('data-nascimento');
+    let currentUid = '';
     if (dn) dn.max = new Date().toISOString().slice(0, 10);
     if (isEditMode && backLink) backLink.href = 'perfil.html';
 
@@ -154,10 +156,44 @@
       if (!uid) {
         window.location.href = 'login.html';
       } else {
+        currentUid = uid;
         const next = await computeMotherSignupRedirect(client, uid, 'cadastro-passo2.html', {
           allowSignupPageAccess: isEditMode,
         });
         if (next) window.location.replace(next);
+
+        if (isEditMode && childId) {
+          const { data: childRow, error: childErr } = await client
+            .from('children')
+            .select('id, name, data_nascimento, diagnosticos')
+            .eq('id', childId)
+            .eq('user_id', uid)
+            .maybeSingle();
+
+          if (childErr || !childRow) {
+            showError('Não foi possível carregar este filho para edição.');
+          } else {
+            const inName = document.getElementById('nome-crianca');
+            const inBirth = document.getElementById('data-nascimento');
+            if (inName) inName.value = String(childRow.name || '').trim();
+            if (inBirth) inBirth.value = String(childRow.data_nascimento || '').slice(0, 10);
+
+            const selectedDx = Array.isArray(childRow.diagnosticos)
+              ? childRow.diagnosticos.map((d) => String(d).trim())
+              : [];
+            if (selectedDx.length) {
+              document
+                .querySelectorAll('input[name="diagnostico"]')
+                .forEach((el) => {
+                  el.checked = selectedDx.includes(String(el.value || '').trim());
+                });
+            }
+
+            const title = document.getElementById('titulo-crianca');
+            if (title) title.textContent = 'Editar filho ou filha';
+            if (btn) btn.textContent = 'Guardar alterações';
+          }
+        }
       }
     }
 
@@ -188,11 +224,25 @@
       }
 
       btn.disabled = true;
-      const res = await signupStep2Child({
-        nome,
-        dataNascimento: data || null,
-        diagnosticos,
-      });
+      let res;
+      if (isEditMode && childId && client) {
+        const { error: upErr } = await client
+          .from('children')
+          .update({
+            name: nome.trim(),
+            data_nascimento: data || null,
+            diagnosticos,
+          })
+          .eq('id', childId)
+          .eq('user_id', currentUid);
+        res = upErr ? { ok: false, message: upErr.message } : { ok: true };
+      } else {
+        res = await signupStep2Child({
+          nome,
+          dataNascimento: data || null,
+          diagnosticos,
+        });
+      }
       btn.disabled = false;
 
       if (!res.ok) {

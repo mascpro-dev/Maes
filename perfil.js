@@ -402,6 +402,19 @@ function renderProfile(profile, children) {
           card.appendChild(tags);
         }
 
+        const childId = c?.id ? String(c.id).trim() : '';
+        if (childId) {
+          const actions = document.createElement('div');
+          actions.className = 'perfil-child-card__actions';
+          const editLink = document.createElement('a');
+          editLink.className = 'perfil-child-card__edit';
+          editLink.href =
+            'cadastro-passo2.html?edit=1&from=perfil&child_id=' + encodeURIComponent(childId);
+          editLink.textContent = 'Editar filho';
+          actions.appendChild(editLink);
+          card.appendChild(actions);
+        }
+
         listEl.appendChild(card);
       });
     }
