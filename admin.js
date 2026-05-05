@@ -831,6 +831,38 @@ async function main() {
     }
   });
 
+  document.getElementById('adm-link-validate')?.addEventListener('click', async () => {
+    const inp = document.getElementById('adm-link-user');
+    const hint = document.getElementById('adm-link-hint');
+    const uid = inp?.value?.trim();
+    if (!uid) {
+      if (hint) hint.textContent = 'Cola primeiro o UUID do utilizador.';
+      return;
+    }
+    const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    if (!uuidRe.test(uid)) {
+      if (hint) hint.textContent = 'UUID inválido.';
+      return;
+    }
+    if (hint) hint.textContent = 'A validar no Auth…';
+    try {
+      const { data, error } = await sb.rpc('admin_check_auth_user', { p_user_id: uid });
+      if (error) throw error;
+      if (data?.exists) {
+        if (hint) hint.textContent = `UUID válido no Auth. E-mail: ${data.email || 'sem e-mail'}.`;
+      } else {
+        if (hint) hint.textContent = 'UUID não encontrado no Auth > Users deste projeto.';
+      }
+    } catch (e) {
+      const msg = formatSbError(e) || e.message || String(e);
+      if (/function|schema cache|admin_check_auth_user/i.test(msg)) {
+        if (hint) hint.textContent = 'Aplica a migração 20260505152000_admin_check_auth_user_rpc.sql e tenta novamente.';
+      } else {
+        if (hint) hint.textContent = msg;
+      }
+    }
+  });
+
   document.getElementById('adm-terms-save')?.addEventListener('click', async () => {
     const hint = document.getElementById('adm-terms-hint');
     const title = document.getElementById('adm-terms-title')?.value?.trim() || 'Termos e condições de uso';
