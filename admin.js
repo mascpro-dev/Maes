@@ -666,7 +666,16 @@ async function main() {
           await refreshAll();
           setStatus(statusEl, 'Especialista excluído com sucesso.', false);
         } catch (e) {
-          setStatus(statusEl, formatSbError(e) || e.message || String(e), true);
+          const msg = formatSbError(e) || e.message || String(e);
+          if (/policy|permission|forbidden|42501|row-level security|rls/i.test(msg)) {
+            setStatus(
+              statusEl,
+              'Sem permissão para excluir no Supabase. Aplica a migração 20260505145000_admin_specialists_delete_policy.sql.',
+              true
+            );
+          } else {
+            setStatus(statusEl, msg, true);
+          }
         }
         return;
       }
@@ -808,7 +817,17 @@ async function main() {
       if (hint) hint.textContent = 'Ligação guardada. O médico vê a agenda em Perfil → Agenda de consultas.';
       inp.value = '';
     } catch (e) {
-      if (hint) hint.textContent = e.message || String(e);
+      const msg = formatSbError(e) || e.message || String(e);
+      if (/auth_user_not_found|specialist_accounts_user_fkey|foreign key/i.test(msg)) {
+        if (hint) {
+          hint.textContent =
+            'UUID não existe em Auth > Users. Cria primeiro o utilizador (ou confirma que copiaste o UUID correto) e depois guarda a ligação.';
+        }
+      } else if (/specialist_not_found/i.test(msg)) {
+        if (hint) hint.textContent = 'Especialista não encontrado. Atualiza a lista e tenta novamente.';
+      } else {
+        if (hint) hint.textContent = msg;
+      }
     }
   });
 
