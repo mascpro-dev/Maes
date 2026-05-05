@@ -25,6 +25,17 @@ function setStatus(el, msg, isErr) {
   el.style.color = isErr ? 'var(--terracotta, #E2725B)' : '';
 }
 
+/** Identificador do projeto na URL (ex. ahjhjzdmkkrcgbuxmhww) — para alinhar com o Dashboard do Supabase. */
+function supabaseProjectRef() {
+  try {
+    const u = window.AURA_SUPABASE_URL || '';
+    const m = u.match(/https?:\/\/([^.]+)\.supabase\.co/i);
+    return m ? m[1] : u || '—';
+  } catch {
+    return '—';
+  }
+}
+
 function tabSwitch(root, name) {
   root.querySelectorAll('.admin-tab').forEach((btn) => {
     const on = btn.dataset.tab === name;
@@ -458,6 +469,30 @@ async function main() {
     if (cur && [...sel.options].some((o) => o.value === cur)) sel.value = cur;
   }
 
+  document.getElementById('adm-link-spec')?.addEventListener('change', async () => {
+    const sel = document.getElementById('adm-link-spec');
+    const emailInp = document.getElementById('adm-link-email-lookup');
+    const specId = sel?.value?.trim();
+    if (!specId || !emailInp) return;
+    try {
+      const { data: row } = await sb
+        .from('specialists')
+        .select('origin_partner_application_id')
+        .eq('id', specId)
+        .maybeSingle();
+      const appId = row?.origin_partner_application_id;
+      if (!appId) return;
+      const { data: app } = await sb
+        .from('partner_professional_applications')
+        .select('email')
+        .eq('id', appId)
+        .maybeSingle();
+      if (app?.email) emailInp.value = String(app.email).trim();
+    } catch {
+      /* ignorar */
+    }
+  });
+
   async function refreshAll() {
     setStatus(statusEl, 'A carregar…', false);
     const parts = [];
@@ -821,10 +856,48 @@ async function main() {
       if (/auth_user_not_found|specialist_accounts_user_fkey|foreign key/i.test(msg)) {
         if (hint) {
           hint.textContent =
-            'UUID não existe em Auth > Users. Cria primeiro o utilizador (ou confirma que copiaste o UUID correto) e depois guarda a ligação.';
+            `UUID não existe em Auth > Users deste projeto (${supabaseProjectRef()}). Cria o utilizador em Authentication no mesmo projeto, usa «Buscar UUID por e-mail», ou confirma que não estás noutro projeto Supabase.`;
         }
       } else if (/specialist_not_found/i.test(msg)) {
         if (hint) hint.textContent = 'Especialista não encontrado. Atualiza a lista e tenta novamente.';
+      } else {
+        if (hint) hint.textContent = msg;
+      }
+    }
+  });
+
+  document.getElementById('adm-link-lookup-email')?.addEventListener('click', async () => {
+    const emailInp = document.getElementById('adm-link-email-lookup');
+    const uuidInp = document.getElementById('adm-link-user');
+    const hint = document.getElementById('adm-link-hint');
+    const email = emailInp?.value?.trim();
+    const ref = supabaseProjectRef();
+    if (!email) {
+      if (hint) hint.textContent = `Indica o e-mail com que o utilizador foi criado em Authentication (projeto ${ref}).`;
+      return;
+    }
+    if (hint) hint.textContent = 'A procurar no Auth…';
+    try {
+      const { data, error } = await sb.rpc('admin_lookup_auth_user_by_email', { p_email: email });
+      if (error) throw error;
+      if (data?.found && data.id) {
+        if (uuidInp) uuidInp.value = data.id;
+        if (hint) hint.textContent = `UUID preenchido. Projeto: ${ref}. E-mail em Auth: ${data.email || email}.`;
+      } else if (data?.ambiguous) {
+        if (hint) {
+          hint.textContent = `Vários utilizadores com este e-mail neste projeto; resolve no Dashboard → Users. Projeto: ${ref}.`;
+        }
+      } else {
+        if (hint) {
+          hint.textContent = `Nenhum utilizador com este e-mail em Authentication neste projeto (${ref}). Cria o user no Dashboard (mesmo ref no URL) e volta a buscar.`;
+        }
+      }
+    } catch (e) {
+      const msg = formatSbError(e) || e.message || String(e);
+      if (/function|schema cache|admin_lookup_auth_user_by_email/i.test(msg)) {
+        if (hint) {
+          hint.textContent = `Aplica a migração 20260505160000_admin_lookup_auth_user_by_email.sql no projeto ${ref} e tenta outra vez.`;
+        }
       } else {
         if (hint) hint.textContent = msg;
       }
@@ -835,13 +908,14 @@ async function main() {
     const inp = document.getElementById('adm-link-user');
     const hint = document.getElementById('adm-link-hint');
     const uid = inp?.value?.trim();
+    const ref = supabaseProjectRef();
     if (!uid) {
-      if (hint) hint.textContent = 'Cola primeiro o UUID do utilizador.';
+      if (hint) hint.textContent = 'Cola o UUID ou usa «Buscar UUID por e-mail».';
       return;
     }
     const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     if (!uuidRe.test(uid)) {
-      if (hint) hint.textContent = 'UUID inválido.';
+      if (hint) hint.textContent = 'Formato de UUID inválido.';
       return;
     }
     if (hint) hint.textContent = 'A validar no Auth…';
@@ -849,14 +923,18 @@ async function main() {
       const { data, error } = await sb.rpc('admin_check_auth_user', { p_user_id: uid });
       if (error) throw error;
       if (data?.exists) {
-        if (hint) hint.textContent = `UUID válido no Auth. E-mail: ${data.email || 'sem e-mail'}.`;
+        if (hint) hint.textContent = `UUID válido no Auth (projeto ${ref}). E-mail: ${data.email || 'sem e-mail'}.`;
       } else {
-        if (hint) hint.textContent = 'UUID não encontrado no Auth > Users deste projeto.';
+        if (hint) {
+          hint.textContent = `UUID não encontrado em Auth > Users deste projeto (${ref}). Se copiaste de outro sítio ou outro projeto, usa a busca por e-mail ou cria o user aqui.`;
+        }
       }
     } catch (e) {
       const msg = formatSbError(e) || e.message || String(e);
       if (/function|schema cache|admin_check_auth_user/i.test(msg)) {
-        if (hint) hint.textContent = 'Aplica a migração 20260505152000_admin_check_auth_user_rpc.sql e tenta novamente.';
+        if (hint) {
+          hint.textContent = `Aplica a migração 20260505152000_admin_check_auth_user_rpc.sql no projeto ${ref} e tenta novamente.`;
+        }
       } else {
         if (hint) hint.textContent = msg;
       }

@@ -258,13 +258,19 @@
         <div class="admin-card">
           <h2>Ligar conta do médico à agenda</h2>
           <p class="admin-muted" style="margin-bottom: 12px">
-            O médico usa o <strong>mesmo login</strong> que na app (Auth). Cola aqui o UUID do utilizador (Supabase
-            Dashboard → Authentication → Users) e escolhe o registo do especialista.
+            O médico usa o <strong>mesmo login</strong> que na app (Auth). Primeiro tens de ter esse utilizador em
+            <strong>Authentication → Users</strong> neste projeto. Se não tens o UUID certo, usa o e-mail abaixo para
+            o painel encontrar o UUID correto automaticamente (após aplicar a migração SQL mais recente).
           </p>
           <div class="admin-form-grid">
             <div class="admin-field" style="grid-column: 1 / -1">
               <label for="adm-link-spec">Especialista</label>
               <select id="adm-link-spec"></select>
+            </div>
+            <div class="admin-field" style="grid-column: 1 / -1">
+              <label for="adm-link-email-lookup">E-mail do utilizador na Auth</label>
+              <input type="email" id="adm-link-email-lookup" maxlength="254" autocomplete="off"
+                placeholder="o mesmo email com que criaste o user em Authentication" />
             </div>
             <div class="admin-field" style="grid-column: 1 / -1">
               <label for="adm-link-user">UUID do utilizador (Auth)</label>
@@ -273,6 +279,7 @@
             </div>
           </div>
           <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+            <button type="button" class="admin-btn" id="adm-link-lookup-email">Buscar UUID por e-mail</button>
             <button type="button" class="admin-btn" id="adm-link-validate">Validar UUID</button>
             <button type="button" class="admin-btn admin-btn--primary" id="adm-link-save">Guardar ligação</button>
             <span class="admin-muted" id="adm-link-hint" style="margin: 0"></span>
