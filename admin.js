@@ -36,6 +36,15 @@ function supabaseProjectRef() {
   }
 }
 
+/** Corrige colagens tipo «mailto:a@b.com»; o Auth guarda só o e-mail. */
+function normalizeAuthEmailInput(raw) {
+  if (raw == null) return '';
+  let s = String(raw).trim();
+  if (/^mailto:/i.test(s)) s = s.slice(7).trim();
+  s = s.split('?')[0].split('#')[0].trim();
+  return s;
+}
+
 function tabSwitch(root, name) {
   root.querySelectorAll('.admin-tab').forEach((btn) => {
     const on = btn.dataset.tab === name;
@@ -487,10 +496,17 @@ async function main() {
         .select('email')
         .eq('id', appId)
         .maybeSingle();
-      if (app?.email) emailInp.value = String(app.email).trim();
+      if (app?.email) emailInp.value = normalizeAuthEmailInput(app.email);
     } catch {
       /* ignorar */
     }
+  });
+
+  document.getElementById('adm-link-email-lookup')?.addEventListener('blur', (ev) => {
+    const t = ev.target;
+    if (!t || t.id !== 'adm-link-email-lookup') return;
+    const n = normalizeAuthEmailInput(t.value);
+    if (n !== t.value) t.value = n;
   });
 
   async function refreshAll() {
@@ -875,14 +891,18 @@ async function main() {
     const emailInp = document.getElementById('adm-link-email-lookup');
     const uuidInp = document.getElementById('adm-link-user');
     const hint = document.getElementById('adm-link-hint');
-    const email = emailInp?.value?.trim();
+    let email = normalizeAuthEmailInput(emailInp?.value);
+    if (emailInp) emailInp.value = email;
     const ref = supabaseProjectRef();
     if (!email) {
       if (hint) hint.textContent = `Indica o e-mail com que o utilizador foi criado em Authentication (projeto ${ref}).`;
       return;
     }
     if (!email.includes('@')) {
-      if (hint) hint.textContent = 'O campo de e-mail tem de ser um endereço real (com @), igual ao da conta em Authentication.';
+      if (hint) {
+        hint.textContent =
+          'Isso não é um e-mail completo. Remove «mailto:» se colaste um link e mete o endereço com @ (ex.: nome@gmail.com), igual ao em Authentication.';
+      }
       return;
     }
     if (hint) hint.textContent = 'A procurar no Auth…';
