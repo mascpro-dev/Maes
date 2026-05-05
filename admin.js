@@ -500,6 +500,11 @@ async function main() {
       const specs = await loadSpecialists(sb);
       renderSpecialists(specs, tbodySpec, specNameById);
       fillLinkSpecialistSelect(specs);
+      const linkSel = document.getElementById('adm-link-spec');
+      const emailLf = document.getElementById('adm-link-email-lookup');
+      if (linkSel?.value && emailLf && !emailLf.value?.trim()) {
+        linkSel.dispatchEvent(new Event('change', { bubbles: true }));
+      }
     } catch (e) {
       parts.push('Especialistas: ' + (e.message || e));
     }
@@ -874,6 +879,10 @@ async function main() {
     const ref = supabaseProjectRef();
     if (!email) {
       if (hint) hint.textContent = `Indica o e-mail com que o utilizador foi criado em Authentication (projeto ${ref}).`;
+      return;
+    }
+    if (!email.includes('@')) {
+      if (hint) hint.textContent = 'O campo de e-mail tem de ser um endereço real (com @), igual ao da conta em Authentication.';
       return;
     }
     if (hint) hint.textContent = 'A procurar no Auth…';
