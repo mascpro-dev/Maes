@@ -15,6 +15,8 @@ let userId;
 let lastPosts = [];
 /** @type {{ id: string, full_name: string }[]} */
 let mentionList = [];
+const CAPTION_COLLAPSE_AT = 220;
+let feedImageViewerEl = null;
 
 function setStatus(msg) {
   if (el.status) el.status.textContent = msg || "";
@@ -65,6 +67,39 @@ function commentCountLabel(n) {
   if (n === 0) return "Nenhum comentário";
   if (n === 1) return "1 comentário";
   return `${n} comentários`;
+}
+
+function ensureImageViewer() {
+  if (feedImageViewerEl || !document.body) return;
+  const wrap = document.createElement("div");
+  wrap.className = "feed-image-viewer";
+  wrap.setAttribute("hidden", "");
+  wrap.innerHTML = `
+    <div class="feed-image-viewer__backdrop" data-close-image-viewer></div>
+    <div class="feed-image-viewer__dialog" role="dialog" aria-modal="true" aria-label="Imagem em tela cheia">
+      <button type="button" class="feed-image-viewer__close" data-close-image-viewer aria-label="Fechar imagem">×</button>
+      <img class="feed-image-viewer__img" alt="Imagem da postagem ampliada" />
+    </div>`;
+  document.body.appendChild(wrap);
+  feedImageViewerEl = wrap;
+}
+
+function openImageViewer(url) {
+  ensureImageViewer();
+  if (!feedImageViewerEl || !url) return;
+  const img = feedImageViewerEl.querySelector(".feed-image-viewer__img");
+  if (!img) return;
+  img.src = url;
+  feedImageViewerEl.removeAttribute("hidden");
+  document.body.classList.add("feed-image-viewer-open");
+}
+
+function closeImageViewer() {
+  if (!feedImageViewerEl) return;
+  const img = feedImageViewerEl.querySelector(".feed-image-viewer__img");
+  if (img) img.removeAttribute("src");
+  feedImageViewerEl.setAttribute("hidden", "");
+  document.body.classList.remove("feed-image-viewer-open");
 }
 
 function formatComments(rows) {
@@ -206,7 +241,11 @@ function render(posts) {
     .map((p) => {
       const when = new Date(p.created_at).toLocaleString("pt-BR");
       const img = p.image_url
-        ? `<img src="${esc(p.image_url)}" alt="Imagem da postagem" loading="lazy" />`
+        ? `<button type="button" class="feed-post__image-btn" data-open-image="${esc(
+            p.image_url
+          )}" aria-label="Abrir imagem em tamanho completo">
+            <img src="${esc(p.image_url)}" alt="Imagem da postagem" loading="lazy" />
+          </button>`
         : "";
       const likes = p.like_count ?? 0;
       const nCom = p.comment_count ?? 0;
@@ -218,10 +257,18 @@ function render(posts) {
           ? `<button type="button" class="feed-post__comments-trigger" data-toggle-comments="${p.id}" aria-expanded="false" aria-controls="feed-comments-${p.id}">${commentCountLabel(nCom)}</button>`
           : `<span class="feed-post__comments-label">${commentCountLabel(nCom)}</span>`;
       const bodyHtml = linkifyAtsToHtml(p.content, mentionList);
+      const longCaption = (p.content || "").trim().length > CAPTION_COLLAPSE_AT;
       return `<article class="feed-post" data-post-id="${p.id}">
         <div class="feed-post__meta"><strong>${esc(p.author_name || "Participante")}</strong> · ${when}</div>
         ${img}
-        <div class="feed-post__body">${bodyHtml}</div>
+        <div id="feed-caption-${p.id}" class="feed-post__body${
+          longCaption ? " feed-post__body--collapsed" : ""
+        }">${bodyHtml}</div>
+        ${
+          longCaption
+            ? `<button type="button" class="feed-post__caption-toggle" data-toggle-caption="${p.id}" aria-expanded="false" aria-controls="feed-caption-${p.id}">Ler legenda</button>`
+            : ""
+        }
         <div class="feed-post__actions" role="group" aria-label="Interações">
           <button type="button" class="feed-post__like${liked ? " feed-post__like--on" : ""}" data-like-post="${p.id}" aria-pressed="${liked ? "true" : "false"}" title="Curtir" aria-label="${liked ? "Descurtir" : "Curtir"}">
             <span class="feed-post__like-icon" aria-hidden="true">♥</span>
@@ -345,6 +392,17 @@ async function toggleLike(postId) {
 function wireFeedListInteractions() {
   if (!el.list || el.list._feedWired) return;
   el.list._feedWired = true;
+  ensureImageViewer();
+
+  feedImageViewerEl?.addEventListener("click", (e) => {
+    if (e.target.closest("[data-close-image-viewer]")) {
+      closeImageViewer();
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeImageViewer();
+  });
 
   el.list.addEventListener("click", async (e) => {
     const sendBtn = e.target.closest("[data-comment-send]");
@@ -377,6 +435,24 @@ function wireFeedListInteractions() {
       e.preventDefault();
       const postId = likeBtn.getAttribute("data-like-post");
       if (postId && !likeBtn.disabled) await toggleLike(postId);
+      return;
+    }
+
+    const captionToggle = e.target.closest("[data-toggle-caption]");
+    if (captionToggle) {
+      const id = captionToggle.getAttribute("data-toggle-caption");
+      const caption = id && el.list.querySelector(`#feed-caption-${id}`);
+      if (!caption) return;
+      const isCollapsed = caption.classList.toggle("feed-post__body--collapsed");
+      captionToggle.setAttribute("aria-expanded", isCollapsed ? "false" : "true");
+      captionToggle.textContent = isCollapsed ? "Ler legenda" : "Esconder legenda";
+      return;
+    }
+
+    const imageBtn = e.target.closest("[data-open-image]");
+    if (imageBtn) {
+      const url = imageBtn.getAttribute("data-open-image");
+      if (url) openImageViewer(url);
     }
   });
 
