@@ -76,7 +76,7 @@ export async function fetchMotherSignupState(supabase, userId) {
   const childrenCount =
     cntRes.error || typeof cntRes.count !== 'number' ? 0 : cntRes.count;
 
-  return { profile, childrenCount };
+  return { profile, childrenCount, profileError: pErr || null };
 }
 
 /**
@@ -89,10 +89,25 @@ export async function computeMotherSignupRedirect(supabase, userId, currentFileO
   const allowSignupPageAccess = options.allowSignupPageAccess === true;
   const isMotherSignupPage = MOTHER_SIGNUP_PAGES.has(cur);
   const state = await fetchMotherSignupState(supabase, userId);
-  const { profile, childrenCount } = state;
+  const { profile, childrenCount, profileError } = state;
+
+  // Compatibilidade: se o schema ainda não tem todas as colunas (ex.: terms_accepted_at),
+  // não bloquear login/app para não prender em loop.
+  if (profileError) {
+    if (isMotherSignupPage && !allowSignupPageAccess) return 'index.html';
+    return null;
+  }
 
   const isMedicOrOther = profile?.account_type === 'medic';
   if (isMedicOrOther) {
+    if (isMotherSignupPage && !allowSignupPageAccess) return 'index.html';
+    return null;
+  }
+
+  // Perfis antigos (pré-cadastro 3 passos) podem não ter terms_accepted_at.
+  // Mantemos acesso para não bloquear contas históricas.
+  const isLegacyMother = !!(profile && !profile.terms_accepted_at);
+  if (isLegacyMother) {
     if (isMotherSignupPage && !allowSignupPageAccess) return 'index.html';
     return null;
   }
