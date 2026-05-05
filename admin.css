@@ -226,6 +226,10 @@ body.admin-page .app-wrapper {
   min-width: 0;
 }
 
+.admin-field--compact {
+  min-width: 0;
+}
+
 .admin-field label {
   display: block;
   font-size: 0.8rem;
@@ -253,6 +257,17 @@ body.admin-page .app-wrapper {
 .admin-field textarea {
   min-height: 88px;
   resize: vertical;
+}
+
+.admin-input--mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-size: 0.82rem;
+}
+
+.admin-btn--tiny {
+  margin-top: 6px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
 }
 
 .admin-textarea--tall {

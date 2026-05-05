@@ -39,6 +39,8 @@ function tabSwitch(root, name) {
 
 function clearSpecForm(root) {
   root.querySelector('#adm-spec-id').value = '';
+  const idView = root.querySelector('#adm-spec-id-view');
+  if (idView) idView.value = '';
   root.querySelector('#adm-spec-name').value = '';
   root.querySelector('#adm-spec-specialty').value = '';
   root.querySelector('#adm-spec-bio').value = '';
@@ -595,6 +597,8 @@ async function main() {
       }
       if (!row) return;
       document.getElementById('adm-spec-id').value = row.id;
+      const idView = document.getElementById('adm-spec-id-view');
+      if (idView) idView.value = row.id || '';
       document.getElementById('adm-spec-name').value = row.display_name || '';
       document.getElementById('adm-spec-specialty').value = row.specialty || '';
       document.getElementById('adm-spec-bio').value = row.bio || '';
@@ -631,6 +635,22 @@ async function main() {
     setStatus(statusEl, 'Formulário limpo.', false);
   });
 
+  document.getElementById('adm-spec-copy-id')?.addEventListener('click', async () => {
+    const hiddenId = document.getElementById('adm-spec-id')?.value?.trim();
+    const shownId = document.getElementById('adm-spec-id-view')?.value?.trim();
+    const uuid = hiddenId || shownId || '';
+    if (!uuid) {
+      setStatus(statusEl, 'Sem UUID ainda. Guarda ou seleciona um especialista para copiar.', true);
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(uuid);
+      setStatus(statusEl, 'UUID copiado.', false);
+    } catch (_) {
+      setStatus(statusEl, 'Não consegui copiar automaticamente. Copia manualmente o campo UUID.', true);
+    }
+  });
+
   document.getElementById('adm-spec-save').addEventListener('click', async () => {
     const id = document.getElementById('adm-spec-id').value.trim();
     const durRadio = document.querySelector('input[name="adm-spec-duration"]:checked');
@@ -653,12 +673,18 @@ async function main() {
       if (id) {
         const { error } = await sb.from('specialists').update(payload).eq('id', id);
         if (error) throw error;
+        const idView = document.getElementById('adm-spec-id-view');
+        if (idView) idView.value = id;
       } else {
-        const { error } = await sb.from('specialists').insert(payload);
+        const { data, error } = await sb.from('specialists').insert(payload).select('id').single();
         if (error) throw error;
-        clearSpecForm(document);
+        const newId = data?.id || '';
+        document.getElementById('adm-spec-id').value = newId;
+        const idView = document.getElementById('adm-spec-id-view');
+        if (idView) idView.value = newId;
       }
       await refreshAll();
+      setStatus(statusEl, 'Especialista guardado. UUID pronto para copiar e vincular.', false);
     } catch (e) {
       setStatus(statusEl, e.message || String(e), true);
     }
