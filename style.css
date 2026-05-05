@@ -1507,6 +1507,8 @@ body:has(> .bottom-nav.bottom-nav--four) .app-wrapper--diario {
 }
 
 .diario-header {
+  position: relative;
+  z-index: 120;
   padding: 16px 20px 8px;
   animation: fade-up .45s var(--ease) both;
 }
