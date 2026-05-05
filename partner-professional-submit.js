@@ -55,6 +55,17 @@ export function validatePartnerApplicationStrict(row) {
     return { ok: false, message: 'Indica cidade e estado de atuação com mais detalhe.' };
   }
 
+  const photo = String(row.photo_url || '').trim();
+  if (!photo) return { ok: false, message: 'Indica a foto profissional (URL).' };
+  try {
+    const u = new URL(photo);
+    if (u.protocol !== 'http:' && u.protocol !== 'https:') {
+      return { ok: false, message: 'A URL da foto deve começar com http:// ou https://.' };
+    }
+  } catch {
+    return { ok: false, message: 'A URL da foto profissional não parece válida.' };
+  }
+
   if (String(row.area_atuacao || '').trim().length < 2) return { ok: false, message: 'Indica a área de atuação.' };
 
   if (String(row.tempo_experiencia || '').trim().length < 2) {
@@ -102,6 +113,7 @@ export function buildPartnerApplicationRow(raw) {
     email: String(raw.email || '').trim(),
     cidade_estado_atuacao: String(raw.cidade_estado_atuacao || '').trim(),
     links_redes_site: String(raw.links_redes_site || '').trim() || null,
+    photo_url: String(raw.photo_url || '').trim(),
     area_atuacao: String(raw.area_atuacao || '').trim(),
     tempo_experiencia: String(raw.tempo_experiencia || '').trim(),
     foco_especializacao: String(raw.foco_especializacao || '').trim() || null,
@@ -126,6 +138,7 @@ function rowToEmailFields(row) {
     'E-mail': row.email,
     'Cidade/Estado atuação': row.cidade_estado_atuacao,
     'Redes / site profissional': row.links_redes_site || '—',
+    'Foto profissional (URL)': row.photo_url || '—',
     'Área de atuação': row.area_atuacao,
     'Tempo na área': row.tempo_experiencia,
     'Foco / especialização': row.foco_especializacao || '—',

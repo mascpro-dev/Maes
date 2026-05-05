@@ -493,8 +493,25 @@ async function main() {
                 );
               }
 
-              setStatus(statusEl, 'Candidatura atualizada com sucesso.', false);
-              if (hint) hint.textContent = 'Estado guardado.';
+              let msg = 'Candidatura atualizada com sucesso.';
+              if (next === 'approved') {
+                const { data: specRow, error: specErr } = await sb
+                  .from('specialists')
+                  .select('id,active')
+                  .eq('origin_partner_application_id', id)
+                  .maybeSingle();
+                if (specErr) throw specErr;
+                if (specRow?.id) {
+                  msg =
+                    'Aprovado. O especialista já foi criado na aba Especialistas (inativo por padrão) para revisão e ativação.';
+                } else {
+                  msg =
+                    'Aprovado, mas não encontrei especialista criado. Aplica no Supabase a migração nova de parceiros/especialistas.';
+                }
+              }
+
+              setStatus(statusEl, msg, false);
+              if (hint) hint.textContent = next === 'approved' ? 'Aprovado e sincronizado com Especialistas.' : 'Estado guardado.';
               if (typeof showToast === 'function') {
                 showToast('Candidatura atualizada.');
               }

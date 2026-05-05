@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS public.partner_professional_applications (
   email text NOT NULL,
   cidade_estado_atuacao text NOT NULL,
   links_redes_site text,
+  photo_url text,
   area_atuacao text NOT NULL,
   tempo_experiencia text NOT NULL,
   foco_especializacao text,

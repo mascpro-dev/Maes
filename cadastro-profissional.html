@@ -97,6 +97,13 @@
         </div>
 
         <div class="field">
+          <label class="field__label" for="pp-foto">URL da foto profissional (obrigatória)</label>
+          <input class="field__input" type="url" id="pp-foto" name="photo_url" required maxlength="2000"
+            inputmode="url" autocapitalize="none" autocorrect="off"
+            placeholder="https://… (imagem direta .jpg/.png/.webp)" />
+        </div>
+
+        <div class="field">
           <label class="field__label" for="pp-area">Área de atuação</label>
           <input class="field__input" type="text" id="pp-area" name="area_atuacao" required minlength="2"
             maxlength="200" placeholder="Ex.: Psicologia, Fonoaudiologia, Terapia Ocupacional…" />
@@ -271,6 +278,16 @@
         }
       }
 
+      let photo_url = String(fd.get('photo_url') || '').trim();
+      try {
+        const u = new URL(/^https?:\/\//i.test(photo_url) ? photo_url : 'https://' + photo_url);
+        if (!/^https?:$/i.test(u.protocol)) throw new Error('invalid_protocol');
+        photo_url = u.href;
+      } catch {
+        showErr('A foto profissional deve ser um URL válido começando com https:// …');
+        return;
+      }
+
       const raw = {
         full_name: fd.get('full_name'),
         cpf_or_rg: fd.get('cpf_rg'),
@@ -278,6 +295,7 @@
         email: fd.get('email'),
         cidade_estado_atuacao: fd.get('cidade_estado'),
         links_redes_site: links_redes_site || null,
+        photo_url,
         area_atuacao: fd.get('area_atuacao'),
         tempo_experiencia: fd.get('tempo_experiencia'),
         foco_especializacao: fd.get('foco_especializacao'),
