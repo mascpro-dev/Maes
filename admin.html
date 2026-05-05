@@ -258,9 +258,9 @@
         <div class="admin-card">
           <h2>Ligar conta do médico à agenda</h2>
           <p class="admin-muted" style="margin-bottom: 12px">
-            O médico usa o <strong>mesmo login</strong> que na app (Auth). Primeiro tens de ter esse utilizador em
-            <strong>Authentication → Users</strong> neste projeto. Se não tens o UUID certo, usa o e-mail abaixo para
-            o painel encontrar o UUID correto automaticamente (após aplicar a migração SQL mais recente).
+            Quem entra só pela <strong>candidatura de parceiro</strong> ganha perfil na lista de médicos quando aprovado,
+            mas <strong>não ganha conta em Authentication</strong> até alguém criar o utilizador ou enviar um convite por
+            e-mail abaixo. Depois usa <strong>Buscar UUID</strong> e <strong>Guardar ligação</strong>.
           </p>
           <div class="admin-form-grid">
             <div class="admin-field" style="grid-column: 1 / -1">
@@ -279,6 +279,7 @@
             </div>
           </div>
           <div style="margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center">
+            <button type="button" class="admin-btn" id="adm-link-invite-auth">Enviar convite Auth por e-mail</button>
             <button type="button" class="admin-btn" id="adm-link-lookup-email">Buscar UUID por e-mail</button>
             <button type="button" class="admin-btn" id="adm-link-validate">Validar UUID</button>
             <button type="button" class="admin-btn admin-btn--primary" id="adm-link-save">Guardar ligação</button>

@@ -877,13 +877,72 @@ async function main() {
       if (/auth_user_not_found|specialist_accounts_user_fkey|foreign key/i.test(msg)) {
         if (hint) {
           hint.textContent =
-            `UUID não existe em Auth > Users deste projeto (${supabaseProjectRef()}). Cria o utilizador em Authentication no mesmo projeto, usa «Buscar UUID por e-mail», ou confirma que não estás noutro projeto Supabase.`;
+            `UUID não existe em Auth > Users deste projeto (${supabaseProjectRef()}). Quem veio só da ficha parceiro ainda pode não ter conta: usa «Enviar convite Auth por e-mail», ou cria o user no Dashboard, depois «Buscar UUID por e-mail».`;
         }
       } else if (/specialist_not_found/i.test(msg)) {
         if (hint) hint.textContent = 'Especialista não encontrado. Atualiza a lista e tenta novamente.';
       } else {
         if (hint) hint.textContent = msg;
       }
+    }
+  });
+
+  document.getElementById('adm-link-invite-auth')?.addEventListener('click', async () => {
+    const emailInp = document.getElementById('adm-link-email-lookup');
+    const uuidInp = document.getElementById('adm-link-user');
+    const hint = document.getElementById('adm-link-hint');
+    let email = normalizeAuthEmailInput(emailInp?.value);
+    if (emailInp) emailInp.value = email;
+    const ref = supabaseProjectRef();
+    if (!email.includes('@')) {
+      if (hint) {
+        hint.textContent =
+          'Indica um e-mail completo (parceiros ainda não têm Auth até convite ou registo manual).';
+      }
+      return;
+    }
+    if (hint) hint.textContent = 'A enviar convite pelo Auth…';
+    const pub = (window.AURA_APP_PUBLIC_URL || '').trim().replace(/\/$/, '');
+    const origin =
+      pub.startsWith('http') ? pub : typeof window.location?.origin === 'string' ? window.location.origin : '';
+    const redirect_to = origin ? `${origin.replace(/\/$/, '')}/login.html` : undefined;
+    try {
+      const { data, error } = await sb.functions.invoke('admin-invite-auth-user', {
+        body: { email, redirect_to },
+      });
+      if (error) {
+        const msg = error.message || String(error);
+        if (hint) {
+          hint.textContent =
+            /Edge Function returned a non-2xx status code|not found|Failed to fetch|FunctionsRelayError/i.test(msg)
+              ? `A função «admin-invite-auth-user» pode não estar publicada neste projeto (${ref}). No terminal: supabase functions deploy admin-invite-auth-user — ver comentários no ficheiro da função.`
+              : msg;
+        }
+        return;
+      }
+      if (data?.already_exists) {
+        if (hint) {
+          hint.textContent =
+            'Já existe utilizador Auth com esse e-mail. Clica «Buscar UUID por e-mail» e depois «Guardar ligação».';
+        }
+        try {
+          const { data: rpcData } = await sb.rpc('admin_lookup_auth_user_by_email', { p_email: email });
+          if (rpcData?.found && rpcData?.id && uuidInp) uuidInp.value = rpcData.id;
+        } catch {
+          /* ignorar */
+        }
+        return;
+      }
+      if (data?.ok) {
+        if (hint) {
+          hint.textContent = `Convite enviado para ${email}. O profissional deve abrir o link no e-mail; em seguida usa «Buscar UUID por e-mail» aqui se precisares.`;
+        }
+        if (data.user_id && uuidInp && !uuidInp.value?.trim()) uuidInp.value = data.user_id;
+        return;
+      }
+      if (hint) hint.textContent = typeof data?.detail === 'string' ? data.detail : JSON.stringify(data || {});
+    } catch (e) {
+      if (hint) hint.textContent = e?.message || String(e);
     }
   });
 
@@ -918,7 +977,7 @@ async function main() {
         }
       } else {
         if (hint) {
-          hint.textContent = `Nenhum utilizador com este e-mail em Authentication neste projeto (${ref}). Cria o user no Dashboard (mesmo ref no URL) e volta a buscar.`;
+          hint.textContent = `Nenhum utilizador com este e-mail neste projeto (${ref}). Clica «Enviar convite Auth por e-mail» ou cria o user em Authentication no Dashboard e volta a buscar.`;
         }
       }
     } catch (e) {
