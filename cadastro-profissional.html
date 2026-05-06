@@ -97,10 +97,10 @@
         </div>
 
         <div class="field">
-          <label class="field__label" for="pp-foto">URL da foto profissional (obrigatória)</label>
-          <input class="field__input" type="url" id="pp-foto" name="photo_url" required maxlength="2000"
+          <label class="field__label" for="pp-foto">URL da foto profissional <span class="field__optional-tag">(opcional)</span></label>
+          <input class="field__input" type="url" id="pp-foto" name="photo_url" maxlength="2000"
             inputmode="url" autocapitalize="none" autocorrect="off"
-            placeholder="https://… (imagem direta .jpg/.png/.webp)" />
+            placeholder="https://… — pode deixar em branco; a equipa pode pedir depois" />
         </div>
 
         <div class="field">
@@ -129,8 +129,8 @@
 
         <div class="field">
           <label class="field__label" for="pp-mot">Por que deseja ser parceira(o) do Conta Mãe Atípica?</label>
-          <textarea class="field__input" id="pp-mot" name="motivacao" required rows="4" minlength="20"
-            maxlength="2000"></textarea>
+          <textarea class="field__input" id="pp-mot" name="motivacao" required rows="4" minlength="12"
+            maxlength="2000" placeholder="Algumas linhas sobre o teu motivo já ajudam na triagem."></textarea>
         </div>
 
         <fieldset class="parceiro-fieldset">
@@ -181,9 +181,9 @@
 
         <div class="field">
           <label class="field__label" for="pp-cv">Mini currículo</label>
-          <textarea class="field__input" id="pp-cv" name="mini_curriculo" required rows="5" minlength="40"
+          <textarea class="field__input" id="pp-cv" name="mini_curriculo" required rows="5" minlength="24"
             maxlength="4000"
-            placeholder="Formação principal, experiência com público infantil ou neurodivergente, cursos ou linhas terapêuticas…"></textarea>
+            placeholder="Formação, experiência com público infantil ou neurodivergente… (texto curto é aceite)."></textarea>
         </div>
 
         <div class="field field--checkbox">
@@ -279,13 +279,17 @@
       }
 
       let photo_url = String(fd.get('photo_url') || '').trim();
-      try {
-        const u = new URL(/^https?:\/\//i.test(photo_url) ? photo_url : 'https://' + photo_url);
-        if (!/^https?:$/i.test(u.protocol)) throw new Error('invalid_protocol');
-        photo_url = u.href;
-      } catch {
-        showErr('A foto profissional deve ser um URL válido começando com https:// …');
-        return;
+      if (photo_url) {
+        try {
+          const u = new URL(/^https?:\/\//i.test(photo_url) ? photo_url : 'https://' + photo_url);
+          if (!/^https?:$/i.test(u.protocol)) throw new Error('invalid_protocol');
+          photo_url = u.href;
+        } catch {
+          showErr('Se preencher foto, usa um URL válido começando com https:// …');
+          return;
+        }
+      } else {
+        photo_url = '';
       }
 
       const raw = {

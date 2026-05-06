@@ -2,6 +2,7 @@
  * /perfil — layout dashboard: profiles, children, conclusão.
  */
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm';
+import { SIGNUP_MIN_BIO_LENGTH } from './signup-flow.js';
 
 const DIAG_LABELS = {
   tea: 'TEA',
@@ -206,7 +207,8 @@ function setCompletionUI(profile, children) {
 
   const hasName = !!(profile?.full_name && String(profile.full_name).trim());
   const hasAvatar = !!(profile?.avatar_url && String(profile.avatar_url).trim());
-  const hasBio = !!(profile?.bio && String(profile.bio).trim());
+  const bioLen = String(profile?.bio || '').trim().length;
+  const hasBio = bioLen >= SIGNUP_MIN_BIO_LENGTH;
   const hasPhone = !!(profile?.phone && String(profile.phone).trim());
   const hasCity = !!(profile?.cidade && String(profile.cidade).trim());
   const hasState = !!(profile?.estado && String(profile.estado).trim());
@@ -510,7 +512,7 @@ function renderProfile(profile, children) {
 
   if (new URLSearchParams(window.location.search).get('completar') === 'rede') {
     toast(
-      'Para a rede de apoio (Explorar): confirma telefone, cidade, UF, bio (mín. 20 caracteres) e foto de perfil.'
+      `Para a rede de apoio (Explorar): confirma telefone, cidade, UF, bio (mín. ${SIGNUP_MIN_BIO_LENGTH} caracteres) e foto de perfil.`
     );
   }
 
@@ -584,8 +586,8 @@ function renderProfile(profile, children) {
   document.getElementById('btn-save-bio')?.addEventListener('click', async () => {
     const inBio = document.getElementById('perfil-input-bio');
     const bio = (inBio?.value || '').trim() || null;
-    if (!bio || bio.length < 20) {
-      toast('A bio deve ter pelo menos 20 caracteres (para a rede de apoio).');
+    if (!bio || bio.length < SIGNUP_MIN_BIO_LENGTH) {
+      toast(`A bio deve ter pelo menos ${SIGNUP_MIN_BIO_LENGTH} caracteres (para a rede de apoio).`);
       return;
     }
     const { error } = await supabase.from('profiles').update({ bio }).eq('id', uid);

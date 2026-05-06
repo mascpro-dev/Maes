@@ -15,6 +15,8 @@
 
   const ONLINE_MS = 3 * 60 * 1000;
   const AWAY_MS = 15 * 60 * 1000;
+  /** Alinhar com signup-flow.js SIGNUP_MIN_BIO_LENGTH */
+  var MIN_BIO_LEN = 15;
 
   const el = {
     loading: document.getElementById("explore-loading"),
@@ -56,7 +58,7 @@
     const dx = (p && p.diagnostico ? String(p.diagnostico) : "").trim();
     if (!dx) gaps.push("Diagnóstico (completa o passo 2 do cadastro ou edita os dados do filho)");
     const bio = (p && p.bio ? String(p.bio) : "").trim();
-    if (bio.length < 20) gaps.push("Bio — pelo menos 20 caracteres sobre ti");
+    if (bio.length < MIN_BIO_LEN) gaps.push("Bio — pelo menos " + MIN_BIO_LEN + " caracteres sobre ti");
     const avatar = (p && p.avatar_url ? String(p.avatar_url) : "").trim();
     if (!avatar) gaps.push("Foto de perfil");
     return gaps;

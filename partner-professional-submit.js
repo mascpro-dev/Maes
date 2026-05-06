@@ -29,8 +29,9 @@ function getAnonClient() {
  * Monta objeto da linha a partir dos campos do formulário já validados no HTML.
  * @param {Record<string, unknown>} raw
  */
-const PARTNER_MIN_MOTIVACAO = 20;
-const PARTNER_MIN_CURRICULO = 40;
+/** Mínimos flexíveis para não travar candidatos; triagem completa o resto. */
+const PARTNER_MIN_MOTIVACAO = 12;
+const PARTNER_MIN_CURRICULO = 24;
 
 /**
  * Validação adicional no cliente (além do HTML) para não enviar registos vazios ou insuficientes.
@@ -51,19 +52,20 @@ export function validatePartnerApplicationStrict(row) {
   const em = String(row.email || '').trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) return { ok: false, message: 'Indica um e-mail válido.' };
 
-  if (String(row.cidade_estado_atuacao || '').trim().length < 4) {
-    return { ok: false, message: 'Indica cidade e estado de atuação com mais detalhe.' };
+  if (String(row.cidade_estado_atuacao || '').trim().length < 3) {
+    return { ok: false, message: 'Indica cidade e estado de atuação.' };
   }
 
   const photo = String(row.photo_url || '').trim();
-  if (!photo) return { ok: false, message: 'Indica a foto profissional (URL).' };
-  try {
-    const u = new URL(photo);
-    if (u.protocol !== 'http:' && u.protocol !== 'https:') {
-      return { ok: false, message: 'A URL da foto deve começar com http:// ou https://.' };
+  if (photo) {
+    try {
+      const u = new URL(photo);
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') {
+        return { ok: false, message: 'A URL da foto deve começar com http:// ou https://.' };
+      }
+    } catch {
+      return { ok: false, message: 'A URL da foto profissional não parece válida.' };
     }
-  } catch {
-    return { ok: false, message: 'A URL da foto profissional não parece válida.' };
   }
 
   if (String(row.area_atuacao || '').trim().length < 2) return { ok: false, message: 'Indica a área de atuação.' };
@@ -113,7 +115,7 @@ export function buildPartnerApplicationRow(raw) {
     email: String(raw.email || '').trim(),
     cidade_estado_atuacao: String(raw.cidade_estado_atuacao || '').trim(),
     links_redes_site: String(raw.links_redes_site || '').trim() || null,
-    photo_url: String(raw.photo_url || '').trim(),
+    photo_url: String(raw.photo_url || '').trim() || null,
     area_atuacao: String(raw.area_atuacao || '').trim(),
     tempo_experiencia: String(raw.tempo_experiencia || '').trim(),
     foco_especializacao: String(raw.foco_especializacao || '').trim() || null,

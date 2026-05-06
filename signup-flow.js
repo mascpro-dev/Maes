@@ -5,7 +5,8 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.1/+esm';
 
 /** Bio mínima alinhada com Explorar / perfil (rede de apoio). */
-export const SIGNUP_MIN_BIO_LENGTH = 20;
+/** Bio curta mas identificável; alinhado ao guard (mother-onboarding-guard). */
+export const SIGNUP_MIN_BIO_LENGTH = 15;
 
 const AVATAR_BUCKET = 'avatars';
 const AVATAR_MAX_BYTES = 5 * 1024 * 1024;
