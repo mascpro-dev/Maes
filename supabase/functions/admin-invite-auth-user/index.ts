@@ -5,6 +5,8 @@
  *   muitas vezes não chega ou cai em spam).
  * — Com RESEND_API_KEY (+ RESEND_FROM opcional): gera link com `generateLink({ type: 'invite' })`
  *   e envia o convite pelo Resend (recomendado).
+ * user_metadata `invite_role: medic` → trigger handle_new_user grava profiles.account_type = medic
+ * (evita redirecionar o profissional para o cadastro da mãe em login.html).
  *
  * Secrets: SUPABASE_*, e opcionalmente RESEND_API_KEY, RESEND_FROM (ex. "Conta Mãe <noreply@teudominio.com>")
  *
@@ -144,11 +146,16 @@ Deno.serve(async (req) => {
     Deno.env.get('RESEND_FROM_INVITE')?.trim() ||
     'CONTA MÃE <onboarding@resend.dev>';
 
+  const inviteMeta = { invite_role: 'medic' as const };
+
   if (resendKey) {
     const { data: linkData, error: genErr } = await service.auth.admin.generateLink({
       type: 'invite',
       email,
-      options: redirectTo ? { redirectTo } : undefined,
+      options: {
+        ...(redirectTo ? { redirectTo } : {}),
+        data: inviteMeta,
+      },
     });
     if (genErr) {
       const detail = genErr.message || String(genErr);
@@ -185,6 +192,7 @@ Deno.serve(async (req) => {
 
   const { data: inviteData, error: invErr } = await service.auth.admin.inviteUserByEmail(email, {
     ...(redirectTo ? { redirectTo } : {}),
+    data: inviteMeta,
   });
 
   if (invErr) {

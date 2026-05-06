@@ -50,17 +50,8 @@
     </footer>
   </div>
 
-  <script>
-    (function () {
-      var form = document.getElementById('form-recuperar');
-      if (!form) return;
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        if (!form.reportValidity()) return;
-        window.location.href = 'verificar-codigo.html';
-      });
-    })();
-  </script>
+  <script src="supabase-config.js"></script>
+  <script type="module" src="esqueci-senha.js"></script>
   <script src="pwa.js"></script>
 </body>
 

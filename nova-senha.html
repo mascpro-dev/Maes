@@ -33,6 +33,7 @@
     </header>
 
     <main class="nova-senha-main" role="main">
+      <p class="field-error" id="nova-senha-global-err" role="alert" hidden style="margin-bottom: 14px"></p>
       <form class="nova-senha-form" id="form-nova-senha" action="#" method="post" novalidate>
 
         <div class="field field--password">
@@ -104,26 +105,10 @@
           if (eyeOff) eyeOff.hidden = !show;
         });
       });
-
-      var form = document.getElementById('form-nova-senha');
-      var pass = document.getElementById('nova-senha');
-      var confirm = document.getElementById('confirmar-senha');
-      var erro = document.getElementById('erro-confirmacao');
-
-      form.addEventListener('submit', function (e) {
-        e.preventDefault();
-        erro.hidden = true;
-        if (!form.reportValidity()) return;
-        if (pass.value !== confirm.value) {
-          erro.hidden = false;
-          confirm.focus();
-          return;
-        }
-        window.alert('Senha alterada com sucesso!');
-        window.location.href = 'login.html';
-      });
     })();
   </script>
+  <script src="supabase-config.js"></script>
+  <script type="module" src="nova-senha.js"></script>
   <script src="pwa.js"></script>
 </body>
 

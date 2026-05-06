@@ -232,9 +232,20 @@ async function loadIntents(sb) {
   return Array.isArray(data) ? data : [];
 }
 
+function isAppPublicLegalMissingError(err) {
+  if (!err) return false;
+  const msg = [err.message, err.details, err.hint, String(err.code || '')].filter(Boolean).join(' ');
+  return /404|schema cache|does not exist|Not Found|Could not find.*table|PGRST205/i.test(msg);
+}
+
 async function loadAdminTerms(sb) {
   const { data, error } = await sb.from('app_public_legal').select('title,body').eq('slug', 'terms').maybeSingle();
-  if (error) throw error;
+  if (error) {
+    if (isAppPublicLegalMissingError(error)) {
+      return { title: '', body: '', __missingAppPublicLegal: true };
+    }
+    throw error;
+  }
   return data || { title: '', body: '' };
 }
 
@@ -551,7 +562,14 @@ async function main() {
       const bo = document.getElementById('adm-terms-body');
       if (ti) ti.value = t.title || '';
       if (bo) bo.value = t.body || '';
-      if (hint) hint.textContent = '';
+      if (hint) {
+        if (t.__missingAppPublicLegal) {
+          hint.textContent =
+            'Falta a tabela app_public_legal neste projeto (erro 404). No repositório, abre supabase/COLE_APP_PUBLIC_LEGAL.sql e cola no Supabase → SQL Editor → Run.';
+        } else {
+          hint.textContent = '';
+        }
+      }
     } catch (e) {
       if (hint) hint.textContent = 'Termos: ' + (e.message || e);
     }
@@ -948,10 +966,12 @@ async function main() {
       return;
     }
     if (hint) hint.textContent = 'A enviar convite pelo Auth…';
-    const pub = (window.AURA_APP_PUBLIC_URL || '').trim().replace(/\/$/, '');
     const origin =
-      pub.startsWith('http') ? pub : typeof window.location?.origin === 'string' ? window.location.origin : '';
-    const redirect_to = origin ? `${origin.replace(/\/$/, '')}/login.html` : undefined;
+      typeof window.auraPublicSiteBase === 'function'
+        ? window.auraPublicSiteBase()
+        : (window.AURA_APP_PUBLIC_URL || '').trim().replace(/\/$/, '') ||
+          (typeof window.location?.origin === 'string' ? window.location.origin : '');
+    const redirect_to = origin && /^https:\/\//i.test(origin) ? `${origin.replace(/\/$/, '')}/login.html` : undefined;
     try {
       const { data, error } = await sb.functions.invoke('admin-invite-auth-user', {
         body: { email, redirect_to },
@@ -1095,7 +1115,11 @@ async function main() {
       if (error) throw error;
       if (hint) hint.textContent = 'Termos guardados.';
     } catch (e) {
-      if (hint) hint.textContent = e.message || String(e);
+      if (hint) {
+        hint.textContent = isAppPublicLegalMissingError(e)
+          ? 'Tabela app_public_legal em falta. Cola supabase/COLE_APP_PUBLIC_LEGAL.sql no SQL Editor do Supabase e tenta outra vez.'
+          : e.message || String(e);
+      }
     }
   });
 
