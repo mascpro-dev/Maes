@@ -717,16 +717,62 @@ async function main() {
         if (!window.confirm('Excluir este especialista da lista? Esta ação remove o perfil público.')) return;
         setStatus(statusEl, 'A excluir especialista…', false);
         try {
-          const { error } = await sb.from('specialists').delete().eq('id', delId);
-          if (error) throw error;
+          const runDelete = async (force) => {
+            const { data, error } = await sb.rpc('admin_delete_specialist', {
+              p_specialist_id: delId,
+              p_force_delete_bookings: !!force,
+            });
+            if (error) throw error;
+            return data;
+          };
+          let data = await runDelete(false);
+          if (data && data.ok === false && data.error === 'has_bookings') {
+            const n = Number(data.bookings_count);
+            const label = Number.isFinite(n) ? String(n) : 'algumas';
+            if (
+              !window.confirm(
+                `Este especialista tem ${label} registo(s) de consulta/reserva. Para apagar o perfil é preciso remover esse histórico na base. Queres continuar e apagar também essas reservas?`
+              )
+            ) {
+              setStatus(statusEl, 'Exclusão cancelada (há reservas ligadas a este médico).', false);
+              return;
+            }
+            data = await runDelete(true);
+          }
+          if (data && data.ok === false) {
+            const err = data.error === 'specialist_not_found' ? 'Especialista já não existe. Atualiza a lista.' : JSON.stringify(data);
+            setStatus(statusEl, err, true);
+            return;
+          }
+          if (!data?.ok) {
+            setStatus(statusEl, 'Resposta inesperada ao excluir. Aplica a migração 20260506173000_admin_delete_specialist_rpc.sql.', true);
+            return;
+          }
           await refreshAll();
-          setStatus(statusEl, 'Especialista excluído com sucesso.', false);
+          const extra =
+            Number(data.deleted_bookings) > 0
+              ? ` Foram removidas ${data.deleted_bookings} reserva(s) associadas.`
+              : '';
+          setStatus(statusEl, `Especialista excluído com sucesso.${extra}`, false);
         } catch (e) {
           const msg = formatSbError(e) || e.message || String(e);
           if (/policy|permission|forbidden|42501|row-level security|rls/i.test(msg)) {
             setStatus(
               statusEl,
               'Sem permissão para excluir no Supabase. Aplica a migração 20260505145000_admin_specialists_delete_policy.sql.',
+              true
+            );
+          } else if (/function|schema cache|admin_delete_specialist/i.test(msg)) {
+            setStatus(
+              statusEl,
+              'Aplica a migração 20260506173000_admin_delete_specialist_rpc.sql no Supabase e tenta outra vez. Erro: ' +
+                msg.slice(0, 120),
+              true
+            );
+          } else if (/409|conflict|RESTRICT/i.test(msg)) {
+            setStatus(
+              statusEl,
+              'Não foi possível apagar (dados ligados ao médico). Atualiza o painel/recarrega após aplicar migrações de admin_delete_specialist.',
               true
             );
           } else {
@@ -915,7 +961,7 @@ async function main() {
         if (hint) {
           hint.textContent =
             /Edge Function returned a non-2xx status code|not found|Failed to fetch|FunctionsRelayError/i.test(msg)
-              ? `A função «admin-invite-auth-user» pode não estar publicada neste projeto (${ref}). No terminal: supabase functions deploy admin-invite-auth-user — ver comentários no ficheiro da função.`
+              ? `A função «admin-invite-auth-user» pode não estar publicada neste projeto (${ref}), ou falhou ao enviar (ex. Resend). Verifica Secrets RESEND_* e repõe deploy.`
               : msg;
         }
         return;
@@ -935,7 +981,11 @@ async function main() {
       }
       if (data?.ok) {
         if (hint) {
-          hint.textContent = `Convite enviado para ${email}. O profissional deve abrir o link no e-mail; em seguida usa «Buscar UUID por e-mail» aqui se precisares.`;
+          if (data.delivered_via === 'resend') {
+            hint.textContent = `Convite enviado para ${email} (Resend). Pede para verificar remetente e spam; pede para abrir o link e criar conta; depois «Buscar UUID por e-mail».`;
+          } else {
+            hint.textContent = `Convite pedido pelo e-mail por defeito do Supabase (${email}). Se não chegar, configura RESEND_API_KEY na Edge Function «admin-invite-auth-user» (Dashboard → Secrets) ou SMTP em Authentication.`;
+          }
         }
         if (data.user_id && uuidInp && !uuidInp.value?.trim()) uuidInp.value = data.user_id;
         return;

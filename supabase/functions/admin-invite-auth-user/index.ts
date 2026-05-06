@@ -1,10 +1,12 @@
 /**
- * Admin: criar entrada em Authentication por convite ao e-mail (parceiros aprovados sem signup).
+ * Admin: convite Auth por e-mail (parceiros sem signup na app).
  *
- * Segurança: valida Bearer JWT da sessão e confirma `aura_admins` via service_role.
+ * — Sem RESEND_API_KEY: usa `inviteUserByEmail` (depende do SMTP / e-mail por defeito do Supabase —
+ *   muitas vezes não chega ou cai em spam).
+ * — Com RESEND_API_KEY (+ RESEND_FROM opcional): gera link com `generateLink({ type: 'invite' })`
+ *   e envia o convite pelo Resend (recomendado).
  *
- * Secrets (automáticas no Supabase): SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY.
- * Em Auth → URL Configuration, permite o mesmo domínio passado em `redirect_to` (ex. login).
+ * Secrets: SUPABASE_*, e opcionalmente RESEND_API_KEY, RESEND_FROM (ex. "Conta Mãe <noreply@teudominio.com>")
  *
  * Deploy:
  *   npx supabase functions deploy admin-invite-auth-user --project-ref SEU_REF --no-verify-jwt
@@ -35,6 +37,47 @@ function normalizeEmail(raw: unknown): string {
   if (/^mailto:/i.test(s)) s = s.slice(7).trim();
   s = s.split('?')[0].split('#')[0].trim();
   return s;
+}
+
+async function sendResendInvite(
+  resendKey: string,
+  resendFrom: string,
+  to: string,
+  actionLink: string,
+): Promise<{ ok: boolean; detail?: string }> {
+  const html = `
+  <p>Olá,</p>
+  <p>Recebeste um convite para criar ou ativar o teu acesso na app <strong>Conta Mãe</strong>.</p>
+  <p><a href="${actionLink}" style="word-break:break-all">Clica aqui para concluir o registo</a></p>
+  <p>Este link expira pelo tempo definido pelo sistema de autenticação. Se não pediste este convite, ignora esta mensagem.</p>
+  `.trim();
+  const text = [
+    'Recebeste um convite para aceder à Conta Mãe.',
+    '',
+    `Abre esta ligação no browser para concluir o registo (válida por tempo limitado):`,
+    actionLink,
+  ].join('\n');
+
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${resendKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: resendFrom,
+      to: [to],
+      subject: '[Conta Mãe] Convite para criares acesso na app',
+      html,
+      text,
+    }),
+  });
+  const resText = await res.text();
+  if (!res.ok) {
+    console.error('[admin-invite-auth-user] Resend:', res.status, resText);
+    return { ok: false, detail: resText.slice(0, 500) };
+  }
+  return { ok: true };
 }
 
 Deno.serve(async (req) => {
@@ -95,6 +138,51 @@ Deno.serve(async (req) => {
   const redirectTo =
     redirectRaw && /^https:\/\//i.test(redirectRaw) ? redirectRaw : undefined;
 
+  const resendKey = Deno.env.get('RESEND_API_KEY')?.trim();
+  const resendFrom =
+    Deno.env.get('RESEND_FROM')?.trim() ||
+    Deno.env.get('RESEND_FROM_INVITE')?.trim() ||
+    'CONTA MÃE <onboarding@resend.dev>';
+
+  if (resendKey) {
+    const { data: linkData, error: genErr } = await service.auth.admin.generateLink({
+      type: 'invite',
+      email,
+      options: redirectTo ? { redirectTo } : undefined,
+    });
+    if (genErr) {
+      const detail = genErr.message || String(genErr);
+      if (/already (been )?registered|already exists|User already/i.test(detail)) {
+        return json(req, 200, {
+          ok: true,
+          already_exists: true,
+          message: detail,
+        });
+      }
+      return json(req, 400, { error: 'generate_link_failed', detail: detail.slice(0, 400) });
+    }
+    const actionLink =
+      (linkData as { properties?: { action_link?: string } })?.properties?.action_link ||
+      '';
+    if (!actionLink) {
+      return json(req, 502, { error: 'missing_action_link' });
+    }
+    const sent = await sendResendInvite(resendKey, resendFrom, email, actionLink);
+    if (!sent.ok) {
+      return json(req, 502, {
+        error: 'resend_failed',
+        detail: sent.detail || 'resend_failed',
+      });
+    }
+    const uid = (linkData as { user?: { id?: string } })?.user?.id ?? null;
+    return json(req, 200, {
+      ok: true,
+      already_exists: false,
+      user_id: uid,
+      delivered_via: 'resend',
+    });
+  }
+
   const { data: inviteData, error: invErr } = await service.auth.admin.inviteUserByEmail(email, {
     ...(redirectTo ? { redirectTo } : {}),
   });
@@ -115,5 +203,6 @@ Deno.serve(async (req) => {
     ok: true,
     already_exists: false,
     user_id: inviteData?.user?.id ?? null,
+    delivered_via: 'supabase',
   });
 });
