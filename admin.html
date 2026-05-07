@@ -123,6 +123,70 @@
         </article>
       </section>
 
+      <section class="admin-kpis admin-kpis--secondary" aria-label="Presença e uso da app">
+        <article class="admin-kpi">
+          <span class="admin-kpi__label">Online agora (~10 min)</span>
+          <strong class="admin-kpi__value" id="adm-kpi-online-now">—</strong>
+        </article>
+        <article class="admin-kpi">
+          <span class="admin-kpi__label">Únicos hoje (UTC)</span>
+          <strong class="admin-kpi__value" id="adm-kpi-online-today">—</strong>
+        </article>
+        <article class="admin-kpi">
+          <span class="admin-kpi__label">Ativos no intervalo</span>
+          <strong class="admin-kpi__value" id="adm-kpi-active-range">—</strong>
+        </article>
+      </section>
+
+      <div class="admin-card admin-analytics-block">
+        <h2>Localização (perfis) e páginas mais vistas</h2>
+        <p class="admin-muted" id="adm-an-hint" style="margin-bottom: 10px"></p>
+        <p class="admin-muted" style="margin-bottom: 12px">
+          O intervalo abaixo altera «Ativos no intervalo» e a tabela de páginas. Heartbeat em
+          <code>user_presence</code> (Explorar); páginas precisam da migração
+          <code>app_page_views</code> e de sessão nas páginas com <code>auth-session-guard</code>.
+        </p>
+        <div class="admin-analytics-toolbar">
+          <label class="admin-analytics-date">De
+            <input type="date" id="adm-an-from" autocomplete="off" />
+          </label>
+          <label class="admin-analytics-date">Até
+            <input type="date" id="adm-an-to" autocomplete="off" />
+          </label>
+          <button type="button" class="admin-btn admin-btn--primary" id="adm-an-refresh">Atualizar métricas</button>
+        </div>
+        <div class="admin-analytics-tables">
+          <div class="admin-table-wrap">
+            <h3 class="admin-analytics-sub">Por estado</h3>
+            <table class="admin-table">
+              <thead><tr><th>Estado</th><th>Perfis</th></tr></thead>
+              <tbody id="adm-an-estado"></tbody>
+            </table>
+          </div>
+          <div class="admin-table-wrap">
+            <h3 class="admin-analytics-sub">Por cidade</h3>
+            <table class="admin-table">
+              <thead><tr><th>Cidade</th><th>UF</th><th>Perfis</th></tr></thead>
+              <tbody id="adm-an-cidade"></tbody>
+            </table>
+          </div>
+          <div class="admin-table-wrap">
+            <h3 class="admin-analytics-sub">Por país</h3>
+            <table class="admin-table">
+              <thead><tr><th>País</th><th>Perfis</th></tr></thead>
+              <tbody id="adm-an-pais"></tbody>
+            </table>
+          </div>
+          <div class="admin-table-wrap admin-table-wrap--wide">
+            <h3 class="admin-analytics-sub">Páginas mais vistas (no intervalo)</h3>
+            <table class="admin-table">
+              <thead><tr><th>Página</th><th>Vistas</th></tr></thead>
+              <tbody id="adm-an-pages"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <nav class="admin-tabs" role="tablist" aria-label="Secções admin">
         <button type="button" class="admin-tab admin-tab--active" data-tab="spec" role="tab"
           onclick="window.__adminOpenTab && window.__adminOpenTab('spec')"

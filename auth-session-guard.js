@@ -62,6 +62,13 @@ window.__auraAuthReady = (async function auraSessionGuard() {
 
   await enforceMotherSignupForAppPages(supabase, session.user.id);
 
+  try {
+    const { trackPageView } = await import('./page-analytics.js');
+    void trackPageView(supabase);
+  } catch (_) {
+    /* opcional */
+  }
+
   document.documentElement.classList.remove('aura-auth-checking');
   return true;
 })();

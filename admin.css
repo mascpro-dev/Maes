@@ -160,13 +160,61 @@ body.admin-page .app-wrapper {
   }
 }
 
+.admin-kpis--secondary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 @media (max-width: 560px) {
-  .admin-kpis {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .admin-kpis--secondary {
+    grid-template-columns: 1fr;
   }
 }
 
-.admin-tabs {
+.admin-analytics-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.admin-analytics-date {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: var(--ink-mid, #5a5550);
+}
+
+.admin-analytics-date input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--sage-light, #c5d4b8);
+  font-family: inherit;
+}
+
+.admin-analytics-sub {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 8px;
+  color: var(--ink, #2d2a26);
+}
+
+.admin-analytics-tables {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.admin-table-wrap--wide {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 780px) {
+  .admin-analytics-tables {
+    grid-template-columns: 1fr;
+  }
+}
   display: flex;
   gap: 6px;
   flex-wrap: wrap;

@@ -1,6 +1,17 @@
 /**
  * admin.html — painel restrito a utilizadores em public.aura_admins.
+ * onclick nas abas chama isto antes de main() async acabar — encaminha após init.
  */
+window.__adminOpenTabPending = [];
+window.__adminOpenTab = function (name) {
+  if (!name) return;
+  if (typeof window.__adminOpenTabImpl === 'function') {
+    window.__adminOpenTabImpl(name);
+  } else {
+    window.__adminOpenTabPending.push(name);
+  }
+};
+
 async function waitAuth() {
   const p = window.__auraAuthReady;
   if (!p) {
@@ -28,7 +39,12 @@ function setStatus(el, msg, isErr) {
 function setKpi(id, value) {
   const el = document.getElementById(id);
   if (!el) return;
-  el.textContent = Number.isFinite(Number(value)) ? String(value) : '—';
+  if (value == null || value === '') {
+    el.textContent = '—';
+    return;
+  }
+  const n = Number(value);
+  el.textContent = Number.isFinite(n) ? String(n) : '—';
 }
 
 /** Identificador do projeto na URL (ex. ahjhjzdmkkrcgbuxmhww) — para alinhar com o Dashboard do Supabase. */
@@ -194,6 +210,103 @@ function rpcMissing(err) {
     /could not find.*function/i.test(m) ||
     /schema cache/i.test(m)
   );
+}
+
+function initAdminAnalyticsDates() {
+  const toEl = document.getElementById('adm-an-to');
+  const fromEl = document.getElementById('adm-an-from');
+  if (!toEl || !fromEl || (fromEl.value && toEl.value)) return;
+  const end = new Date();
+  const start = new Date();
+  start.setDate(start.getDate() - 15);
+  toEl.value = end.toISOString().slice(0, 10);
+  fromEl.value = start.toISOString().slice(0, 10);
+}
+
+function renderAdminMiniTable(tbody, rows, emptyColspan, rowHtml) {
+  if (!tbody) return;
+  tbody.innerHTML = '';
+  if (!rows || !rows.length) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="${emptyColspan}" class="admin-muted">Sem dados.</td>`;
+    tbody.appendChild(tr);
+    return;
+  }
+  rows.forEach((r) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = rowHtml(r);
+    tbody.appendChild(tr);
+  });
+}
+
+async function refreshAdminAnalytics(sb, statusEl) {
+  const fromEl = document.getElementById('adm-an-from');
+  const toEl = document.getElementById('adm-an-to');
+  if (!fromEl?.value || !toEl?.value) return;
+  const d0 = new Date(`${fromEl.value}T00:00:00`);
+  const d1 = new Date(`${toEl.value}T23:59:59.999`);
+  if (Number.isNaN(d0.getTime()) || Number.isNaN(d1.getTime())) return;
+
+  const setKpiText = (id, v) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = v == null ? '—' : String(v);
+  };
+
+  try {
+    const { data, error } = await sb.rpc('admin_analytics_dashboard', {
+      p_presence_minutes: 10,
+      p_from: d0.toISOString(),
+      p_to: d1.toISOString(),
+    });
+    if (error) throw error;
+
+    setKpi('adm-kpi-online-now', data?.online_now);
+    setKpi('adm-kpi-online-today', data?.online_today);
+    setKpi('adm-kpi-active-range', data?.distinct_active_in_range);
+
+    renderAdminMiniTable(
+      document.getElementById('adm-an-estado'),
+      Array.isArray(data?.by_estado) ? data.by_estado : [],
+      2,
+      (r) => `<td>${escapeHtml(String(r.estado || '—'))}</td><td>${escapeHtml(String(r.count ?? ''))}</td>`
+    );
+    renderAdminMiniTable(
+      document.getElementById('adm-an-cidade'),
+      Array.isArray(data?.by_cidade) ? data.by_cidade : [],
+      3,
+      (r) =>
+        `<td>${escapeHtml(String(r.cidade || '—'))}</td><td>${escapeHtml(String(r.estado || '—'))}</td><td>${escapeHtml(String(r.count ?? ''))}</td>`
+    );
+    renderAdminMiniTable(
+      document.getElementById('adm-an-pais'),
+      Array.isArray(data?.by_pais) ? data.by_pais : [],
+      2,
+      (r) => `<td>${escapeHtml(String(r.pais || '—'))}</td><td>${escapeHtml(String(r.count ?? ''))}</td>`
+    );
+    renderAdminMiniTable(
+      document.getElementById('adm-an-pages'),
+      Array.isArray(data?.top_pages) ? data.top_pages : [],
+      2,
+      (r) =>
+        `<td class="mono">${escapeHtml(String(r.page_path || '—'))}</td><td>${escapeHtml(String(r.count ?? ''))}</td>`
+    );
+
+    const hint = document.getElementById('adm-an-hint');
+    if (hint) {
+      hint.textContent = data?.total_profiles != null ? `Total de perfis na base: ${data.total_profiles}.` : '';
+    }
+  } catch (e) {
+    const msg = formatSbError(e) || e.message || String(e);
+    if (/function|schema cache|admin_analytics_dashboard|42883/i.test(msg)) {
+      setStatus(
+        statusEl,
+        'Métricas: aplica a migração 20260506220000_admin_analytics_page_views_and_rpc.sql no Supabase.',
+        true
+      );
+    } else {
+      setStatus(statusEl, 'Métricas: ' + msg.slice(0, 200), true);
+    }
+  }
 }
 
 async function loadBookings(sb) {
@@ -621,7 +734,8 @@ async function main() {
     }
   }
 
-  window.__adminOpenTab = openAdminTab;
+  window.__adminOpenTabImpl = openAdminTab;
+  window.__adminOpenTabPending.splice(0).forEach((n) => openAdminTab(n));
 
   document.querySelectorAll('.admin-tab[data-tab]').forEach((btn) => {
     const onTab = (ev) => {
@@ -631,27 +745,10 @@ async function main() {
       openAdminTab(name);
     };
     btn.addEventListener('click', onTab);
-    btn.addEventListener('pointerup', onTab);
     btn.addEventListener('keydown', (ev) => {
       if (ev.key === 'Enter' || ev.key === ' ') onTab(ev);
     });
   });
-
-  const adminTabsEl = document.querySelector('.admin-tabs');
-  if (adminTabsEl) {
-    adminTabsEl.addEventListener(
-      'click',
-      (ev) => {
-        const el = clickEventTargetElement(ev);
-        const tabBtn = el?.closest?.('.admin-tab[data-tab]');
-        if (!tabBtn) return;
-        ev.preventDefault();
-        ev.stopPropagation();
-        openAdminTab(tabBtn.getAttribute('data-tab'));
-      },
-      true
-    );
-  }
 
   const adminAppEl = document.getElementById('admin-app');
   if (adminAppEl) {
@@ -1351,6 +1448,9 @@ async function main() {
   }
 
   await refreshAll();
+  initAdminAnalyticsDates();
+  document.getElementById('adm-an-refresh')?.addEventListener('click', () => void refreshAdminAnalytics(sb, statusEl));
+  await refreshAdminAnalytics(sb, statusEl);
 }
 
 main();
