@@ -125,6 +125,47 @@ body.admin-page .app-wrapper {
   margin-bottom: 12px;
 }
 
+.admin-kpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.admin-kpi {
+  background: var(--cream-card, #faf8eb);
+  border: 1px solid var(--sage-light, #c5d4b8);
+  border-radius: 12px;
+  padding: 10px 10px 9px;
+  min-width: 0;
+}
+
+.admin-kpi__label {
+  display: block;
+  font-size: 0.73rem;
+  color: var(--ink-mid, #5a5550);
+  margin-bottom: 3px;
+}
+
+.admin-kpi__value {
+  display: block;
+  font-size: 1.1rem;
+  color: var(--ink, #2d2a26);
+  line-height: 1.1;
+}
+
+@media (max-width: 900px) {
+  .admin-kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .admin-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .admin-tabs {
   display: flex;
   gap: 6px;

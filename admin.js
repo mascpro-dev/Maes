@@ -25,6 +25,12 @@ function setStatus(el, msg, isErr) {
   el.style.color = isErr ? 'var(--terracotta, #E2725B)' : '';
 }
 
+function setKpi(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = Number.isFinite(Number(value)) ? String(value) : '—';
+}
+
 /** Identificador do projeto na URL (ex. ahjhjzdmkkrcgbuxmhww) — para alinhar com o Dashboard do Supabase. */
 function supabaseProjectRef() {
   try {
@@ -526,6 +532,7 @@ async function main() {
     try {
       const specs = await loadSpecialists(sb);
       renderSpecialists(specs, tbodySpec, specNameById);
+      setKpi('adm-kpi-spec', specs.length);
       fillLinkSpecialistSelect(specs);
       const linkSel = document.getElementById('adm-link-spec');
       const emailLf = document.getElementById('adm-link-email-lookup');
@@ -538,12 +545,14 @@ async function main() {
     try {
       const books = await loadBookings(sb);
       renderBookings(books, tbodyBook, specNameById);
+      setKpi('adm-kpi-book', books.length);
     } catch (e) {
       parts.push('Reservas: ' + (e.message || e));
     }
     try {
       const intents = await loadIntents(sb);
       renderIntents(intents, tbodyChk, specNameById);
+      setKpi('adm-kpi-chk', intents.length);
     } catch (e) {
       parts.push('Checkouts MP: ' + (e.message || e));
     }
@@ -578,6 +587,7 @@ async function main() {
         const q = document.getElementById('adm-mother-q')?.value || '';
         const rows = await loadMothers(sb, q);
         renderMothers(rows, tbodyMothers);
+        setKpi('adm-kpi-reg', rows.length);
       } catch (e) {
         setStatus(statusEl, 'Perfis: ' + (e.message || e), true);
       }
@@ -591,6 +601,7 @@ async function main() {
     try {
       const rows = await loadPartnerApplications(sb);
       renderPartnerApplications(rows, tbodyPar);
+      setKpi('adm-kpi-par', rows.length);
       if (hint) hint.textContent = `${rows.length} candidatura(s).`;
     } catch (e) {
       if (hint) hint.textContent = formatSbError(e) || e.message || String(e);
