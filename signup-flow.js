@@ -233,13 +233,30 @@ export async function uploadSignupAvatarToStorage(client, userId, file) {
 
   const blob = normalized.blob;
   const contentType = normalized.type || file.type || 'image/jpeg';
+  const {
+    data: { user: authUser },
+  } = await client.auth.getUser();
+  if (!authUser?.id) {
+    return {
+      ok: false,
+      message: 'Sessão inválida para envio da foto. Entra novamente em login.html e tenta de novo.',
+    };
+  }
+
   const ext = extFromAvatarFile({ type: contentType });
-  const path = `${userId}/avatar.${ext}`;
-  const { error: upErr } = await client.storage.from(AVATAR_BUCKET).upload(path, blob, {
-    upsert: true,
-    cacheControl: '86400',
-    contentType,
-  });
+  const candidatePaths = [`${userId}/avatar.${ext}`, `users/${userId}/avatar.${ext}`];
+  let uploadPath = candidatePaths[0];
+  let upErr = null;
+  for (const p of candidatePaths) {
+    uploadPath = p;
+    const res = await client.storage.from(AVATAR_BUCKET).upload(p, blob, {
+      upsert: true,
+      cacheControl: '86400',
+      contentType,
+    });
+    upErr = res.error || null;
+    if (!upErr) break;
+  }
 
   if (upErr) {
     const m = String(upErr.message || '');
@@ -254,13 +271,14 @@ export async function uploadSignupAvatarToStorage(client, userId, file) {
       return {
         ok: false,
         message:
-          'Sem permissão para enviar a foto. Verifica as políticas do bucket avatars no Supabase. Detalhe: ' + m,
+          `Sem permissão para enviar a foto. Verifica as políticas do bucket avatars no Supabase (uid na pasta). ` +
+          `uid sessão: ${authUser.id} · uid perfil: ${userId}. Detalhe: ${m}`,
       };
     }
     return { ok: false, message: 'Não foi possível enviar a foto: ' + m };
   }
 
-  const { data: pub } = client.storage.from(AVATAR_BUCKET).getPublicUrl(path);
+  const { data: pub } = client.storage.from(AVATAR_BUCKET).getPublicUrl(uploadPath);
   const base = pub?.publicUrl;
   if (!base) return { ok: false, message: 'Upload ok mas falhou o URL público da foto.' };
 

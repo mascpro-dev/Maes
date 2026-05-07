@@ -27,7 +27,9 @@ CREATE POLICY "avatars_insert_own"
     bucket_id = 'avatars'
     AND (
       split_part(name, '/', 1) = auth.uid()::text
+      OR split_part(name, '/', 2) = auth.uid()::text
       OR (storage.foldername(name))[1] = auth.uid()::text
+      OR (storage.foldername(name))[2] = auth.uid()::text
     )
   );
 
@@ -39,14 +41,18 @@ CREATE POLICY "avatars_update_own"
     bucket_id = 'avatars'
     AND (
       split_part(name, '/', 1) = auth.uid()::text
+      OR split_part(name, '/', 2) = auth.uid()::text
       OR (storage.foldername(name))[1] = auth.uid()::text
+      OR (storage.foldername(name))[2] = auth.uid()::text
     )
   )
   WITH CHECK (
     bucket_id = 'avatars'
     AND (
       split_part(name, '/', 1) = auth.uid()::text
+      OR split_part(name, '/', 2) = auth.uid()::text
       OR (storage.foldername(name))[1] = auth.uid()::text
+      OR (storage.foldername(name))[2] = auth.uid()::text
     )
   );
 
@@ -58,7 +64,9 @@ CREATE POLICY "avatars_delete_own"
     bucket_id = 'avatars'
     AND (
       split_part(name, '/', 1) = auth.uid()::text
+      OR split_part(name, '/', 2) = auth.uid()::text
       OR (storage.foldername(name))[1] = auth.uid()::text
+      OR (storage.foldername(name))[2] = auth.uid()::text
     )
   );
 
