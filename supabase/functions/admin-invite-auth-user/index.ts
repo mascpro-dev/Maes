@@ -137,8 +137,11 @@ Deno.serve(async (req) => {
   }
 
   const redirectRaw = body.redirect_to?.trim();
+  const defaultPublicBase =
+    Deno.env.get('AURA_APP_PUBLIC_URL')?.trim().replace(/\/$/, '') || 'https://maes-pi.vercel.app';
+  const defaultLoginRedirect = `${defaultPublicBase}/login.html`;
   const redirectTo =
-    redirectRaw && /^https:\/\//i.test(redirectRaw) ? redirectRaw : undefined;
+    redirectRaw && /^https:\/\//i.test(redirectRaw) ? redirectRaw : defaultLoginRedirect;
 
   const resendKey = Deno.env.get('RESEND_API_KEY')?.trim();
   const resendFrom =

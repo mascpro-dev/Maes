@@ -696,6 +696,50 @@ async function main() {
                   msg =
                     'Aprovado, mas não encontrei especialista criado. Aplica no Supabase a migração nova de parceiros/especialistas.';
                 }
+
+                // Após aprovar, tenta convidar automaticamente o parceiro para criar acesso no Auth.
+                // Falhas de envio não devem reverter a aprovação.
+                let inviteNote = '';
+                try {
+                  const { data: appRow, error: appErr } = await sb
+                    .from('partner_professional_applications')
+                    .select('email')
+                    .eq('id', id)
+                    .maybeSingle();
+                  if (appErr) throw appErr;
+                  const email = String(appRow?.email || '').trim();
+                  if (email && email.includes('@')) {
+                    const origin =
+                      typeof window.auraPublicSiteBase === 'function'
+                        ? window.auraPublicSiteBase()
+                        : (window.AURA_APP_PUBLIC_URL || '').trim().replace(/\/$/, '') ||
+                          (typeof window.location?.origin === 'string' ? window.location.origin : '');
+                    const redirect_to =
+                      origin && /^https:\/\//i.test(origin)
+                        ? `${origin.replace(/\/$/, '')}/login.html`
+                        : 'https://maes-pi.vercel.app/login.html';
+
+                    const { data: invData, error: invErr } = await sb.functions.invoke('admin-invite-auth-user', {
+                      body: { email, redirect_to },
+                    });
+
+                    if (invErr) {
+                      inviteNote =
+                        ' A aprovação foi gravada, mas o convite Auth não foi enviado automaticamente (podes reenviar no bloco de ligação de conta).';
+                    } else if (invData?.already_exists) {
+                      inviteNote = ' A conta Auth desse e-mail já existia; basta ligar UUID no especialista.';
+                    } else if (invData?.ok) {
+                      inviteNote = ' Convite Auth enviado para o e-mail do profissional.';
+                    }
+                  } else {
+                    inviteNote = ' A candidatura não tem e-mail válido para convite automático.';
+                  }
+                } catch (inviteErr) {
+                  console.warn('[admin] auto-invite on approve:', inviteErr);
+                  inviteNote =
+                    ' A aprovação foi gravada, mas houve falha ao enviar convite automático (usa o botão de convite manual).';
+                }
+                msg += inviteNote;
               }
 
               setStatus(statusEl, msg, false);
