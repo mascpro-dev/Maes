@@ -37,4 +37,24 @@
     '14-99157-0389 WhatsApp</a>';
 
   (document.body || document.documentElement).appendChild(el);
+
+  function updateBottomOffset() {
+    try {
+      var isMobile = window.matchMedia('(max-width: 767px)').matches;
+      if (!isMobile) {
+        el.style.bottom = '0px';
+        return;
+      }
+      var nav = document.querySelector('.bottom-nav');
+      var navH = nav ? Math.ceil(nav.getBoundingClientRect().height || 0) : 0;
+      el.style.bottom = navH > 0 ? navH + 'px' : '0px';
+    } catch (_e) {
+      el.style.bottom = '0px';
+    }
+  }
+
+  updateBottomOffset();
+  window.addEventListener('resize', updateBottomOffset, { passive: true });
+  window.addEventListener('orientationchange', updateBottomOffset, { passive: true });
+  window.addEventListener('load', updateBottomOffset, { passive: true });
 })();
