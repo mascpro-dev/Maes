@@ -3,9 +3,10 @@
  */
 (function () {
   function normPage() {
-    let p = (location.pathname || "").split("/").pop() || "index.html";
+    const segs = (location.pathname || "").toLowerCase().split("/").filter(Boolean);
+    if (segs.includes("planner-mae")) return "planner-mae";
+    let p = segs.length ? segs[segs.length - 1] : "index.html";
     if (!p || p === "") p = "index.html";
-    p = p.toLowerCase();
     /* Secções que partilham o mesmo destaque que outra rota */
     if (p === "perfil-usuario.html") p = "community.html";
     if (p === "especialista-agenda.html") p = "especialistas.html";
@@ -16,8 +17,10 @@
 
   function matchHref(href, page) {
     if (!href) return false;
-    const h = href.split("/").pop().split("#")[0].split("?")[0].toLowerCase();
+    const parts = href.split("/").filter(Boolean);
+    const h = (parts[parts.length - 1] || "").split("#")[0].split("?")[0].toLowerCase();
     if (h === page) return true;
+    if (page === "planner-mae" && (h === "planner-mae" || href.includes("planner-mae"))) return true;
     if ((page === "" || page === "index.html") && (h === "index.html" || h === "")) return true;
     return false;
   }

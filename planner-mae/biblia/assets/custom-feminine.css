@@ -1,0 +1,190 @@
+/* Cores Femininas Personalizadas para Bíblia para Mulheres */
+
+:root {
+  /* Paleta de cores femininas */
+  --rosa-principal: #e91e63;
+  --rosa-claro: #f8bbd9;
+  --rosa-escuro: #ad1457;
+  --roxo-suave: #9c27b0;
+  --roxo-claro: #e1bee7;
+  --lavanda: #e8eaf6;
+  --branco-puro: #ffffff;
+  --cinza-suave: #f5f5f5;
+  --texto-escuro: #424242;
+}
+
+/* Cabeçalho e título principal */
+body {
+  background: linear-gradient(135deg, var(--lavanda) 0%, var(--rosa-claro) 100%);
+  min-height: 100vh;
+}
+
+/* Título principal */
+h1, .title, [class*="title"] {
+  color: var(--rosa-principal) !important;
+  text-shadow: 0 2px 4px rgba(233, 30, 99, 0.2);
+}
+
+/* Botões principais */
+button {
+  background: linear-gradient(135deg, var(--rosa-principal), var(--roxo-suave)) !important;
+  border: none !important;
+  color: white !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 2px 8px rgba(233, 30, 99, 0.3) !important;
+}
+
+button:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(233, 30, 99, 0.4) !important;
+}
+
+/* Botões de navegação */
+button[class*="nav"], button[class*="chapter"] {
+  background: var(--rosa-claro) !important;
+  color: var(--rosa-escuro) !important;
+  border: 2px solid var(--rosa-principal) !important;
+}
+
+/* Sidebar dos livros */
+aside, .sidebar, [class*="sidebar"] {
+  background: linear-gradient(180deg, var(--branco-puro) 0%, var(--rosa-claro) 100%) !important;
+  border-right: 3px solid var(--rosa-principal) !important;
+  box-shadow: 2px 0 10px rgba(233, 30, 99, 0.1) !important;
+}
+
+/* Botões dos livros da Bíblia */
+.sidebar button, aside button {
+  background: transparent !important;
+  color: var(--rosa-escuro) !important;
+  border: 1px solid var(--rosa-claro) !important;
+  margin: 2px 0 !important;
+  border-radius: 6px !important;
+}
+
+.sidebar button:hover, aside button:hover {
+  background: var(--rosa-claro) !important;
+  color: var(--rosa-escuro) !important;
+  border-color: var(--rosa-principal) !important;
+}
+
+/* Área principal de conteúdo */
+main, .content, [class*="content"] {
+  background: var(--branco-puro) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(233, 30, 99, 0.1) !important;
+  margin: 10px !important;
+  padding: 20px !important;
+}
+
+/* Versículos */
+.verse, [class*="verse"] {
+  border-left: 3px solid var(--rosa-principal) !important;
+  padding-left: 15px !important;
+  margin: 10px 0 !important;
+  background: linear-gradient(90deg, var(--lavanda) 0%, transparent 100%) !important;
+  border-radius: 0 8px 8px 0 !important;
+}
+
+/* Números dos versículos */
+.verse-number, [class*="number"] {
+  background: var(--rosa-principal) !important;
+  color: white !important;
+  border-radius: 50% !important;
+  width: 25px !important;
+  height: 25px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: bold !important;
+  margin-right: 10px !important;
+}
+
+/* Campo de busca */
+input[type="text"], input[type="search"], .search-input {
+  border: 2px solid var(--rosa-claro) !important;
+  border-radius: 25px !important;
+  padding: 10px 20px !important;
+  background: var(--branco-puro) !important;
+  color: var(--texto-escuro) !important;
+  transition: all 0.3s ease !important;
+}
+
+input[type="text"]:focus, input[type="search"]:focus, .search-input:focus {
+  border-color: var(--rosa-principal) !important;
+  box-shadow: 0 0 10px rgba(233, 30, 99, 0.3) !important;
+  outline: none !important;
+}
+
+/* Selects */
+select {
+  border: 2px solid var(--rosa-claro) !important;
+  border-radius: 8px !important;
+  background: var(--branco-puro) !important;
+  color: var(--texto-escuro) !important;
+  padding: 8px 12px !important;
+}
+
+/* Rodapé */
+footer, .footer, [class*="footer"] {
+  background: linear-gradient(135deg, var(--rosa-principal), var(--roxo-suave)) !important;
+  color: white !important;
+  text-align: center !important;
+  padding: 20px !important;
+  border-radius: 12px 12px 0 0 !important;
+  margin-top: 20px !important;
+}
+
+/* Links */
+a {
+  color: var(--rosa-principal) !important;
+  text-decoration: none !important;
+  transition: color 0.3s ease !important;
+}
+
+a:hover {
+  color: var(--rosa-escuro) !important;
+  text-decoration: underline !important;
+}
+
+/* Scrollbar personalizada */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--rosa-claro);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--rosa-principal);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--rosa-escuro);
+}
+
+/* Animações suaves */
+* {
+  transition: all 0.3s ease !important;
+}
+
+/* Efeitos especiais para elementos interativos */
+button, input, select {
+  transform-origin: center;
+}
+
+button:active {
+  transform: scale(0.98) !important;
+}
+
+/* Estilo especial para o cabeçalho */
+header, .header, [class*="header"] {
+  background: linear-gradient(135deg, var(--branco-puro) 0%, var(--rosa-claro) 100%) !important;
+  border-bottom: 3px solid var(--rosa-principal) !important;
+  box-shadow: 0 2px 10px rgba(233, 30, 99, 0.2) !important;
+}
+
