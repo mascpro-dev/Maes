@@ -11,8 +11,8 @@
     if (p === "perfil-usuario.html") p = "community.html";
     if (p === "especialista-agenda.html") p = "especialistas.html";
     if (p === "scanner.html" || p === "indicados.html") p = "reembolsos.html";
-    /* Mensagens e Explorar não têm item próprio na rail; voltam a destacar Início. */
-    if (p === "mensagens.html" || p === "explorar.html") p = "index.html";
+    /* Explorar não tem item próprio na rail; volta a destacar Início. */
+    if (p === "explorar.html") p = "index.html";
     return p;
   }
 
