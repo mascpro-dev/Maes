@@ -1,7 +1,9 @@
 import React from 'react';
 
+const BIBLE_VERSION = 'v2-2026-05-07';
+
 const BibleViewer: React.FC = () => {
-  const bibleSrc = `${import.meta.env.BASE_URL}biblia/index.html`;
+  const bibleSrc = `${import.meta.env.BASE_URL}biblia/index.html?${BIBLE_VERSION}`;
 
   return (
     <div
@@ -10,7 +12,7 @@ const BibleViewer: React.FC = () => {
     >
       <iframe
         src={bibleSrc}
-        title="Bíblia para Mulheres"
+        title="Bíblia"
         className="w-full h-full border-0 block"
         sandbox="allow-scripts allow-same-origin"
       />
