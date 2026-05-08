@@ -22,7 +22,7 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'icon-192.png', 'icon-512.png'],
       workbox: {
-        navigateFallbackDenylist: [/^\/~oauth/, /^\/biblia/],
+        navigateFallbackDenylist: [/^\/~oauth/, /\/biblia(\/|$)/],
         globIgnores: ['**/biblia/**'],
       },
       manifest: {
