@@ -1,0 +1,103 @@
+# Atualiza o menu lateral (.aura-rail__nav) em todas as páginas HTML para a nova ordem unificada.
+# Ordem: Início, Mural de histórias, Planner Mãe, Comunidade, Diário, Especialistas, Finanças, Compromissos, Perfil.
+
+$ErrorActionPreference = "Stop"
+
+$root = Split-Path -Parent $PSScriptRoot
+
+$files = @(
+  "index.html",
+  "agenda.html",
+  "admin.html",
+  "community.html",
+  "diario-evolucao.html",
+  "especialista-agenda.html",
+  "especialistas.html",
+  "explorar.html",
+  "indicados.html",
+  "mensagens.html",
+  "perfil.html",
+  "perfil-usuario.html",
+  "reembolsos.html",
+  "scanner.html"
+)
+
+$newNav = @'
+<nav class="aura-rail__nav">
+        <a href="index.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          Início
+        </a>
+        <a href="index.html#mural-de-historias" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="13" x2="14" y2="13"/></svg>
+          Mural de histórias
+        </a>
+        <a href="planner-mae/" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01"/></svg>
+          Planner Mãe
+        </a>
+        <a href="community.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Comunidade
+        </a>
+        <a href="diario-evolucao.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+          Diário
+        </a>
+        <a href="especialistas.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4.5 12.5c0-3 2.5-5.5 5.5-6.5"/><path d="M19.5 12.5c0-3-2.5-5.5-5.5-6.5"/><path d="M8 12h8"/><circle cx="12" cy="7" r="2"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+          Especialistas
+        </a>
+        <a href="reembolsos.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Finanças
+        </a>
+        <a href="agenda.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Compromissos
+        </a>
+        <a href="perfil.html" class="aura-rail__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Perfil
+        </a>
+      </nav>
+'@
+
+# Regex multiline para casar do <nav class="aura-rail__nav"> até o </nav> seguinte (não-greedy).
+$pattern = '(?s)<nav class="aura-rail__nav">.*?</nav>'
+
+$updated = 0
+$skipped = 0
+
+foreach ($name in $files) {
+  $path = Join-Path $root $name
+  if (-not (Test-Path $path)) {
+    Write-Host "[skip] $name (não encontrado)"
+    $skipped++
+    continue
+  }
+
+  $content = Get-Content -Path $path -Raw -Encoding UTF8
+
+  if ($content -notmatch '<nav class="aura-rail__nav">') {
+    Write-Host "[skip] $name (sem aura-rail__nav)"
+    $skipped++
+    continue
+  }
+
+  $new = [regex]::Replace($content, $pattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $newNav })
+
+  if ($new -eq $content) {
+    Write-Host "[noop] $name"
+    continue
+  }
+
+  # Preserva BOM/UTF-8 sem BOM como originalmente. Usamos UTF8 sem BOM por padrão.
+  $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+  [System.IO.File]::WriteAllText($path, $new, $utf8NoBom)
+  Write-Host "[ok]   $name"
+  $updated++
+}
+
+Write-Host ""
+Write-Host "Concluído: $updated atualizados, $skipped pulados."
