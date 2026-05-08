@@ -2,14 +2,44 @@
 <html lang="pt-BR">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bíblia para Mulheres</title>
-    <script type="module" crossorigin src="assets/index-jOWJLky4.js"></script>
-    <link rel="stylesheet" crossorigin href="assets/index-D_NiwOnz.css">
-    <link rel="stylesheet" href="assets/custom-feminine.css">
+    <title>Bíblia — CONTA MÃE</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="stylesheet" href="biblia.css" />
   </head>
   <body>
-    <div id="root"></div>
+    <div id="app">
+      <header class="bbl-header">
+        <div class="bbl-header-inner">
+          <div class="bbl-title">
+            <span class="bbl-title-icon" aria-hidden="true">📖</span>
+            <h1>Bíblia</h1>
+          </div>
+          <div class="bbl-actions">
+            <button id="btnSizeDown" class="bbl-icon-btn" aria-label="Diminuir texto" title="Diminuir texto">A-</button>
+            <button id="btnSizeUp" class="bbl-icon-btn" aria-label="Aumentar texto" title="Aumentar texto">A+</button>
+            <button id="btnTheme" class="bbl-icon-btn" aria-label="Alternar tema" title="Alternar tema">🌙</button>
+          </div>
+        </div>
+      </header>
+
+      <main class="bbl-main">
+        <section class="bbl-section">
+          <h2 class="bbl-section-title">Antigo Testamento</h2>
+          <div id="oldTestament" class="bbl-book-list"></div>
+        </section>
+
+        <section class="bbl-section">
+          <h2 class="bbl-section-title">Novo Testamento</h2>
+          <div id="newTestament" class="bbl-book-list"></div>
+        </section>
+      </main>
+
+      <footer class="bbl-footer">
+        Versão Almeida Revista e Corrigida · domínio público
+      </footer>
+    </div>
+
+    <script src="biblia.js"></script>
   </body>
 </html>
